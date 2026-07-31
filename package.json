@@ -1,0 +1,21 @@
+{
+  "name": "stitches",
+  "version": "0.1.0",
+  "description": "A Franken-agent workflow pack that stitches Superpowers-style discipline with OpenSpec-style lifecycle management for OpenCode.",
+  "type": "module",
+  "bin": {
+    "stitches": "./bin/stitches.js",
+    "ocss": "./bin/ocss"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "opencode",
+    "openspec",
+    "superpowers",
+    "agent",
+    "workflow"
+  ],
+  "license": "MIT"
+}
