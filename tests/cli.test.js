@@ -21,7 +21,7 @@ import {
   isStitchesProject,
   readActiveMarker,
   resolveActiveChange,
-} from "../guard.js";
+} from "../lib/guard.js";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
 const execFileAsync = promisify(execFile);

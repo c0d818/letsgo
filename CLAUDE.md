@@ -12,6 +12,7 @@ Superpowers 式工程纪律与 OpenSpec 式生命周期管理缝合为 SDD 工�
 - `hooks/hooks.json` + `scripts/`：运行时守卫（PreToolUse 权限门、
   SessionStart/UserPromptSubmit 上下文注入）
 - `cli/` + `state/`：`stitches` CLI 与状态机
+- `lib/`：共享逻辑（路径、模板复制、守卫决策模块 `lib/guard.js`）
 - `templates/`：`stitches init` 安装到目标项目的模板
 - `tests/`：`node --test`
 - `docs/`：工作流、架构、路线图

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { buildSystemRules } from "../guard.js";
+import { buildSystemRules } from "../lib/guard.js";
 
 async function readStdin() {
   const chunks = [];

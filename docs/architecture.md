@@ -14,18 +14,20 @@ Stitches 有四层：
 运行时强制拆分为薄钩子适配器和可测试的规则模块：
 
 ```text
-guard.js
 hooks/
 └── hooks.json
 scripts/
 ├── guard.js
 └── context.js
+lib/
+└── guard.js
 ```
 
-`scripts/guard.js` 把 `PreToolUse` 输入适配到 `guard.js` 的决策模块，并输出
-`permissionDecision`。`scripts/context.js` 把 `SessionStart` 和
+`scripts/guard.js` 把 `PreToolUse` 输入适配到 `lib/guard.js` 的决策模块，并
+输出 `permissionDecision`。`scripts/context.js` 把 `SessionStart` 和
 `UserPromptSubmit` 输入适配到 `buildSystemRules`，并输出 `additionalContext`。
-`guard.js` 拥有状态感知的决策：活跃变更解析、系统规则文本和写允许/拒绝检查。
+`lib/guard.js` 是共享决策模块（钩子脚本与 CLI 共用）：活跃变更解析、系统规则
+文本和写允许/拒绝检查。
 
 ## 三层编排
 

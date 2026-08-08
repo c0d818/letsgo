@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { decideToolUse } from "../guard.js";
+import { decideToolUse } from "../lib/guard.js";
 
 async function readStdin() {
   const chunks = [];

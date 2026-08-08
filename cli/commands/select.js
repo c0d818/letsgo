@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { readStatus } from "../../state/change.js";
-import { ACTIVE_MARKER_RELATIVE } from "../../guard.js";
+import { ACTIVE_MARKER_RELATIVE } from "../../lib/guard.js";
 
 export async function selectProject({ projectDir, changeId }) {
   if (!changeId) {
