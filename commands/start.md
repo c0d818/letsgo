@@ -1,13 +1,14 @@
 ---
 description: 实现需求
-argument-hint: <change-id>
+argument-hint: <需求描述>
 ---
 
 # Stitches 新需求
 
-使用方式：`/start <change-id>`
+使用方式：`/start <需求描述>`
 
-`<change-id>` 是 `$ARGUMENTS` 的第一个参数。
+`$ARGUMENTS` 是需求的初步描述，例如“做一个下雨提醒功能”。change-id 由
+代理自己生成，用户不需要提供。
 
 ## 总览
 
@@ -28,12 +29,20 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 ## 前置
 
-如果变更不存在，先执行：
+1. 如果 `$ARGUMENTS` 为空，先请用户描述需求。
+2. 从描述中提炼 change-id：
+   - 英文小写字母 + 连字符（kebab-case），简短表意，例如“下雨提醒功能”
+     -> `rain-reminder`
+   - 如果该 change-id 已存在，加后缀（如 `-2`）或换一个更精确的名字，并向
+     用户说明
+3. 把生成的 change-id 明确告诉用户，然后执行：
 
-```bash
-stitches new <change-id> --type feature
-stitches select <change-id>
-```
+   ```bash
+   stitches new <change-id> --type feature
+   stitches select <change-id>
+   ```
+
+4. 之后所有命令都使用这个 change-id。
 
 然后读取 `stitches-feature` 场景 Skill，确认类型特定要求（模板与产物要求）。
 

@@ -12,7 +12,7 @@ Stitches 使用六阶段 SDD 生命周期：
 按工作类型选择命令：
 
 ```text
-/start <change-id>
+/start <需求描述>
 /bugfix <change-id>
 /refactor <change-id>
 /test <change-id>

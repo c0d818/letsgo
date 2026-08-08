@@ -27,7 +27,7 @@ Stitches 的规划文档统一使用简体中文：
 
 按需求类型选择 Stitches 命令：
 
-1. `/start <change-id>`
+1. `/start <需求描述>`
 2. `/bugfix <change-id>`
 3. `/refactor <change-id>`
 4. `/test <change-id>`
