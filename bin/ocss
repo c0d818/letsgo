@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-STITCHES_HOME="${STITCHES_HOME:-/Users/gc0d/harness/stitches}"
-
-export OPENCODE_CONFIG="${OPENCODE_CONFIG:-$STITCHES_HOME/opencode.stitches.json}"
-export OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-$STITCHES_HOME}"
-
-exec opencode "$@"

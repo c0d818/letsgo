@@ -1,32 +1,62 @@
-# Changelog
+# 更新日志
 
-All notable changes to Stitches are recorded here.
+Stitches 的所有重要变更都记录在这里。
 
-The format follows Keep a Changelog-style sections, and versions follow
-semantic versioning while the project is still pre-1.0.
+格式遵循 Keep a Changelog 风格的分节，版本在 1.0 之前遵循语义化版本。
+
+## [0.2.0] - 2026-08-08
+
+### 变更
+
+- 把 Stitches 重新定位为 Claude Code 插件：仓库根目录现在是插件根目录，带有
+  `.claude-plugin/plugin.json` 和 `marketplace.json`。
+- 把斜杠命令、技能、代理和模板从 OpenCode 布局移植到 Claude Code 约定
+  （YAML frontmatter、`CLAUDE.md`、`.claude/` 项目内安装目标）。
+- 用 Claude Code 钩子替换 OpenCode 运行时守卫钩子：`PreToolUse` 权限门加上
+  `SessionStart`/`UserPromptSubmit` 上下文注入，底层仍是同一套状态感知写决策
+  模块。
+- 用文件化的活跃变更跟踪替换内存会话上下文：`stitches select <change-id>`
+  写入 `openspec/.stitches/active.json`，只有一个活跃变更时守卫自动回退使用。
+- MCP 配置现在位于 `.mcp.json`（Context7 远程 MCP）。
+- 守卫只在有 `openspec/` 目录的项目里启用，其他项目完全放行。
+- 全部用户可见文案、文档和模板统一为简体中文。
+
+### 移除
+
+- OpenCode 插件入口、`plugin/opencode.json`、OpenCode 钩子适配器、`ocss`
+  启动器、`@opencode-ai/plugin` 依赖，以及 `AGENTS.md`/`opencode.json` 安装
+  模板。
+
+### 已知问题
+
+- 运行时守卫决策依赖 Claude Code 工具输入形状，采集真实钩子轨迹后可能需要
+  进一步细化。
 
 ## [0.1.0] - 2026-07-31
 
-### Added
+### 新增
 
-- Initial Stitches CLI scaffold with `init`, `update`, `enable`, `disable`, and
-  `doctor` commands.
-- Fast OpenCode launcher `ocss`.
-- Stitches OpenCode config at `opencode.stitches.json`.
-- Single-source slash command prompts in `commands/`.
-- Single-source Stitches skills in `skills/`.
-- Project install templates for `AGENTS.md`, `opencode.json`, and `openspec/`.
-- Node test coverage for CLI install, toggle, doctor, and `ocss` launcher
-  structure.
+- CLI SDD 状态机命令：`new`、`status`、`validate`、`advance`。
+- `openspec/changes/<change-id>/status.json` 中的变更状态跟踪。
+- 乱序推进保护，变更不能跳过当前状态。
+- 首个运行时守卫：系统提示状态注入和状态范围写权限决策。
+- `feature`、`bugfix`、`refactor`、`test`、`maintenance` 的 OpenSpec 变更类型
+  模板。
+- `stitches new --type <type>` 创建工作区，包含 `proposal.md`、`design.md`、
+  `tasks.md`、`verification.md`、`archive.md` 和 spec 增量骨架。
+- 初始 Stitches CLI 脚手架：`init`、`update`、`enable`、`disable`、`doctor`。
+- 单一来源的斜杠命令提示词和技能。
+- 覆盖 CLI 安装、切换、doctor、状态门、位置参数解析和运行时守卫决策的
+  Node 测试。
 
-### Changed
+### 变更
 
-- Consolidated duplicate command and skill sources into top-level `commands/`
-  and `skills/`.
-- `ocss` now points `OPENCODE_CONFIG_DIR` at the Stitches project root so
-  OpenCode loads the single-source commands and skills.
+- 把命令流程改名为 SDD 生命周期：`stitch-clarify`、`stitch-design`、
+  `stitch-plan`、`stitch-apply`、`stitch-verify`、`stitch-archive`。
+- 给每个 Stitches 命令增加前后状态门。
+- 把 clarify 状态产物对齐到 OpenSpec `proposal.md`，而不是 Stitches 专有的
+  `clarify.md`。
 
-### Known Issues
+### 已知问题
 
-- OpenCode plugin behavior is still a minimal local marker plugin.
-- SDD lifecycle is not yet fully enforced by a validator or runtime guard.
+- 运行时守卫决策依赖 OpenCode 权限元数据，采集真实命令轨迹后需要进一步细化。

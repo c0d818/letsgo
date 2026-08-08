@@ -1,26 +1,30 @@
 ---
 name: stitches-spec
-description: Use when creating, applying, reviewing, or archiving OpenSpec-style changes through Stitches
+description: 通过 Stitches 创建、应用、审查或归档 OpenSpec 风格变更时使用
+user-invocable: false
 ---
 
-# Stitches Spec
+# Stitches 规格
 
-OpenSpec is the durable state layer. Stitches uses it to keep intent,
-implementation, and verification aligned.
+OpenSpec 是持久状态层。Stitches 用它让意图、实现与验证保持一致。
 
-## Directory Contract
+## 目录约定
 
 ```text
 openspec/
-  project.md
+  change-types/
   specs/
   changes/
     <change-id>/
+      status.json
       proposal.md
       tasks.md
       design.md
+      verification.md
+      archive.md
+      specs/
 ```
 
-`design.md` is required when work crosses module boundaries.
+当工作跨越模块边界时，必须提供 `design.md`。
 
-Review spec compliance before reviewing code style.
+先做规格符合性审查，再审查代码风格。

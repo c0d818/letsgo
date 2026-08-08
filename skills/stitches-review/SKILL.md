@@ -1,21 +1,19 @@
 ---
 name: stitches-review
-description: Use when reviewing code or preparing to ship a Stitches-managed change
+description: 在 Stitches 管理的变更中审查代码或准备发布时使用
+user-invocable: false
 ---
 
-# Stitches Review
+# Stitches 审查
 
-Review in two passes.
+分两轮进行审查。
 
-## Pass 1: Spec Compliance
+## 第一轮：规格符合性
 
-Check the active proposal and task list. Confirm each requirement is
-implemented, intentionally deferred, or still open.
+检查当前的 proposal 和任务清单，确认每个需求都已实现、明确延后或仍然开放。
 
-## Pass 2: Engineering Quality
+## 第二轮：工程质量
 
-Look for bugs, missing tests, behavioral regressions, unclear boundaries, and
-unnecessary abstractions.
+查找缺陷、缺失测试、行为回归、边界不清和多余抽象。
 
-Findings first, ordered by severity, with concrete file references when
-available.
+先按严重程度输出问题，尽量附带具体的文件引用。

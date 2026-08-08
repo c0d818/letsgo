@@ -1,66 +1,88 @@
 # Stitches
 
-Stitches is a Franken-agent workflow pack for OpenCode. It stitches
-Superpowers-style engineering discipline with OpenSpec-style lifecycle
-management.
+为 Claude Code 提供的 SDD 工作流插件：把 Superpowers 式工程纪律与 OpenSpec 式
+生命周期管理缝合在一起。
 
-## Status
+## 安装
 
-This repository is a first scaffold. It installs project-local OpenCode
-commands, skills, and OpenSpec state folders.
-
-## Usage
+### 其他人（发布后）
 
 ```bash
-stitches init /path/to/project
-stitches doctor /path/to/project
-stitches disable /path/to/project
-stitches enable /path/to/project
-stitches update /path/to/project
+# 1. 安装 CLI（斜杠命令依赖）
+npm install -g stitches
+
+# 2. 添加市场并安装插件
+/plugin marketplace add c0dgod/stitches
+/plugin install stitches@stitches
 ```
 
-## Project Tracking
-
-- Version history: `CHANGELOG.md`
-- Known bugs and follow-ups: `BUGS.md`
-- Release process: `VERSIONING.md`
-- GitHub issue templates: `.github/ISSUE_TEMPLATE/`
-
-## Fast OpenCode Launcher
-
-`ocss` starts OpenCode with the Stitches config, commands, skills, and plugin
-loaded from this checkout:
+也可以直接从 GitHub 安装：
 
 ```bash
-ocss
+/plugin install c0dgod/stitches@github
 ```
 
-If `ocss` is not on your PATH yet, add an alias:
+### 本地开发
 
 ```bash
-alias ocss='/Users/gc0d/harness/stitches/bin/ocss'
+cc --plugin-dir /Users/gc0d/harness/stitches
+# 或注册本地市场
+/plugin marketplace add /Users/gc0d/harness/stitches
+/plugin install stitches@stitches
 ```
 
-The launcher sets:
+也可以在项目的 `.claude/settings.json` 中加入：
+
+```json
+{
+  "plugins": ["file:///Users/gc0d/harness/stitches"]
+}
+```
+
+`stitches init <project>` 会把命令、技能、代理安装到项目本地（`.claude/`）。
+
+## 发布
 
 ```bash
-OPENCODE_CONFIG=/Users/gc0d/harness/stitches/opencode.stitches.json
-OPENCODE_CONFIG_DIR=/Users/gc0d/harness/stitches
+git push origin main
+npm publish
 ```
 
-After `init`, restart OpenCode in the target project and run:
+## 命令
+
+| 命令 | 简介 |
+| --- | --- |
+| `/stitches:start` | 实现需求 |
+| `/stitches:bugfix` | 修复缺陷 |
+| `/stitches:refactor` | 代码重构 |
+| `/stitches:test` | 补充测试 |
+| `/stitches:letsgo` | 一键自动流程 |
+| `/stitches:structure` | 查看项目结构 |
+| `/stitches:check` | 查看变更状态 |
+
+无冲突时可直接输入 `/start` 等短名。
+
+## CLI
+
+```bash
+stitches new <change-id> --type feature
+stitches select <change-id>
+stitches status --change <change-id>
+stitches validate --before|--after <state> --change <change-id>
+stitches advance <state> --change <change-id>
+```
+
+## 生命周期
 
 ```text
-/stitch-explore
-/stitch-propose
-/stitch-apply
-/stitch-review
-/stitch-ship
+clarify -> design -> plan -> apply -> verify -> archive -> done
 ```
 
-## Boundaries
+细节见 [docs/workflow.md](docs/workflow.md) 和
+[docs/architecture.md](docs/architecture.md)。
 
-- Superpowers remains an upstream plugin or local fork.
-- OpenSpec remains a CLI and project state format.
-- Stitches owns the glue: project templates, command prompts, skill rules, and
-  enable/disable/update lifecycle.
+## 项目跟踪
+
+- 更新日志：`CHANGELOG.md`
+- 已知问题：`BUGS.md`
+- 发布流程：`VERSIONING.md`

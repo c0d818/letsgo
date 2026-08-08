@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: 校验插件清单
+        run: npx --yes @anthropic-ai/claude-code plugin validate .claude-plugin/plugin.json
+      - name: 校验市场配置
+        run: npx --yes @anthropic-ai/claude-code plugin validate .claude-plugin/marketplace.json --strict

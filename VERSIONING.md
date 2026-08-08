@@ -1,29 +1,29 @@
-# Versioning
+# 版本管理
 
-Stitches uses semantic versioning.
+Stitches 使用语义化版本。
 
-While the project is pre-1.0, minor versions may still change command and file
-contracts. Patch versions should remain compatible within the same minor line.
+项目处于 1.0 之前时，次版本仍可能改变命令和文件契约。补丁版本在同一
+次版本线内应保持兼容。
 
-## Release Checklist
+## 发布检查清单
 
-1. Update `package.json` version.
-2. Update `CHANGELOG.md`.
-3. Move resolved items from `BUGS.md` to the closed section or GitHub Issues.
-4. Run `npm test`.
-5. Commit with a versioned message, for example:
+1. 更新 `package.json` 的版本号。
+2. 更新 `CHANGELOG.md`。
+3. 把 `BUGS.md` 中已解决的问题移到已关闭区段或 GitHub Issues。
+4. 运行 `npm test`。
+5. 用带版本号的提交信息提交，例如：
 
 ```bash
 git commit -m "chore: release v0.1.0"
 ```
 
-6. Tag the commit:
+6. 打标签：
 
 ```bash
 git tag v0.1.0
 ```
 
-7. Push branch and tags:
+7. 推送分支和标签：
 
 ```bash
 git push origin main

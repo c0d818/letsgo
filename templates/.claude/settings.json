@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "NotebookEdit"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "stitches",
+  "description": "Stitches Claude Code 插件的市场",
+  "owner": {
+    "name": "gc0d"
+  },
+  "plugins": [
+    {
+      "name": "stitches",
+      "description": "为 Claude Code 提供的 SDD 工作流插件：把 Superpowers 式工程纪律与 OpenSpec 式生命周期管理缝合在一起。",
+      "version": "0.2.0",
+      "source": "./"
+    }
+  ]
+}

@@ -1,26 +1,44 @@
 ---
 name: stitches-workflow
-description: Use when working in a project through the Stitches OpenCode launcher or Stitches slash commands
+description: 在通过 Stitches Claude Code 插件或 Stitches 斜杠命令工作的项目中使用
+user-invocable: false
 ---
 
-# Stitches Workflow
+# Stitches 工作流
 
-Stitches turns agent work into a small lifecycle: explore, propose, apply,
-review, ship.
+Stitches 把代理工作组织成一个小型 SDD 生命周期：clarify、design、plan、
+apply、verify、archive。
 
-## Core Rule
+## Skill 编排
 
-Do not jump from a vague request directly into broad edits. First identify the
-change type.
+命令只声明阶段需要的 Skill，不直接派发 Subagent。阶段 Skill 负责具体编排：
 
-| Change type | Required path |
+| 阶段 | Skill | Subagent 顺序 |
+| --- | --- | --- |
+| clarify | `stitches-clarify` | 主 Agent 完成需求交互和分析 |
+| design | `stitches-design` | `stitches-design-writer` -> `stitches-reviewer` |
+| plan | `stitches-plan` | `stitches-plan-writer` -> `stitches-reviewer` |
+| apply | `stitches-apply` | `stitches-apply-writer` -> `stitches-reviewer` |
+| verify | `stitches-verify` | `stitches-verify-writer` -> `stitches-reviewer` |
+| archive | `stitches-archive` | `stitches-archive-writer` -> `stitches-reviewer` |
+
+Reviewer 不通过时，阶段 Skill 负责把问题交回 writer 修复并重新审查；通过后
+才把结果交回主 Agent 执行状态校验和推进。
+
+## 核心规则
+
+不要从模糊的需求直接跳到大规模修改。先确定变更类型，再按顺序走完生命周期
+阶段。
+
+| 变更类型 | 必经路径 |
 | --- | --- |
-| Small local fix | Explore, edit, verify |
-| Behavior change | Explore, propose, apply, review, ship |
-| Multi-component change | Explore, proposal plus design, apply in tasks |
+| 小型本地修复 | clarify、design、plan、apply、verify、archive |
+| 行为变更 | clarify、design、plan、apply、verify、archive |
+| 跨组件变更 | clarify、design、plan、apply、verify、archive |
 
-## Common Mistakes
+## 常见错误
 
-- Editing before checking project context.
-- Treating an active proposal as optional once implementation starts.
-- Claiming completion before recording verification evidence.
+- 在检查项目上下文之前就开始编辑。
+- 跳过生命周期阶段或未经校验就推进。
+- 实现开始后把已批准的 proposal 当成可选项。
+- 在记录验证证据之前宣称完成。

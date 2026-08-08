@@ -1,31 +1,30 @@
 ---
-name: Change request
-about: Propose a Stitches workflow, command, or SDD lifecycle change
+name: 变更请求
+about: 提议 Stitches 工作流、命令或 SDD 生命周期的变更
 title: "change: "
 labels: enhancement
 assignees: ""
 ---
 
-## Goal
+## 目标
 
 
-## Why this belongs in Stitches
+## 为什么属于 Stitches
 
 
-## Proposed behavior
+## 提议的行为
 
 
-## Affected area
+## 影响范围
 
 - [ ] CLI
-- [ ] OpenCode command
-- [ ] Skill
-- [ ] OpenSpec/SDD state
-- [ ] Runtime guard
-- [ ] Documentation
+- [ ] 斜杠命令
+- [ ] 技能
+- [ ] OpenSpec/SDD 状态
+- [ ] 运行时守卫
+- [ ] 文档
 
-## Acceptance criteria
+## 验收标准
 
 - [ ]
 - [ ]
-

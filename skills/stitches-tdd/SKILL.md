@@ -1,19 +1,19 @@
 ---
 name: stitches-tdd
-description: Use when implementing behavior changes or bug fixes through Stitches
+description: 通过 Stitches 实现行为变更或缺陷修复时使用
+user-invocable: false
 ---
 
-# Stitches TDD
+# Stitches 测试驱动开发
 
-Stitches expects test-first work for behavior changes.
+Stitches 要求行为变更采用测试优先的工作方式。
 
-## Quick Reference
+## 快速参考
 
-1. Name the behavior that should change.
-2. Add or update the smallest test that proves it.
-3. Run the test and confirm it fails for the expected reason.
-4. Implement the minimum code.
-5. Run focused tests, then broader checks when risk justifies it.
+1. 说明要改变的行为。
+2. 添加或更新能证明该行为的最小测试。
+3. 运行测试，确认它因预期原因失败。
+4. 编写最小实现代码。
+5. 运行聚焦测试；风险允许时再跑更广的检查。
 
-Generated templates and documentation-only edits do not need full TDD, but the
-final response must say what was verified.
+生成的模板和纯文档修改不需要完整 TDD，但最终回复必须说明验证了什么。

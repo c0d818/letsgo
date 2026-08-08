@@ -1,35 +1,28 @@
-# Bugs
+# 缺陷
 
-Track known bugs, rough edges, and follow-up fixes here until GitHub Issues is
-the primary tracker.
+在 GitHub Issues 成为主要跟踪方式之前，在这里记录已知缺陷、粗糙边缘和后续修复。
 
-## Open
+## 未关闭
 
-### BUG-0001: Empty legacy directories may remain after migration
+### BUG-0002：运行时守卫的元数据覆盖仍然较窄
 
-- Status: Open
-- Severity: Low
-- Area: Repository cleanup
-- First seen: 2026-07-31
-- Symptom: `opencode/commands`, `opencode/skills`, or `templates/.opencode`
-  can remain as empty directories after moving command and skill sources to
-  top-level `commands/` and `skills/`.
-- Workaround: Remove empty directories manually after confirming they contain
-  no files.
-- Desired fix: Add a cleanup command or migration script.
+- 状态：未关闭
+- 严重程度：低
+- 区域：SDD 强制
+- 首次发现：2026-07-31
+- 症状：运行时守卫现在会检查 Claude Code 工具调用，但它的路径检测依赖 Claude
+  Code 为每个工具提供的输入形状（写工具的 `file_path`、`Bash` 的命令分词）。
+- 临时方案：使用 Stitches 斜杠命令；当请求没有可见文件路径时，审查权限提示。
+- 期望修复：采集真实 Claude Code 钩子轨迹，为缺失的元数据形状扩展解析器。
 
-### BUG-0002: Runtime guard is not implemented yet
+## 已关闭
 
-- Status: Open
-- Severity: Medium
-- Area: SDD enforcement
-- First seen: 2026-07-31
-- Symptom: Stitches documents the desired workflow but does not yet block
-  skipped lifecycle states such as applying code before a plan exists.
-- Workaround: Use `/stitch-*` commands and `stitches doctor` manually.
-- Desired fix: Add `stitches validate` and then a stricter OpenCode runtime
-  guard.
+### BUG-0001：迁移后可能残留空的旧目录
 
-## Closed
-
-No closed bugs yet.
+- 状态：已关闭
+- 严重程度：低
+- 区域：仓库清理
+- 首次发现：2026-07-31
+- 关闭时间：2026-08-03
+- 解决方式：把仓库重构为插件优先结构，移除旧的 `src/`、`bin/` 和
+  `opencode/plugins/` 路径。
