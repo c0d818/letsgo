@@ -42,8 +42,9 @@ stitches select <change-id>
 ### 1. clarify（需求澄清）
 
 - Skill：`stitches-clarify`（主 Agent 完成，不派发 subagent）
-- 流程：需求问答 -> 用户确认摘要 -> CodeGraph 代码影响 -> Context7 外部知识
-  -> 头脑风暴方案 -> 用户确认方案 -> DeepReview -> 写入 `proposal.md`
+- 流程：需求问答（一次一题带选项）-> 用户确认摘要 -> 代码影响分析 -> 外部知识
+  -> 头脑风暴方案（至少 3 个候选）-> 用户确认方案 -> 反向审查
+  （`@stitches-reviewer`）-> 写入 `proposal.md`
 - 本阶段不修改生产代码、测试代码或设计文档。
 
 ### 2. design（技术设计）

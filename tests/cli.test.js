@@ -55,6 +55,7 @@ test("init 把 Stitches 模板安装进项目", async () => {
     await stat(path.join(projectDir, ".claude/skills/stitches-clarify/SKILL.md"));
     await stat(path.join(projectDir, ".claude/commands/check.md"));
     await stat(path.join(projectDir, ".claude/commands/structure.md"));
+    await stat(path.join(projectDir, ".claude/commands/log.md"));
     await assert.rejects(
       stat(path.join(projectDir, ".claude/commands/maintenance.md")),
       { code: "ENOENT" }
@@ -73,16 +74,6 @@ test("init 把 Stitches 模板安装进项目", async () => {
       stat(path.join(projectDir, ".claude/agents/stitches-design-reviewer.md")),
       { code: "ENOENT" }
     );
-    const claudeSettings = JSON.parse(
-      await readFile(path.join(projectDir, ".claude/settings.json"), "utf8")
-    );
-    assert.deepEqual(claudeSettings.permissions.ask, [
-      "Bash",
-      "Write",
-      "Edit",
-      "MultiEdit",
-      "NotebookEdit",
-    ]);
     assert.match(
       await readFile(path.join(projectDir, "openspec/change-types/bugfix/proposal.md"), "utf8"),
       /遵循 CLAUDE\.md 中的语言规则[\s\S]*缺陷修复提案/
@@ -161,7 +152,6 @@ test("doctor 报告 Stitches 是否已安装", async () => {
     assert.equal(result.commands, true);
     assert.equal(result.skills, true);
     assert.equal(result.openspec, true);
-    assert.equal(result.claudeSettings, true);
   });
 });
 
@@ -418,12 +408,45 @@ test("运行时守卫在写入看不到文件路径时请求审查", async () =>
       projectDir,
       toolName: "Bash",
       toolInput: {
-        command: "npm test",
+        command: "npm publish",
       },
     });
 
     assert.equal(decision.status, "ask");
     assert.match(decision.reason, /未看到文件路径/);
+  });
+});
+
+test("运行时守卫放行常见开发命令", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    for (const command of ["npm test", "npm run build", "node --test", "yarn lint"]) {
+      const decision = await decideToolUse({
+        projectDir,
+        toolName: "Bash",
+        toolInput: { command },
+      });
+      assert.equal(decision.status, "allow", command);
+    }
+  });
+});
+
+test("运行时守卫允许写入运行问题日志", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    const decision = await decideToolUse({
+      projectDir,
+      toolName: "Write",
+      toolInput: {
+        file_path: path.join(projectDir, "openspec/.stitches/issues.md"),
+        content: "## 2026-08-08 15:00\n- 测试问题",
+      },
+    });
+    assert.equal(decision.status, "allow");
   });
 });
 

@@ -10,7 +10,7 @@ user-invocable: false
 
 按 clarify -> design -> plan -> apply -> verify -> archive 执行。
 
-clarify 由主 Agent 完成需求问答、代码分析、方案确认和 DeepReview。
+clarify 由主 Agent 完成需求问答、代码分析、方案确认和反向审查（DeepReview）。
 design、plan、apply、verify、archive 分别读取对应阶段 Skill。
 阶段 Skill 必须按 writer -> reviewer 调用专用 Subagent：
 

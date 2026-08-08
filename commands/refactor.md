@@ -24,7 +24,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 3. 完成校验：`stitches validate --after <state> --change <change-id>`
 4. 推进：`stitches advance <state> --change <change-id>`
 
-校验或审查失败时立即停止并报告，不进入下一阶段，不手动修改 `status.json`。
+校验或审查失败时先将问题记录到 `openspec/.stitches/issues.md`，然后停止并
+报告；不进入下一阶段，不手动修改 `status.json`。
 
 ## 前置
 

@@ -35,6 +35,8 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
   `<阶段>-writer -> stitches-reviewer -> 主 Agent 校验并推进`。
 - 新增钩子脚本放 `scripts/`，在 `hooks/hooks.json` 里注册，路径用
   `${CLAUDE_PLUGIN_ROOT}`。
+- 运行问题由 `/log` 命令记录到项目的 `openspec/.stitches/issues.md`，守卫允许
+  写入该文件。
 
 ## 开发
 

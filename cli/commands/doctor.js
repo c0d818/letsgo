@@ -5,7 +5,6 @@ export async function doctorProject({ projectDir }) {
   const commands = await existsAt(projectDir, ".claude/commands");
   const skills = await existsAt(projectDir, ".claude/skills");
   const openspec = await existsAt(projectDir, "openspec/change-types");
-  const claudeSettings = await existsAt(projectDir, ".claude/settings.json");
 
   return {
     projectDir,
@@ -14,6 +13,5 @@ export async function doctorProject({ projectDir }) {
     commands,
     skills,
     openspec,
-    claudeSettings,
   };
 }

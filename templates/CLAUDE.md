@@ -2,8 +2,8 @@
 
 本项目由 Stitches 管理。
 
-初始化会在 `.claude/settings.json` 中把写操作权限设为询问模式，并预留 Context7
-远程 MCP（`context7`）。CodeGraph 需要先在本机安装后再自行加入 MCP 配置。
+Stitches 插件会提供 Context7 远程 MCP（`context7`），写操作由插件守卫按阶段
+管理。CodeGraph 需要先在本机安装后再自行加入 MCP 配置。
 
 ## 语言规则
 
@@ -36,7 +36,7 @@ Stitches 的规划文档统一使用简体中文：
 用户不需要单独调用阶段命令。`/letsgo <change-id> [类型]` 一键自动走完整个
 生命周期（工程维护类变更可用 `stitches new --type maintenance` 配合
 `/letsgo` 处理）。`/structure` 查看项目结构，`/check <change-id>` 查看变更
-状态。
+状态，`/log <问题>` 记录运行中遇到的问题。
 
 使用 `stitches validate` 和 `stitches advance`，让
 `openspec/changes/<change-id>/status.json` 与流程保持同步。

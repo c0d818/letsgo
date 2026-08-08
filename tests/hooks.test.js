@@ -115,7 +115,7 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
       {
         session_id: "session-1",
         tool_name: "Bash",
-        tool_input: { command: "npm test" },
+        tool_input: { command: "npm publish" },
       },
       projectDir
     );
@@ -165,6 +165,29 @@ test("context 脚本注入生命周期规则和活跃变更状态", async () => 
     assert.match(context, /Stitches 运行时守卫已启用/);
     assert.match(context, /当前 Stitches 变更：add-login，类型：feature，阶段：clarify/);
     assert.match(context, /clarify -> design -> plan -> apply -> verify -> archive -> done/);
+  });
+});
+
+test("context 脚本在用户消息时只注入当前变更摘要", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    const { code, stdout } = await runHookScript(
+      "scripts/context.js",
+      {
+        session_id: "session-1",
+        prompt: "继续",
+        working_directory: projectDir,
+      },
+      projectDir
+    );
+    const output = JSON.parse(stdout);
+    const context = output.hookSpecificOutput.additionalContext;
+
+    assert.equal(code, 0);
+    assert.match(context, /当前 Stitches 变更：add-login/);
+    assert.doesNotMatch(context, /Stitches 运行时守卫已启用/);
   });
 });
 

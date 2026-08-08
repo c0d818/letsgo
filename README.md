@@ -59,6 +59,7 @@ npm publish
 | `/stitches:letsgo` | 一键自动流程 |
 | `/stitches:structure` | 查看项目结构 |
 | `/stitches:check` | 查看变更状态 |
+| `/stitches:log` | 记录运行问题 |
 
 无冲突时可直接输入 `/start` 等短名。
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { buildSystemRules } from "../lib/guard.js";
+import { buildActiveContext, buildSystemRules } from "../lib/guard.js";
 
 async function readStdin() {
   const chunks = [];
@@ -24,7 +24,10 @@ const projectDir =
   input.cwd ||
   input.working_directory ||
   process.cwd();
-const rules = await buildSystemRules({ projectDir });
+const isUserPrompt = typeof input.prompt === "string";
+const rules = isUserPrompt
+  ? await buildActiveContext({ projectDir })
+  : await buildSystemRules({ projectDir });
 
 if (!rules) {
   process.stdout.write("{}");
