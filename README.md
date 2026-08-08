@@ -84,5 +84,4 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 ## 项目跟踪
 
 - 更新日志：`CHANGELOG.md`
-- 已知问题：`BUGS.md`
 - 发布流程：`VERSIONING.md`
