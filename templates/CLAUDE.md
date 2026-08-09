@@ -37,6 +37,8 @@ Stitches 的规划文档统一使用简体中文：
 生命周期（工程维护类变更可用 `stitches new --type maintenance` 配合
 `/letsgo` 处理）。`/structure` 查看项目结构，`/check <change-id>` 查看变更
 状态，`/log <问题>` 记录运行中遇到的问题。
+随时可以用 `/tokens` 查看本次会话主代理和每个 subagent 的 token 用量，
+报告保存在 `openspec/.stitches/token-report.md`。
 
 使用 `stitches validate` 和 `stitches advance`，让
 `openspec/changes/<change-id>/status.json` 与流程保持同步。

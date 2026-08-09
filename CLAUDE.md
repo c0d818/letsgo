@@ -37,6 +37,8 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
   `${CLAUDE_PLUGIN_ROOT}`。
 - 运行问题由 `/log` 命令记录到项目的 `openspec/.stitches/issues.md`，守卫允许
   写入该文件。
+- token 用量由 `/tokens` 命令或 Stop 钩子统计到 `openspec/.stitches/token-report.md`
+  （解析 `~/.claude/projects/` 下的会话记录，按 `attributionAgent` 区分 subagent）。
 
 ## 开发
 

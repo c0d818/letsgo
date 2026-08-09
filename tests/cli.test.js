@@ -189,6 +189,10 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
     hooks.hooks.UserPromptSubmit[0].hooks[0].command,
     /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/context\.js/
   );
+  assert.match(
+    hooks.hooks.Stop[0].hooks[0].command,
+    /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/token-report\.js/
+  );
 });
 
 test("cli init 把第一个位置参数当作项目目录", async () => {

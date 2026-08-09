@@ -8,6 +8,7 @@ import { statusProject } from "./commands/status.js";
 import { validateProject } from "./commands/validate.js";
 import { advanceProject } from "./commands/advance.js";
 import { selectProject } from "./commands/select.js";
+import { tokensProject } from "./commands/tokens.js";
 
 const commands = {
   init: initProject,
@@ -20,6 +21,7 @@ const commands = {
   validate: validateProject,
   advance: advanceProject,
   select: selectProject,
+  tokens: tokensProject,
 };
 
 export async function main(argv) {
@@ -58,7 +60,8 @@ function printHelp() {
   stitches status --change <change-id> [project-dir]
   stitches validate --before|--after <state> --change <change-id> [project-dir]
   stitches advance <state> --change <change-id> [project-dir]
-  stitches select <change-id> [project-dir]`);
+  stitches select <change-id> [project-dir]
+  stitches tokens [transcript-path] [project-dir]`);
 }
 
 function parseArgs(commandName, args) {
@@ -146,6 +149,17 @@ function parseArgs(commandName, args) {
   if (commandName === "select") {
     if (!options.changeId && positional.length > 0) {
       options.changeId = positional[0];
+      positional.shift();
+    }
+    if (!options.projectDir && positional.length > 0) {
+      options.projectDir = positional[0];
+    }
+    return options;
+  }
+
+  if (commandName === "tokens") {
+    if (!options.transcriptPath && positional.length > 0) {
+      options.transcriptPath = positional[0];
       positional.shift();
     }
     if (!options.projectDir && positional.length > 0) {

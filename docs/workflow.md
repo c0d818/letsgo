@@ -30,7 +30,9 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 `/letsgo <change-id> [类型]` 一键自动把变更走完整个生命周期（工程维护类变更
 可用 `stitches new --type maintenance` 配合 `/letsgo` 处理）；`/check
-<change-id>` 查看变更状态，`/structure` 查看项目结构，均为只读命令。
+<change-id>` 查看变更状态，`/structure` 查看项目结构，`/tokens` 查看主代理和
+每个 subagent 的 token 用量（报告保存到 `openspec/.stitches/token-report.md`），
+均为只读命令；`/log <问题>` 记录运行中遇到的问题。
 
 ## CLI 状态门
 
