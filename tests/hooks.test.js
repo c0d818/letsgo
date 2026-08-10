@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { initProject } from "../cli/commands/init.js";
 import { newChangeProject } from "../cli/commands/new.js";
+import { readRuntimeState } from "../lib/runtime-state.js";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
 
@@ -149,6 +150,81 @@ test("PreToolUse 守卫脚本在钩子输入无法解析时请求审查", async 
     assert.equal(result.code, 0);
     assert.equal(output.hookSpecificOutput.hookEventName, "PreToolUse");
     assert.equal(output.hookSpecificOutput.permissionDecision, "ask");
+  });
+});
+
+test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    const blocked = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: { subagent_type: "lg:letsgo-reviewer" },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(blocked.stdout).hookSpecificOutput.permissionDecision,
+      "deny"
+    );
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PostToolUse",
+        tool_name: "Skill",
+        tool_input: { skill: "lg:letsgo-clarify" },
+      },
+      projectDir
+    );
+
+    const allowed = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: { subagent_type: "lg:letsgo-reviewer" },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(allowed.stdout).hookSpecificOutput.permissionDecision,
+      "allow"
+    );
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "SubagentStart",
+        agent_type: "lg:letsgo-reviewer",
+        agent_id: "reviewer-1",
+      },
+      projectDir
+    );
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "SubagentStop",
+        agent_type: "lg:letsgo-reviewer",
+        agent_id: "reviewer-1",
+        last_assistant_message:
+          '通过\nLETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[]}',
+      },
+      projectDir
+    );
+
+    const state = await readRuntimeState(projectDir);
+    assert.equal(state.skills["lg:letsgo-clarify"], "completed");
+    assert.equal(state.agents["lg:letsgo-reviewer"].status, "passed");
   });
 });
 

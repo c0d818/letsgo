@@ -1,4 +1,5 @@
 ---
+name: letsgo-design-writer
 description: 为已澄清的 LetsGo 变更编写技术设计和规格
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: blue
@@ -28,6 +29,7 @@ color: blue
 - `design.md`
 - 必要的变更规格 `specs/**`
 - 供 reviewer 审查的完成摘要
+- 最后一行输出：`LETGO_RESULT {"stage":"design","role":"writer","status":"ready"}`
 
 ## 边界
 

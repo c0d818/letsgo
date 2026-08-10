@@ -1,4 +1,5 @@
 ---
+name: letsgo-apply-writer
 description: 按 LetsGo 任务计划和固定 TDD 流程实现代码
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: orange
@@ -35,6 +36,7 @@ color: orange
 - 已完成的 `tasks.md`
 - 与任务逐项对应的 `tdd-evidence.md`
 - 供 reviewer 审查的完成摘要
+- 最后一行输出：`LETGO_RESULT {"stage":"apply","role":"writer","status":"ready"}`
 
 ## 边界
 

@@ -96,6 +96,24 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 
 守卫只在有 `openspec/` 目录的项目里启用；其他项目不受干扰。
 
+### 轻量运行前检查
+
+插件使用一个覆盖更新的 `openspec/.letsgo/runtime-state.json` 记录当前 session、
+变更和阶段的编排状态，不为每次任务创建独立日志：
+
+1. `PostToolUse Skill` 记录阶段 Skill 已完成；apply 同时要求 `letsgo-apply` 和
+   `letsgo-tdd`。
+2. `PreToolUse Agent` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
+   writer 已完成。
+3. `SubagentStart` 和 `SubagentStop` 记录 Subagent 状态；writer 和 reviewer 最后
+   一行使用 `LETGO_RESULT` 输出机器可读结论。
+4. `letsgo advance <state>` 在更新 `status.json` 前检查阶段 Skill、writer 和
+   reviewer；缺少证据时不推进。
+5. writer 重新启动后，旧 reviewer 结论立即过期，必须重新审查。
+
+该文件不保存提示词、代码内容、历史事件或 token 记录；阶段推进后自动重置为
+下一阶段，archive 完成后重置为空状态。
+
 守卫直接读取 `openspec/changes/*/status.json`。只有一个活跃变更时自动使用；
 有多个变更时，`letsgo select <change-id>` 写入
 `openspec/.letsgo/active.json`，守卫优先使用标记的变更。

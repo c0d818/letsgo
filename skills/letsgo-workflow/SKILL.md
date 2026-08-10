@@ -34,6 +34,8 @@ user-invocable: false
 
 4. reviewer 不通过时，将问题交回当前 writer 修复并重新审查。
 5. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
+6. 遵守运行前检查：先完成阶段 Skill，再启动 writer；writer 完成后再启动
+   reviewer。Subagent 最后一行必须输出约定的 `LETGO_RESULT`。
 
 ## 输出
 
@@ -45,3 +47,4 @@ user-invocable: false
 - 不跳过校验或手动推进 `status.json`。
 - 不在记录真实验证证据前宣称完成。
 - 已批准的 proposal 在实现阶段不是可选参考。
+- 不绕过 `runtime-state.json` 的 Skill、writer 和 reviewer 顺序检查。

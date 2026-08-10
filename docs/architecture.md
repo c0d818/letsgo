@@ -18,9 +18,11 @@ hooks/
 └── hooks.json
 scripts/
 ├── guard.js
-└── context.js
+├── context.js
+└── runtime-state.js
 lib/
-└── guard.js
+├── guard.js
+└── runtime-state.js
 ```
 
 `scripts/guard.js` 把 `PreToolUse` 输入适配到 `lib/guard.js` 的决策模块，并
@@ -28,6 +30,11 @@ lib/
 `UserPromptSubmit` 输入适配到 `buildSystemRules`，并输出 `additionalContext`。
 `lib/guard.js` 是共享决策模块（钩子脚本与 CLI 共用）：活跃变更解析、系统规则
 文本和写允许/拒绝检查。
+
+`scripts/runtime-state.js` 监听 Skill 和 Subagent 生命周期，`lib/runtime-state.js`
+维护唯一的 `openspec/.letsgo/runtime-state.json`。它在 writer 启动前检查阶段
+Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。
+状态只覆盖当前 session、变更和阶段，不保存历史运行日志。
 
 ## 三层编排
 
@@ -63,8 +70,8 @@ commands/*.md   ->   skills/*/SKILL.md   ->   agents/*.md
 ```
 
 Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；description
-同时说明触发场景和职责。Subagent frontmatter 固定使用 `description`、`tools`
-和 `color`；writer 具有写入工具，reviewer 只保留只读工具。
+同时说明触发场景和职责。Subagent frontmatter 固定使用 `name`、`description`、
+`tools` 和 `color`；writer 具有写入工具，reviewer 只保留只读工具。
 
 场景 Skill、阶段 Skill 和支撑 Skill 可以在五个固定章节内表达不同规则，但不再
 自行发明一级章节。Subagent 统一使用“Subagent”，状态文件统一写作

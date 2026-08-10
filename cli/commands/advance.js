@@ -1,5 +1,10 @@
 import { readStatus, writeStatus } from "../../state/change.js";
 import { NEXT_STATE, assertState } from "../../state/states.js";
+import {
+  readRuntimeState,
+  resetRuntimeState,
+  validateRuntimeBeforeAdvance,
+} from "../../lib/runtime-state.js";
 import { validateProject } from "./validate.js";
 
 export async function advanceProject({ projectDir, changeId, state }) {
@@ -29,6 +34,20 @@ export async function advanceProject({ projectDir, changeId, state }) {
     };
   }
 
+  const runtimeValidation = await validateRuntimeBeforeAdvance({
+    projectDir,
+    changeId,
+    stage: state,
+  });
+  if (!runtimeValidation.ok) {
+    return {
+      ...validation,
+      ok: false,
+      advanced: false,
+      errors: runtimeValidation.errors,
+    };
+  }
+
   const completed = status.completed.includes(state)
     ? status.completed
     : [...status.completed, state];
@@ -41,6 +60,13 @@ export async function advanceProject({ projectDir, changeId, state }) {
     state: NEXT_STATE[state],
     completed,
     approved,
+  });
+  const runtimeState = await readRuntimeState(projectDir);
+  await resetRuntimeState({
+    projectDir,
+    sessionId: runtimeState?.sessionId ?? null,
+    changeId: NEXT_STATE[state] === "done" ? null : changeId,
+    stage: NEXT_STATE[state] === "done" ? null : NEXT_STATE[state],
   });
 
   return {

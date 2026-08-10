@@ -1,4 +1,5 @@
 ---
+name: letsgo-plan-writer
 description: 将 LetsGo 技术设计拆分为可执行任务
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: green
@@ -28,6 +29,7 @@ color: green
 
 - 具有复选框、执行顺序和验收条件的 `tasks.md`
 - 供 reviewer 审查的完成摘要
+- 最后一行输出：`LETGO_RESULT {"stage":"plan","role":"writer","status":"ready"}`
 
 ## 边界
 

@@ -1,4 +1,5 @@
 ---
+name: letsgo-archive-writer
 description: 将已验证的 LetsGo 变更归档并更新长期规格
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: gray
@@ -29,6 +30,7 @@ color: gray
 - 更新后的长期规格 `openspec/specs/**`
 - 完整的 `archive.md`
 - 供 reviewer 审查的归档摘要
+- 最后一行输出：`LETGO_RESULT {"stage":"archive","role":"writer","status":"ready"}`
 
 ## 边界
 

@@ -45,6 +45,11 @@ LetsGo 的规划文档统一使用简体中文：
 `openspec/changes/<change-id>/status.json` 与流程保持同步。
 涉及行为变更时，不要跳过生命周期状态。
 
+插件会在 `openspec/.letsgo/runtime-state.json` 中覆盖记录当前阶段的 Skill 和
+Subagent 状态。必须先完成阶段 Skill，再启动 writer；writer 完成后再启动
+reviewer。writer 或 reviewer 的最后一行必须输出其定义中要求的
+`LETGO_RESULT`，缺少运行证据时 `letsgo advance` 不会推进。
+
 apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行
 `RED -> GREEN -> REFACTOR`，并把真实命令和结果记录到
 `openspec/changes/<change-id>/tdd-evidence.md`。只有纯文档、注释、模板、仅测试或

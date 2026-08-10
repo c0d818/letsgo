@@ -1,4 +1,5 @@
 ---
+name: letsgo-reviewer
 description: 只读审查 LetsGo 当前阶段产物的完整性、规格符合性和可验证性
 tools: Read, Glob, Grep, Bash
 color: blue
@@ -32,6 +33,10 @@ color: blue
 
 - 按严重程度排序的问题清单和修复方向
 - 明确的“通过”或“阻塞”结论及依据
+- 最后一行必须输出机器可读结果，不得放入代码块：
+  - 通过：`LETGO_RESULT {"stage":"<当前阶段>","role":"reviewer","status":"pass","blocking":[]}`
+  - 阻塞：`LETGO_RESULT {"stage":"<当前阶段>","role":"reviewer","status":"blocked","blocking":["具体问题"]}`
+  - 必须把 `<当前阶段>` 替换为派发时提供的实际阶段名。
 
 ## 边界
 

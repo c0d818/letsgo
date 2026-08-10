@@ -16,6 +16,13 @@ import { advanceProject } from "../cli/commands/advance.js";
 import { selectProject } from "../cli/commands/select.js";
 import { validateTddEvidence } from "../state/validate.js";
 import {
+  REVIEWER,
+  STAGE_SKILLS,
+  STAGE_WRITERS,
+  recordAgentStopped,
+  recordSkillCompleted,
+} from "../lib/runtime-state.js";
+import {
   activeChanges,
   buildSystemRules,
   decideToolUse,
@@ -34,6 +41,37 @@ async function withTempProject(fn) {
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+}
+
+async function markRuntimeStageReady(projectDir, changeId, stage) {
+  const sessionId = "test-session";
+  for (const skillName of STAGE_SKILLS[stage]) {
+    await recordSkillCompleted({
+      projectDir,
+      sessionId,
+      changeId,
+      stage,
+      skillName,
+    });
+  }
+  if (STAGE_WRITERS[stage]) {
+    await recordAgentStopped({
+      projectDir,
+      sessionId,
+      changeId,
+      stage,
+      agentType: STAGE_WRITERS[stage],
+      lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"writer","status":"ready"}`,
+    });
+  }
+  await recordAgentStopped({
+    projectDir,
+    sessionId,
+    changeId,
+    stage,
+    agentType: REVIEWER,
+    lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"reviewer","status":"pass","blocking":[]}`,
+  });
 }
 
 test("init 把 LetsGo 模板安装进项目", async () => {
@@ -242,7 +280,9 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
 
     assert.match(
       content,
-      /^---\ndescription: .+\ntools: .+\ncolor: [a-z]+\n---\n\n# LetsGo /,
+      new RegExp(
+        `^---\\nname: ${filename.replace(/\.md$/, "")}\\ndescription: .+\\ntools: .+\\ncolor: [a-z]+\\n---\\n\\n# LetsGo `
+      ),
       `${filename} 的 frontmatter 或标题不符合统一模板`
     );
     assert.deepEqual(
@@ -268,6 +308,12 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
     hooks.hooks.PreToolUse[0].hooks[0].command,
     /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/guard\.js/
   );
+  assert.equal(hooks.hooks.PreToolUse[1].matcher, "Agent");
+  assert.match(hooks.hooks.PreToolUse[1].hooks[0].command, /runtime-state\.js/);
+  assert.equal(hooks.hooks.PostToolUse[0].matcher, "Skill");
+  assert.equal(hooks.hooks.PostToolUseFailure[0].matcher, "Skill");
+  assert.match(hooks.hooks.SubagentStart[0].hooks[0].command, /runtime-state\.js/);
+  assert.match(hooks.hooks.SubagentStop[0].hooks[0].command, /runtime-state\.js/);
   assert.match(
     hooks.hooks.SessionStart[0].hooks[0].command,
     /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/context\.js/
@@ -432,6 +478,14 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
       "Acceptance Criteria: User can sign in.",
       "",
     ].join("\n"));
+    const missingRuntime = await advanceProject({
+      projectDir,
+      changeId: "add-login",
+      state: "clarify",
+    });
+    assert.equal(missingRuntime.advanced, false);
+    assert.match(missingRuntime.errors.join("\n"), /runtime-state\.json/);
+    await markRuntimeStageReady(projectDir, "add-login", "clarify");
     await advanceProject({ projectDir, changeId: "add-login", state: "clarify" });
 
     const designSpecWrite = await decideToolUse({
@@ -460,6 +514,7 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
       "Test Strategy: Unit test login flow.",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "design");
     await advanceProject({ projectDir, changeId: "add-login", state: "design" });
     await writeFile(path.join(changeDir, "tasks.md"), [
       "# Tasks",
@@ -467,6 +522,7 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
       "- [x] Implement login",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "plan");
     await advanceProject({ projectDir, changeId: "add-login", state: "plan" });
 
     const applyWrite = await decideToolUse({
@@ -740,6 +796,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "Acceptance Criteria: User can sign in.",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "clarify");
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "clarify" })).status.state, "design");
 
     await writeFile(path.join(changeDir, "design.md"), [
@@ -748,6 +805,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "Test Strategy: Unit test login flow.",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "design");
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "design" })).status.state, "plan");
 
     await writeFile(path.join(changeDir, "tasks.md"), [
@@ -756,6 +814,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "- [ ] Implement login",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "plan");
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "plan" })).status.state, "apply");
 
     assert.equal((await validateProject({ projectDir, changeId: "add-login", mode: "before", state: "verify" })).ok, false);
@@ -765,6 +824,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "- [x] Implement login",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "apply");
     const missingTdd = await advanceProject({
       projectDir,
       changeId: "add-login",
@@ -800,6 +860,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "Exit: 0",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "verify");
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "verify" })).status.state, "archive");
 
     await mkdir(path.join(projectDir, "openspec/archive"), { recursive: true });
@@ -808,6 +869,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "Summary: Login change archived.",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "archive");
     const archived = await advanceProject({ projectDir, changeId: "add-login", state: "archive" });
     assert.equal(archived.status.state, "done");
     assert.deepEqual(archived.status.completed, ["clarify", "design", "plan", "apply", "verify", "archive"]);

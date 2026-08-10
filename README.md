@@ -83,6 +83,10 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果记录到
 `tdd-evidence.md`；不改变生产行为的修改必须记录明确的 TDD 豁免和验证证据。
 
+LetsGo 还使用单一的 `openspec/.letsgo/runtime-state.json` 做轻量运行前检查：
+writer 启动前确认阶段 Skill，reviewer 启动前确认 writer，状态推进前确认 reviewer
+通过。该文件只保存当前阶段状态，不累积每次任务的 JSON 日志。
+
 细节见 [docs/workflow.md](docs/workflow.md) 和
 [docs/architecture.md](docs/architecture.md)。
 

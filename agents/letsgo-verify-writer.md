@@ -1,4 +1,5 @@
 ---
+name: letsgo-verify-writer
 description: 为 LetsGo 变更执行真实验证并记录证据
 tools: Read, Write, Edit, Bash, Glob, Grep
 color: purple
@@ -29,6 +30,7 @@ color: purple
 
 - 可复核的 `verification.md`
 - 供 reviewer 审查的验证摘要
+- 最后一行输出：`LETGO_RESULT {"stage":"verify","role":"writer","status":"ready"}`
 
 ## 边界
 
