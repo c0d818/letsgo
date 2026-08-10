@@ -209,6 +209,55 @@ test("claude 插件清单和市场配置有效", async () => {
   }
 });
 
+test("所有 Skill 和 Subagent 使用统一模板", async () => {
+  const requiredSections = ["职责", "输入", "执行流程", "输出", "边界"];
+  const skillRoot = path.join(packageRoot, "skills");
+  const skillEntries = await readdir(skillRoot, { withFileTypes: true });
+
+  for (const entry of skillEntries.filter((item) => item.isDirectory())) {
+    const filename = path.join(skillRoot, entry.name, "SKILL.md");
+    const content = await readFile(filename, "utf8");
+
+    assert.match(
+      content,
+      new RegExp(
+        `^---\\nname: ${entry.name}\\ndescription: 在 .+\\nuser-invocable: false\\n---\\n\\n# LetsGo `
+      ),
+      `${entry.name} 的 frontmatter 或标题不符合统一模板`
+    );
+    assert.deepEqual(
+      [...content.matchAll(/^## (.+)$/gm)].map((match) => match[1]),
+      requiredSections,
+      `${entry.name} 的章节顺序不符合统一模板`
+    );
+  }
+
+  const agentRoot = path.join(packageRoot, "agents");
+  const agentFiles = (await readdir(agentRoot))
+    .filter((name) => name.endsWith(".md"))
+    .sort();
+
+  for (const filename of agentFiles) {
+    const content = await readFile(path.join(agentRoot, filename), "utf8");
+
+    assert.match(
+      content,
+      /^---\ndescription: .+\ntools: .+\ncolor: [a-z]+\n---\n\n# LetsGo /,
+      `${filename} 的 frontmatter 或标题不符合统一模板`
+    );
+    assert.deepEqual(
+      [...content.matchAll(/^## (.+)$/gm)].map((match) => match[1]),
+      requiredSections,
+      `${filename} 的章节顺序不符合统一模板`
+    );
+    assert.doesNotMatch(content, /\bsubagent\b|子 Agent/);
+  }
+
+  const reviewer = await readFile(path.join(agentRoot, "letsgo-reviewer.md"), "utf8");
+  assert.match(reviewer, /tools: Read, Glob, Grep, Bash/);
+  assert.doesNotMatch(reviewer, /tools: .*Write|tools: .*Edit/);
+});
+
 test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", async () => {
   const hooks = JSON.parse(
     await readFile(path.join(packageRoot, "hooks/hooks.json"), "utf8")

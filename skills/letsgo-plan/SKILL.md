@@ -1,36 +1,39 @@
 ---
 name: letsgo-plan
-description: 编排 LetsGo plan 阶段的任务 writer 和 reviewer
+description: 在 LetsGo plan 阶段编排任务 writer 和只读 reviewer
 user-invocable: false
 ---
 
 # LetsGo Plan
 
-这是 `plan` 阶段的唯一 Subagent 编排入口。
+## 职责
 
-## 开始前
+作为 `plan` 阶段唯一的 Subagent 编排入口，将技术设计转为可执行任务并完成审查。
 
-先运行开始校验：
+## 输入
 
-```bash
-letsgo validate --before plan --change <change-id>
-```
+- `proposal.md`、`design.md` 和变更目录下的 `specs/**`
+- `status.json`
+- 项目的测试和验证约束
 
-校验失败时停止并报告，不要开始本阶段工作。
+## 执行流程
 
-## 流程
+1. 运行 `letsgo validate --before plan --change <change-id>`；失败时停止并报告。
+2. 派发 `@lg:letsgo-plan-writer` 将设计拆分为 `tasks.md`。
+3. 派发 `@lg:letsgo-reviewer` 审查设计覆盖、任务顺序、目标文件、测试策略和
+   完成条件。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
+5. reviewer 通过后，交回主 Agent 运行
+   `letsgo validate --after plan --change <change-id>` 和
+   `letsgo advance plan --change <change-id>`。
 
-1. 读取 `proposal.md`、`design.md`、`specs/**` 和 `status.json`。
-2. 派发 `@lg:letsgo-plan-writer` 将设计拆成 `tasks.md`。
-3. 派发 `@lg:letsgo-reviewer` 只读审查 `tasks.md`：是否覆盖设计、任务顺序
-   是否合理、文件目标是否明确、测试策略是否可执行、完成条件是否可验证，
-   是否存在跳步或隐藏工作。
-4. reviewer 有问题时，让 writer 修复后重新审查。
-5. reviewer 通过后，将结果交回主 Agent。
-6. 主 Agent 执行 `letsgo validate --after plan`，通过后执行 `letsgo advance plan`。
+## 输出
+
+- 具有顺序、目标文件、测试方式和完成条件的 `tasks.md`
+- reviewer 的通过结论或阻塞问题
 
 ## 边界
 
-- writer 不能修改生产代码或测试代码。
-- reviewer 不能修改文件，也不能推进状态。
-- Skill 不允许手动修改 `status.json`。
+- writer 不修改生产代码或测试代码。
+- reviewer 只读，不修改文件或推进状态。
+- 不手动修改 `status.json`。

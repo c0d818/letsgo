@@ -1,36 +1,41 @@
 ---
 name: letsgo-design
-description: 编排 LetsGo design 阶段的设计 writer 和 reviewer
+description: 在 LetsGo design 阶段编排设计 writer 和只读 reviewer
 user-invocable: false
 ---
 
 # LetsGo Design
 
-这是 `design` 阶段的唯一 Subagent 编排入口。
+## 职责
 
-## 开始前
+作为 `design` 阶段唯一的 Subagent 编排入口，生成并审查技术设计和变更规格。
 
-先运行开始校验：
+## 输入
 
-```bash
-letsgo validate --before design --change <change-id>
-```
+- `openspec/changes/<change-id>/status.json`
+- 已批准的 `proposal.md`
+- 当前项目代码和相关规格
 
-校验失败时停止并报告，不要开始本阶段工作。
+## 执行流程
 
-## 流程
+1. 运行 `letsgo validate --before design --change <change-id>`；失败时停止并报告。
+2. 派发 `@lg:letsgo-design-writer` 编写 `design.md`，必要时更新变更目录下的
+   `specs/**`。
+3. 派发 `@lg:letsgo-reviewer` 审查架构、数据流、影响范围、替代方案、风险和
+   测试策略。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
+5. reviewer 通过后，交回主 Agent 运行
+   `letsgo validate --after design --change <change-id>` 和
+   `letsgo advance design --change <change-id>`。
 
-1. 读取 `status.json`、`proposal.md`、现有代码和相关规格。
-2. 派发 `@lg:letsgo-design-writer` 编写 `design.md`，必要时更新变更目录下的 `specs/**`。
-3. writer 完成后，派发 `@lg:letsgo-reviewer` 只读审查 `design.md` 和
-   `specs/**`：架构、数据流、影响范围、替代方案、风险、测试策略是否完整，
-   是否存在需求遗漏、过度设计或不可实现的假设。
-4. reviewer 有阻塞问题时，把问题交给 writer 修复，再重新派发 reviewer。
-5. reviewer 通过后，将结果交回主 Agent。
-6. 主 Agent 执行 `letsgo validate --after design`，通过后执行 `letsgo advance design`。
+## 输出
+
+- `design.md`
+- 必要的变更规格 `specs/**`
+- reviewer 的通过结论或阻塞问题
 
 ## 边界
 
-- writer 不能修改生产代码、测试代码或 `tasks.md`。
-- reviewer 不能修改文件，也不能推进状态。
-- Skill 不允许手动修改 `status.json` 绕过状态机。
+- writer 不修改生产代码、测试代码或 `tasks.md`。
+- reviewer 只读，不修改文件或推进状态。
+- 不手动修改 `status.json`。

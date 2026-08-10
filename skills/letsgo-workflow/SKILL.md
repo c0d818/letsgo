@@ -1,44 +1,47 @@
 ---
 name: letsgo-workflow
-description: 在通过 LetsGo Claude Code 插件或 LetsGo 斜杠命令工作的项目中使用
+description: 在 LetsGo Claude Code 插件或斜杠命令运行时，统一编排 SDD 生命周期
 user-invocable: false
 ---
 
-# LetsGo 工作流
+# LetsGo Workflow
 
-LetsGo 把代理工作组织成一个小型 SDD 生命周期：clarify、design、plan、
-apply、verify、archive。
+## 职责
 
-## Skill 编排
+统一编排 `clarify -> design -> plan -> apply -> verify -> archive` 生命周期，并
+保持命令、Skill 和 Subagent 三层职责分离。
 
-命令只声明阶段需要的 Skill，不直接派发 Subagent。阶段 Skill 负责具体编排：
+## 输入
 
-| 阶段 | Skill | Subagent 顺序 |
-| --- | --- | --- |
-| clarify | `lg:letsgo-clarify` | 主 Agent 完成需求交互和分析 |
-| design | `lg:letsgo-design` | `lg:letsgo-design-writer` -> `lg:letsgo-reviewer` |
-| plan | `lg:letsgo-plan` | `lg:letsgo-plan-writer` -> `lg:letsgo-reviewer` |
-| apply | `lg:letsgo-apply` | `lg:letsgo-apply-writer` -> `lg:letsgo-reviewer` |
-| verify | `lg:letsgo-verify` | `lg:letsgo-verify-writer` -> `lg:letsgo-reviewer` |
-| archive | `lg:letsgo-archive` | `lg:letsgo-archive-writer` -> `lg:letsgo-reviewer` |
+- 用户请求、变更类型和 `change-id`
+- 当前项目代码、规格和 `status.json`
+- 对应场景 Skill 与阶段 Skill
 
-Reviewer 不通过时，阶段 Skill 负责把问题交回 writer 修复并重新审查；通过后
-才把结果交回主 Agent 执行状态校验和推进。
+## 执行流程
 
-## 核心规则
+1. 先确定变更类型并读取对应场景 Skill。
+2. 按固定顺序执行所有生命周期阶段，不跳过或重排。
+3. 命令只声明阶段；阶段 Skill 负责具体编排：
 
-不要从模糊的需求直接跳到大规模修改。先确定变更类型，再按顺序走完生命周期
-阶段。
+   | 阶段 | Skill | Subagent 顺序 |
+   | --- | --- | --- |
+   | clarify | `lg:letsgo-clarify` | 主 Agent 完成需求交互和分析 |
+   | design | `lg:letsgo-design` | `lg:letsgo-design-writer -> lg:letsgo-reviewer` |
+   | plan | `lg:letsgo-plan` | `lg:letsgo-plan-writer -> lg:letsgo-reviewer` |
+   | apply | `lg:letsgo-apply` | `lg:letsgo-apply-writer -> lg:letsgo-reviewer` |
+   | verify | `lg:letsgo-verify` | `lg:letsgo-verify-writer -> lg:letsgo-reviewer` |
+   | archive | `lg:letsgo-archive` | `lg:letsgo-archive-writer -> lg:letsgo-reviewer` |
 
-| 变更类型 | 必经路径 |
-| --- | --- |
-| 小型本地修复 | clarify、design、plan、apply、verify、archive |
-| 行为变更 | clarify、design、plan、apply、verify、archive |
-| 跨组件变更 | clarify、design、plan、apply、verify、archive |
+4. reviewer 不通过时，将问题交回当前 writer 修复并重新审查。
+5. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
 
-## 常见错误
+## 输出
 
-- 在检查项目上下文之前就开始编辑。
-- 跳过生命周期阶段或未经校验就推进。
-- 实现开始后把已批准的 proposal 当成可选项。
-- 在记录验证证据之前宣称完成。
+输出从已确认需求到实现、验证、长期规格和归档记录的完整可追溯变更。
+
+## 边界
+
+- 不从模糊需求直接开始大规模修改。
+- 不跳过校验或手动推进 `status.json`。
+- 不在记录真实验证证据前宣称完成。
+- 已批准的 proposal 在实现阶段不是可选参考。

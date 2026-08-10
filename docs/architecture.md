@@ -48,6 +48,29 @@ commands/*.md   ->   skills/*/SKILL.md   ->   agents/*.md
 
 `/lg:letsgo` 是命令层的特殊入口：把同一套生命周期封装成连续执行的一键流程。
 
+## Skill 和 Subagent 编写模板
+
+所有 `skills/*/SKILL.md` 和 `agents/*.md` 都使用相同的正文骨架，章节顺序固定：
+
+```md
+# LetsGo <名称>
+
+## 职责
+## 输入
+## 执行流程
+## 输出
+## 边界
+```
+
+Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；description
+同时说明触发场景和职责。Subagent frontmatter 固定使用 `description`、`tools`
+和 `color`；writer 具有写入工具，reviewer 只保留只读工具。
+
+场景 Skill、阶段 Skill 和支撑 Skill 可以在五个固定章节内表达不同规则，但不再
+自行发明一级章节。Subagent 统一使用“Subagent”，状态文件统一写作
+`status.json`。自动测试会检查 frontmatter、标题和章节顺序，防止新增文件逐渐
+偏离模板。
+
 ## 插件优先结构
 
 仓库根目录就是 Claude Code 插件根目录：

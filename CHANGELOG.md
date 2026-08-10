@@ -12,6 +12,8 @@ LetsGo 的所有重要变更都记录在这里。
   change-id；用户不再需要预先提供变更 ID。
 - apply 阶段固定执行 RED -> GREEN -> REFACTOR，并新增 `tdd-evidence.md` 门禁；
   行为任务缺少完整 TDD 证据或非行为修改缺少有效豁免时不能推进 verify。
+- 所有 Skill 和 Subagent 统一使用“职责、输入、执行流程、输出、边界”模板，
+  并增加自动结构检查，防止后续写法漂移。
 
 ### 修复
 

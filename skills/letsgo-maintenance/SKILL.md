@@ -1,19 +1,38 @@
 ---
 name: letsgo-maintenance
-description: 编排工程维护场景的 LetsGo 流程和 Subagent
+description: 在 LetsGo 处理工程维护时，编排 maintenance 类型的完整生命周期
 user-invocable: false
 ---
 
-# 工程维护流程
+# LetsGo Maintenance
 
-变更类型固定为 maintenance。必须使用 openspec/change-types/maintenance/ 下的模板，适用于文档、配置、依赖、CI、构建和发布维护。
+## 职责
 
-按 clarify -> design -> plan -> apply -> verify -> archive 执行。clarify 由主 Agent 完成，其余阶段读取对应阶段 Skill，并按 writer -> reviewer 调用：
+编排文档、配置、依赖、CI、构建和发布维护。固定使用 `maintenance` 变更类型和
+`openspec/change-types/maintenance/` 模板。
 
-- @lg:letsgo-design-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-plan-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-apply-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-verify-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-archive-writer -> @lg:letsgo-reviewer
+## 输入
 
-reviewer 不通过时回到当前 writer 修复。通过后由主 Agent 执行 validate 和 advance。
+- 工程维护目标和约束
+- 当前项目配置、工具链、规格和验证方式
+- 当前变更的 `change-id`
+
+## 执行流程
+
+1. 使用 `letsgo new <change-id> --type maintenance` 创建并选中变更。
+2. 按 `clarify -> design -> plan -> apply -> verify -> archive` 顺序执行。
+3. clarify 由主 Agent 按 `lg:letsgo-clarify` 完成。
+4. 其余阶段分别读取对应阶段 Skill，并固定执行
+   `<阶段>-writer -> letsgo-reviewer`。
+5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查。
+
+## 输出
+
+输出维护方案、实施结果、验证证据和归档记录。
+
+## 边界
+
+- 明确维护是否改变生产行为；不改变时按 `lg:letsgo-tdd` 记录豁免证据。
+- 不跳过或重排生命周期阶段。
+- 阶段通过后，仅由主 Agent 执行 `validate` 和 `advance`。
+- 不手动修改 `status.json`。

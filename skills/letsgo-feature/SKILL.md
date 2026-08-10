@@ -1,23 +1,37 @@
 ---
 name: letsgo-feature
-description: 编排新需求场景的 LetsGo 流程和 Subagent
+description: 在 LetsGo 处理新功能需求时，编排 feature 类型的完整生命周期
 user-invocable: false
 ---
 
-# 新需求流程
+# LetsGo Feature
 
-变更类型固定为 feature。读取 openspec/change-types/feature/ 下的模板。
+## 职责
 
-按 clarify -> design -> plan -> apply -> verify -> archive 执行。
+编排新功能场景。固定使用 `feature` 变更类型和
+`openspec/change-types/feature/` 模板。
 
-clarify 由主 Agent 完成需求问答、代码分析、方案确认和反向审查（DeepReview）。
-design、plan、apply、verify、archive 分别读取对应阶段 Skill。
-阶段 Skill 必须按 writer -> reviewer 调用专用 Subagent：
+## 输入
 
-- @lg:letsgo-design-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-plan-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-apply-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-verify-writer -> @lg:letsgo-reviewer
-- @lg:letsgo-archive-writer -> @lg:letsgo-reviewer
+- 用户提供的需求描述
+- 当前项目代码、规格和约束
+- 主 Agent 从需求生成的唯一 kebab-case `change-id`
 
-reviewer 不通过时回到当前 writer 修复。通过后由主 Agent 执行 validate 和 advance。
+## 执行流程
+
+1. 使用 `letsgo new <change-id> --type feature` 创建并选中变更。
+2. 按 `clarify -> design -> plan -> apply -> verify -> archive` 顺序执行。
+3. clarify 由主 Agent 按 `lg:letsgo-clarify` 完成。
+4. 其余阶段分别读取对应阶段 Skill，并固定执行
+   `<阶段>-writer -> letsgo-reviewer`。
+5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查。
+
+## 输出
+
+输出完整的 feature 变更文档、实现、测试、验证证据和归档记录。
+
+## 边界
+
+- 不跳过或重排生命周期阶段。
+- 阶段通过后，仅由主 Agent 执行 `validate` 和 `advance`。
+- 不手动修改 `status.json`。
