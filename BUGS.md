@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0002：Hook 输出缺少事件名称导致运行时校验失败
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Claude Code Hooks
+- 首次发现：2026-08-10
+- 关闭时间：2026-08-10
+- 解决方式：为 `SessionStart`、`UserPromptSubmit` 和 `PreToolUse` 的
+  `hookSpecificOutput` 补齐对应的 `hookEventName`，并加入回归测试。
+
 ### BUG-0001：迁移后可能残留空的旧目录
 
 - 状态：已关闭

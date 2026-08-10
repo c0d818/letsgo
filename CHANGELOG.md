@@ -4,6 +4,13 @@ LetsGo 的所有重要变更都记录在这里。
 
 格式遵循 Keep a Changelog 风格的分节，版本在 1.0 之前遵循语义化版本。
 
+## [未发布]
+
+### 修复
+
+- 为 `SessionStart`、`UserPromptSubmit` 和 `PreToolUse` Hook 输出补齐 Claude Code
+  要求的 `hookEventName`，恢复生命周期上下文注入和运行时守卫决策。
+
 ## [0.3.0] - 2026-08-10
 
 ### 变更

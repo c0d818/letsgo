@@ -32,6 +32,7 @@ if (input === null) {
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
+        hookEventName: "PreToolUse",
         permissionDecision: "ask",
         permissionDecisionReason: "LetsGo guard could not read hook input",
       },
@@ -47,6 +48,7 @@ if (input === null) {
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
+        hookEventName: "PreToolUse",
         permissionDecision: decision.status,
         permissionDecisionReason: decision.reason,
       },

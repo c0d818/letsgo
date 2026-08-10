@@ -52,6 +52,7 @@ test("PreToolUse 守卫脚本放行范围内的写入", async () => {
       "scripts/guard.js",
       {
         session_id: "session-1",
+        hook_event_name: "PreToolUse",
         tool_name: "Write",
         tool_input: {
           file_path: path.join(projectDir, "openspec/changes/add-login/proposal.md"),
@@ -63,6 +64,7 @@ test("PreToolUse 守卫脚本放行范围内的写入", async () => {
     const output = JSON.parse(stdout);
 
     assert.equal(code, 0);
+    assert.equal(output.hookSpecificOutput.hookEventName, "PreToolUse");
     assert.equal(output.hookSpecificOutput.permissionDecision, "allow");
     assert.match(output.hookSpecificOutput.permissionDecisionReason, /add-login 的 clarify 阶段/);
   });
@@ -77,6 +79,7 @@ test("PreToolUse 守卫脚本拒绝范围外的写入", async () => {
       "scripts/guard.js",
       {
         session_id: "session-1",
+        hook_event_name: "PreToolUse",
         tool_name: "Edit",
         tool_input: {
           file_path: path.join(projectDir, "openspec/changes/add-login/design.md"),
@@ -89,6 +92,7 @@ test("PreToolUse 守卫脚本拒绝范围外的写入", async () => {
     const output = JSON.parse(stdout);
 
     assert.equal(code, 0);
+    assert.equal(output.hookSpecificOutput.hookEventName, "PreToolUse");
     assert.equal(output.hookSpecificOutput.permissionDecision, "deny");
     assert.match(output.hookSpecificOutput.permissionDecisionReason, /design\.md/);
   });
@@ -103,6 +107,7 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
       "scripts/guard.js",
       {
         session_id: "session-1",
+        hook_event_name: "PreToolUse",
         tool_name: "Bash",
         tool_input: { command: "git status" },
       },
@@ -114,6 +119,7 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
       "scripts/guard.js",
       {
         session_id: "session-1",
+        hook_event_name: "PreToolUse",
         tool_name: "Bash",
         tool_input: { command: "npm publish" },
       },
@@ -141,6 +147,7 @@ test("PreToolUse 守卫脚本在钩子输入无法解析时请求审查", async 
 
     const output = JSON.parse(result.stdout);
     assert.equal(result.code, 0);
+    assert.equal(output.hookSpecificOutput.hookEventName, "PreToolUse");
     assert.equal(output.hookSpecificOutput.permissionDecision, "ask");
   });
 });
@@ -154,6 +161,7 @@ test("context 脚本注入生命周期规则和活跃变更状态", async () => 
       "scripts/context.js",
       {
         session_id: "session-1",
+        hook_event_name: "SessionStart",
         working_directory: projectDir,
       },
       projectDir
@@ -162,6 +170,7 @@ test("context 脚本注入生命周期规则和活跃变更状态", async () => 
     const context = output.hookSpecificOutput.additionalContext;
 
     assert.equal(code, 0);
+    assert.equal(output.hookSpecificOutput.hookEventName, "SessionStart");
     assert.match(context, /LetsGo 运行时守卫已启用/);
     assert.match(context, /当前 LetsGo 变更：add-login，类型：feature，阶段：clarify/);
     assert.match(context, /clarify -> design -> plan -> apply -> verify -> archive -> done/);
@@ -177,6 +186,7 @@ test("context 脚本在用户消息时只注入当前变更摘要", async () => 
       "scripts/context.js",
       {
         session_id: "session-1",
+        hook_event_name: "UserPromptSubmit",
         prompt: "继续",
         working_directory: projectDir,
       },
@@ -186,6 +196,7 @@ test("context 脚本在用户消息时只注入当前变更摘要", async () => 
     const context = output.hookSpecificOutput.additionalContext;
 
     assert.equal(code, 0);
+    assert.equal(output.hookSpecificOutput.hookEventName, "UserPromptSubmit");
     assert.match(context, /当前 LetsGo 变更：add-login/);
     assert.doesNotMatch(context, /LetsGo 运行时守卫已启用/);
   });
@@ -197,6 +208,7 @@ test("context 脚本在未由 LetsGo 管理的项目中保持静默", async () =
       "scripts/context.js",
       {
         session_id: "session-1",
+        hook_event_name: "SessionStart",
         working_directory: projectDir,
       },
       projectDir

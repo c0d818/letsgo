@@ -25,6 +25,13 @@ const projectDir =
   input.working_directory ||
   process.cwd();
 const isUserPrompt = typeof input.prompt === "string";
+const hookEventName =
+  input.hook_event_name === "SessionStart" ||
+  input.hook_event_name === "UserPromptSubmit"
+    ? input.hook_event_name
+    : isUserPrompt
+      ? "UserPromptSubmit"
+      : "SessionStart";
 const rules = isUserPrompt
   ? await buildActiveContext({ projectDir })
   : await buildSystemRules({ projectDir });
@@ -35,6 +42,7 @@ if (!rules) {
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
+        hookEventName,
         additionalContext: rules,
       },
     })
