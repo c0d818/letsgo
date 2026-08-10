@@ -63,6 +63,7 @@ letsgo select <change-id>
 
 - Skill：`lg:letsgo-apply`
 - 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
+- 必须读取 `lg:letsgo-tdd`；仅测试变更记录豁免理由、测试命令和通过结果
 - 只改测试和测试系统；不修改生产代码
 
 ### 5. verify（验证审查）

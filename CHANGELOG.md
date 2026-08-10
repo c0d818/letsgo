@@ -10,6 +10,8 @@ LetsGo 的所有重要变更都记录在这里。
 
 - `/lg:bugfix` 改为接收针对项目的修复需求描述，并由代理自动生成唯一的
   change-id；用户不再需要预先提供变更 ID。
+- apply 阶段固定执行 RED -> GREEN -> REFACTOR，并新增 `tdd-evidence.md` 门禁；
+  行为任务缺少完整 TDD 证据或非行为修改缺少有效豁免时不能推进 verify。
 
 ### 修复
 

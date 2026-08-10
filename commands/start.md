@@ -72,7 +72,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 - Skill：`lg:letsgo-apply`
 - 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
-- 测试优先；产物：生产/测试文件、完成的任务清单
+- 必须读取 `lg:letsgo-tdd`，按每个行为任务固定执行 RED -> GREEN -> REFACTOR，
+  并记录 `tdd-evidence.md`；缺少证据不得推进
 
 ### 5. verify（验证审查）
 

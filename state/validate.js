@@ -53,6 +53,7 @@ async function validateBefore({ projectDir, changeId, state, status, errors }) {
 
   if (state === "verify") {
     await requireTasksComplete(projectDir, changeId, errors);
+    await requireTddEvidence(projectDir, changeId, errors);
   }
 
   if (state === "archive") {
@@ -78,6 +79,7 @@ async function validateAfter({ projectDir, changeId, state, status, errors }) {
 
   if (state === "apply") {
     await requireTasksComplete(projectDir, changeId, errors);
+    await requireTddEvidence(projectDir, changeId, errors);
   }
 
   if (state === "verify") {
@@ -121,6 +123,110 @@ async function requireTasksComplete(projectDir, changeId, errors) {
     }
   } catch {
     errors.push(`缺少 openspec/changes/${changeId}/tasks.md`);
+  }
+}
+
+async function requireTddEvidence(projectDir, changeId, errors) {
+  try {
+    const text = await readChangeText(projectDir, changeId, "tdd-evidence.md");
+    errors.push(...validateTddEvidence(text));
+  } catch {
+    errors.push(`缺少 openspec/changes/${changeId}/tdd-evidence.md`);
+  }
+}
+
+export function validateTddEvidence(text) {
+  const mode = text.match(/^模式[：:]\s*(TDD|豁免)\s*$/im)?.[1];
+  if (!mode) {
+    return ["tdd-evidence.md 必须包含“模式：TDD”或“模式：豁免”"];
+  }
+
+  if (mode === "豁免") {
+    return validateTddExemption(text);
+  }
+
+  const errors = [];
+  const cyclePattern = /^##\s+Cycle\s+\d+[：:]\s*(\S.*)$/gim;
+  const matches = [...text.matchAll(cyclePattern)];
+  if (matches.length === 0) {
+    return ["tdd-evidence.md 的 TDD 模式至少需要一个“## Cycle N：行为”记录"];
+  }
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const start = matches[index].index + matches[index][0].length;
+    const end = matches[index + 1]?.index ?? text.length;
+    const cycle = text.slice(start, end);
+    const label = `Cycle ${index + 1}`;
+    const phaseIndexes = ["RED", "GREEN", "REFACTOR"].map((phase) =>
+      new RegExp(`^###\\s+${phase}\\s*$`, "im").exec(cycle)?.index ?? -1
+    );
+    if (
+      phaseIndexes.every((phaseIndex) => phaseIndex >= 0) &&
+      !(phaseIndexes[0] < phaseIndexes[1] && phaseIndexes[1] < phaseIndexes[2])
+    ) {
+      errors.push(`${label} 阶段顺序必须是 RED -> GREEN -> REFACTOR`);
+    }
+    validateTddPhase(cycle, "RED", "失败", label, errors);
+    validateTddPhase(cycle, "GREEN", "通过", label, errors);
+    validateTddPhase(cycle, "REFACTOR", "通过", label, errors, true);
+  }
+
+  return errors;
+}
+
+function validateTddExemption(text) {
+  const errors = [];
+  const section = markdownSection(text, "豁免");
+  if (!section) {
+    return ["tdd-evidence.md 的豁免模式必须包含“## 豁免”"];
+  }
+  requireEvidenceField(section, /理由[：:][ \t]*\S[^\r\n]*/, "豁免缺少具体理由", errors);
+  requireEvidenceField(section, /验证命令[：:][ \t]*\S[^\r\n]*/, "豁免缺少验证命令", errors);
+  requireEvidenceField(section, /结果[：:][ \t]*(通过|pass)(?:[ \t]|$)/im, "豁免验证结果必须为通过", errors);
+  return errors;
+}
+
+function validateTddPhase(cycle, phase, expectedResult, label, errors, requireRefactor = false) {
+  const section = markdownSection(cycle, phase, 3);
+  if (!section) {
+    errors.push(`${label} 缺少 ${phase} 阶段`);
+    return;
+  }
+  requireEvidenceField(
+    section,
+    /测试命令[：:][ \t]*\S[^\r\n]*/,
+    `${label} ${phase} 缺少测试命令`,
+    errors
+  );
+  requireEvidenceField(
+    section,
+    new RegExp(`结果[：:][ \\t]*${expectedResult}(?:[ \\t]|$)`, "im"),
+    `${label} ${phase} 结果必须为${expectedResult}`,
+    errors
+  );
+  if (requireRefactor) {
+    requireEvidenceField(
+      section,
+      /(?:重构|变更)[：:][ \t]*\S[^\r\n]*/,
+      `${label} REFACTOR 缺少重构说明（无重构时写“无”）`,
+      errors
+    );
+  }
+}
+
+function markdownSection(text, heading, level = 2) {
+  const marker = new RegExp(`^${"#".repeat(level)}\\s+${heading}\\s*$`, "im").exec(text);
+  if (!marker) {
+    return "";
+  }
+  const rest = text.slice(marker.index + marker[0].length);
+  const nextHeading = new RegExp(`^#{1,${level}}\\s+`, "m").exec(rest);
+  return nextHeading ? rest.slice(0, nextHeading.index) : rest;
+}
+
+function requireEvidenceField(text, pattern, message, errors) {
+  if (!pattern.test(text)) {
+    errors.push(message);
   }
 }
 

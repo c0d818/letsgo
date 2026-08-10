@@ -14,6 +14,7 @@ import { statusProject } from "../cli/commands/status.js";
 import { validateProject } from "../cli/commands/validate.js";
 import { advanceProject } from "../cli/commands/advance.js";
 import { selectProject } from "../cli/commands/select.js";
+import { validateTddEvidence } from "../state/validate.js";
 import {
   activeChanges,
   buildSystemRules,
@@ -89,6 +90,13 @@ test("init 把 LetsGo 模板安装进项目", async () => {
     assert.match(
       await readFile(path.join(projectDir, "openspec/change-types/bugfix/design.md"), "utf8"),
       /缺陷修复设计/
+    );
+    assert.match(
+      await readFile(
+        path.join(projectDir, "openspec/change-types/bugfix/tdd-evidence.md"),
+        "utf8"
+      ),
+      /RED[\s\S]*GREEN[\s\S]*REFACTOR/
     );
     await assert.rejects(
       stat(path.join(projectDir, "openspec/change-types/common")),
@@ -421,6 +429,16 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     });
     assert.equal(applyWrite.status, "allow");
 
+    const tddEvidenceWrite = await decideToolUse({
+      projectDir,
+      toolName: "Write",
+      toolInput: {
+        file_path: path.join(changeDir, "tdd-evidence.md"),
+        content: "模式：TDD",
+      },
+    });
+    assert.equal(tddEvidenceWrite.status, "allow");
+
     const prematureVerifyWrite = await decideToolUse({
       projectDir,
       toolName: "Write",
@@ -623,6 +641,43 @@ test("状态机创建变更并阻止跳阶段", async () => {
   });
 });
 
+test("TDD 证据强制 RED、GREEN、REFACTOR 顺序并支持非行为豁免", () => {
+  const validTdd = [
+    "# TDD 证据",
+    "模式：TDD",
+    "## Cycle 1：登录行为",
+    "### RED",
+    "- 测试命令：node --test tests/login.test.js",
+    "- 结果：失败",
+    "### GREEN",
+    "- 测试命令：node --test tests/login.test.js",
+    "- 结果：通过",
+    "### REFACTOR",
+    "- 重构：无",
+    "- 测试命令：node --test tests/login.test.js",
+    "- 结果：通过",
+    "",
+  ].join("\n");
+  assert.deepEqual(validateTddEvidence(validTdd), []);
+
+  const wrongOrder = validTdd
+    .replace("### RED", "### TEMP")
+    .replace("### GREEN", "### RED")
+    .replace("### TEMP", "### GREEN");
+  assert.match(validateTddEvidence(wrongOrder).join("\n"), /顺序必须是 RED -> GREEN -> REFACTOR/);
+
+  const exemption = [
+    "# TDD 证据",
+    "模式：豁免",
+    "## 豁免",
+    "- 理由：仅修改用户文档，不改变生产行为",
+    "- 验证命令：npm test",
+    "- 结果：通过",
+    "",
+  ].join("\n");
+  assert.deepEqual(validateTddEvidence(exemption), []);
+});
+
 test("状态机按 clarify、design、plan、apply、verify、archive 顺序推进", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
@@ -659,6 +714,32 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "# Tasks",
       "- [x] Add failing login test",
       "- [x] Implement login",
+      "",
+    ].join("\n"));
+    const missingTdd = await advanceProject({
+      projectDir,
+      changeId: "add-login",
+      state: "apply",
+    });
+    assert.equal(missingTdd.advanced, false);
+    assert.match(missingTdd.errors.join("\n"), /tdd-evidence\.md/);
+
+    await writeFile(path.join(changeDir, "tdd-evidence.md"), [
+      "# TDD Evidence",
+      "模式：TDD",
+      "## Cycle 1：Login behavior",
+      "### RED",
+      "- 测试命令：node --test tests/login.test.js",
+      "- 结果：失败",
+      "- 失败原因：Login behavior is missing",
+      "### GREEN",
+      "- 最小实现：Add login handler",
+      "- 测试命令：node --test tests/login.test.js",
+      "- 结果：通过",
+      "### REFACTOR",
+      "- 重构：无",
+      "- 测试命令：node --test tests/login.test.js",
+      "- 结果：通过",
       "",
     ].join("\n"));
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "apply" })).status.state, "verify");

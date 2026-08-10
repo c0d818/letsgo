@@ -63,7 +63,8 @@ letsgo select <change-id>
 
 - Skill：`lg:letsgo-apply`
 - 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
-- 测试优先；分步小改动，每步保持测试通过
+- 必须读取 `lg:letsgo-tdd`；涉及生产行为时执行 RED -> GREEN -> REFACTOR，
+  不改变生产行为时记录豁免理由和验证证据
 
 ### 5. verify（验证审查）
 

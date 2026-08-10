@@ -80,6 +80,9 @@ letsgo advance <state> --change <change-id>
 clarify -> design -> plan -> apply -> verify -> archive -> done
 ```
 
+apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果记录到
+`tdd-evidence.md`；不改变生产行为的修改必须记录明确的 TDD 豁免和验证证据。
+
 细节见 [docs/workflow.md](docs/workflow.md) 和
 [docs/architecture.md](docs/architecture.md)。
 

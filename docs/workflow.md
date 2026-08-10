@@ -5,7 +5,7 @@ LetsGo 使用六阶段 SDD 生命周期：
 1. Clarify：澄清请求和验收标准。
 2. Design：设计技术方案和测试策略。
 3. Plan：规划小的实现任务。
-4. Apply：以测试优先的纪律实现计划。
+4. Apply：固定执行 RED -> GREEN -> REFACTOR，并记录可审查的 TDD 证据。
 5. Verify：用真实命令输出和规格符合性审查验证。
 6. Archive：把已验证的变更归档为持久的规格和历史。
 
@@ -75,7 +75,7 @@ openspec/change-types/
 | clarify | `proposal.md` | 存在为什么做、改变什么和验收标准 |
 | design | `design.md` | 存在架构和测试策略 |
 | plan | `tasks.md` | 存在复选框任务 |
-| apply | `tasks.md` | 没有未勾选的任务 |
+| apply | `tasks.md`、`tdd-evidence.md` | 任务完成，且每个行为任务有完整 TDD Cycle 或有效豁免 |
 | verify | `verification.md` | 包含“状态：通过” |
 | archive | `archive.md` | 存在归档摘要 |
 
@@ -107,6 +107,6 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 | clarify | `openspec/changes/<change-id>/proposal.md`、`status.json` |
 | design | `openspec/changes/<change-id>/design.md`、`openspec/changes/<change-id>/specs/`、`status.json` |
 | plan | `openspec/changes/<change-id>/tasks.md`、`openspec/changes/<change-id>/specs/`、`status.json` |
-| apply | 生产/测试文件、`tasks.md`、`status.json` |
+| apply | 生产/测试文件、`tasks.md`、`tdd-evidence.md`、`status.json` |
 | verify | `openspec/changes/<change-id>/verification.md`、`status.json` |
 | archive | `archive.md`、`openspec/specs/`、`openspec/archive/<change-id>/`、`status.json` |

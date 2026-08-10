@@ -45,4 +45,9 @@ LetsGo 的规划文档统一使用简体中文：
 `openspec/changes/<change-id>/status.json` 与流程保持同步。
 涉及行为变更时，不要跳过生命周期状态。
 
+apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行
+`RED -> GREEN -> REFACTOR`，并把真实命令和结果记录到
+`openspec/changes/<change-id>/tdd-evidence.md`。只有纯文档、注释、模板、仅测试或
+其他不改变生产行为的修改可以记录理由后豁免；缺少有效证据不得推进 verify。
+
 随时可以使用 `/lg:check <change-id>` 查看当前阶段、已完成阶段和下一步。

@@ -72,7 +72,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 - Skill：`lg:letsgo-apply`
 - 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
-- 测试优先；先写复现测试，再实现最小修复
+- 必须读取 `lg:letsgo-tdd`，按每个缺陷行为固定执行 RED -> GREEN -> REFACTOR，
+  并记录 `tdd-evidence.md`；先用失败测试复现，再实现最小修复
 
 ### 5. verify（验证审查）
 
