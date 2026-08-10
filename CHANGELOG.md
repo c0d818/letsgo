@@ -6,6 +6,11 @@ LetsGo 的所有重要变更都记录在这里。
 
 ## [未发布]
 
+### 变更
+
+- `/lg:bugfix` 改为接收针对项目的修复需求描述，并由代理自动生成唯一的
+  change-id；用户不再需要预先提供变更 ID。
+
 ### 修复
 
 - 为 `SessionStart`、`UserPromptSubmit` 和 `PreToolUse` Hook 输出补齐 Claude Code

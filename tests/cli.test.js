@@ -48,6 +48,14 @@ test("init 把 LetsGo 模板安装进项目", async () => {
       await readFile(path.join(projectDir, ".claude/commands/start.md"), "utf8"),
       /LetsGo/
     );
+    const bugfixCommand = await readFile(
+      path.join(projectDir, ".claude/commands/bugfix.md"),
+      "utf8"
+    );
+    assert.match(bugfixCommand, /argument-hint: <修复需求描述>/);
+    assert.match(bugfixCommand, /\/lg:bugfix <修复需求描述>/);
+    assert.match(bugfixCommand, /change-id 由代理自己生成/);
+    assert.match(bugfixCommand, /letsgo new <change-id> --type bugfix/);
     assert.match(
       await readFile(path.join(projectDir, ".claude/skills/letsgo-workflow/SKILL.md"), "utf8"),
       /LetsGo/

@@ -54,7 +54,7 @@ npm publish
 | --- | --- |
 | `/lg:letsgo` | 一键自动流程 |
 | `/lg:start` | 实现需求 |
-| `/lg:bugfix` | 修复缺陷 |
+| `/lg:bugfix` | 根据修复需求描述修复缺陷 |
 | `/lg:refactor` | 代码重构 |
 | `/lg:test` | 补充测试 |
 | `/lg:structure` | 查看项目结构 |

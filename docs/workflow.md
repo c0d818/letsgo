@@ -13,11 +13,14 @@ LetsGo 使用六阶段 SDD 生命周期：
 
 ```text
 /lg:start <需求描述>
-/lg:bugfix <change-id>
+/lg:bugfix <修复需求描述>
 /lg:refactor <change-id>
 /lg:test <change-id>
 /lg:structure
 ```
+
+`/lg:start` 和 `/lg:bugfix` 都从用户描述中自动生成唯一的 kebab-case
+change-id；用户不需要预先命名变更。
 
 每个场景命令执行内部生命周期：
 

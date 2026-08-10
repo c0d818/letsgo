@@ -1,13 +1,14 @@
 ---
 description: 修复缺陷
-argument-hint: <change-id>
+argument-hint: <修复需求描述>
 ---
 
 # LetsGo 缺陷修复
 
-使用方式：`/lg:bugfix <change-id>`
+使用方式：`/lg:bugfix <修复需求描述>`
 
-`<change-id>` 是 `$ARGUMENTS` 的第一个参数。
+`$ARGUMENTS` 是针对当前项目的修复需求初步描述，例如“修复登录页刷新后被退出的
+问题”。change-id 由代理自己生成，用户不需要提供。
 
 ## 总览
 
@@ -29,12 +30,20 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 ## 前置
 
-如果变更不存在，先执行：
+1. 如果 `$ARGUMENTS` 为空，先请用户描述缺陷现象和期望行为。
+2. 从修复需求中提炼 change-id：
+   - 英文小写字母 + 连字符（kebab-case），简短表意，例如“修复登录页刷新后被
+     退出的问题” -> `fix-login-refresh-logout`
+   - 如果该 change-id 已存在，加后缀（如 `-2`）或换一个更精确的名字，并向
+     用户说明
+3. 把生成的 change-id 明确告诉用户，然后执行：
 
-```bash
-letsgo new <change-id> --type bugfix
-letsgo select <change-id>
-```
+   ```bash
+   letsgo new <change-id> --type bugfix
+   letsgo select <change-id>
+   ```
+
+4. 之后所有命令都使用这个 change-id。
 
 然后读取 `lg:letsgo-bugfix` 场景 Skill，确认类型特定要求。缺陷修复必须明确：
 复现步骤、根因、最小修复和回归测试。

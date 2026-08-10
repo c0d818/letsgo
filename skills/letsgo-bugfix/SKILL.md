@@ -6,6 +6,10 @@ user-invocable: false
 
 # 缺陷修复流程
 
+入口命令 `/lg:bugfix <修复需求描述>` 接收针对当前项目的修复需求，由主 Agent
+从描述中生成唯一的 kebab-case change-id，再创建并选中 bugfix 变更。不得要求
+用户预先提供 change-id。
+
 变更类型固定为 bugfix。必须使用 openspec/change-types/bugfix/ 下的模板，并明确复现步骤、根因、最小修复和回归测试。
 
 按 clarify -> design -> plan -> apply -> verify -> archive 执行。clarify 由主 Agent 完成，其余阶段读取对应阶段 Skill，并按 writer -> reviewer 调用：
