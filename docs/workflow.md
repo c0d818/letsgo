@@ -1,6 +1,6 @@
 # 工作流
 
-Stitches 使用六阶段 SDD 生命周期：
+LetsGo 使用六阶段 SDD 生命周期：
 
 1. Clarify：澄清请求和验收标准。
 2. Design：设计技术方案和测试策略。
@@ -12,11 +12,11 @@ Stitches 使用六阶段 SDD 生命周期：
 按工作类型选择命令：
 
 ```text
-/start <需求描述>
-/bugfix <change-id>
-/refactor <change-id>
-/test <change-id>
-/structure
+/lg:start <需求描述>
+/lg:bugfix <change-id>
+/lg:refactor <change-id>
+/lg:test <change-id>
+/lg:structure
 ```
 
 每个场景命令执行内部生命周期：
@@ -25,32 +25,32 @@ Stitches 使用六阶段 SDD 生命周期：
 clarify -> design -> plan -> apply -> verify -> archive -> done
 ```
 
-每个命令都会指示代理在开始前运行 `stitches validate --before <state>`，在完成
-前运行 `stitches validate --after <state>`。
+每个命令都会指示代理在开始前运行 `letsgo validate --before <state>`，在完成
+前运行 `letsgo validate --after <state>`。
 
-`/letsgo <change-id> [类型]` 一键自动把变更走完整个生命周期（工程维护类变更
-可用 `stitches new --type maintenance` 配合 `/letsgo` 处理）；`/check
-<change-id>` 查看变更状态，`/structure` 查看项目结构，`/tokens` 查看主代理和
-每个 subagent 的 token 用量（报告保存到 `openspec/.stitches/token-report.md`），
-均为只读命令；`/log <问题>` 记录运行中遇到的问题。
+`/lg:letsgo <change-id> [类型]` 一键自动把变更走完整个生命周期（工程维护类变更
+可用 `letsgo new --type maintenance` 配合 `/lg:letsgo` 处理）；`/lg:check
+<change-id>` 查看变更状态，`/lg:structure` 查看项目结构，`/lg:tokens` 查看主代理和
+每个 subagent 的 token 用量（报告保存到 `openspec/.letsgo/token-report.md`），
+均为只读命令；`/lg:log <问题>` 记录运行中遇到的问题。
 
 ## CLI 状态门
 
 使用：
 
 ```bash
-stitches new <change-id> --type feature
-stitches select <change-id>
-stitches status --change <change-id>
-stitches validate --before <state> --change <change-id>
-stitches validate --after <state> --change <change-id>
-stitches advance <state> --change <change-id>
+letsgo new <change-id> --type feature
+letsgo select <change-id>
+letsgo status --change <change-id>
+letsgo validate --before <state> --change <change-id>
+letsgo validate --after <state> --change <change-id>
+letsgo advance <state> --change <change-id>
 ```
 
 第一个实现通过 `status.json` 加必需文件强制生命周期。
-`stitches advance <state>` 只在 `<state>` 与 `status.json` 当前状态一致时推进。
+`letsgo advance <state>` 只在 `<state>` 与 `status.json` 当前状态一致时推进。
 
-`stitches new` 从 OpenSpec 变更类型模板创建工作区：
+`letsgo new` 从 OpenSpec 变更类型模板创建工作区：
 
 ```text
 openspec/change-types/
@@ -64,7 +64,7 @@ openspec/change-types/
 每个类型目录提供完整的模板：`proposal.md`、`design.md`、`tasks.md`、
 `verification.md`、`archive.md`，以及需要时的 spec 增量骨架。
 
-生成的变更产物遵循 `CLAUDE.md` 中的语言规则：Stitches 规划文档默认使用简体
+生成的变更产物遵循 `CLAUDE.md` 中的语言规则：LetsGo 规划文档默认使用简体
 中文，代码和项目文档沿用目标项目现有语言。
 
 | 阶段 | 完成文件 | 关键完成检查 |
@@ -86,11 +86,16 @@ openspec/change-types/
    `Edit`、`MultiEdit`、`NotebookEdit`）。范围外的写入被拒绝；看不到文件路径
    的写入交给用户审查。
 
+Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --check` 和
+`node --test` 自动放行；`apply`、`verify` 阶段还会放行 `node scripts/task.js`
+这类项目内相对路径脚本。`node -e`、`node -p`、绝对路径、父目录路径以及包含
+管道、重定向或命令串联的 Node 命令仍需用户批准。
+
 守卫只在有 `openspec/` 目录的项目里启用；其他项目不受干扰。
 
 守卫直接读取 `openspec/changes/*/status.json`。只有一个活跃变更时自动使用；
-有多个变更时，`stitches select <change-id>` 写入
-`openspec/.stitches/active.json`，守卫优先使用标记的变更。
+有多个变更时，`letsgo select <change-id>` 写入
+`openspec/.letsgo/active.json`，守卫优先使用标记的变更。
 
 各阶段写权限范围：
 

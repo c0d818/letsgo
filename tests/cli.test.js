@@ -18,7 +18,7 @@ import {
   activeChanges,
   buildSystemRules,
   decideToolUse,
-  isStitchesProject,
+  isLetsGoProject,
   readActiveMarker,
   resolveActiveChange,
 } from "../lib/guard.js";
@@ -27,7 +27,7 @@ const packageRoot = path.resolve(import.meta.dirname, "..");
 const execFileAsync = promisify(execFile);
 
 async function withTempProject(fn) {
-  const dir = await mkdtemp(path.join(tmpdir(), "stitches-test-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "letsgo-test-"));
   try {
     await fn(dir);
   } finally {
@@ -35,7 +35,7 @@ async function withTempProject(fn) {
   }
 }
 
-test("init 把 Stitches 模板安装进项目", async () => {
+test("init 把 LetsGo 模板安装进项目", async () => {
   await withTempProject(async (projectDir) => {
     const result = await initProject({ projectDir });
 
@@ -46,13 +46,13 @@ test("init 把 Stitches 模板安装进项目", async () => {
     );
     assert.match(
       await readFile(path.join(projectDir, ".claude/commands/start.md"), "utf8"),
-      /Stitches/
+      /LetsGo/
     );
     assert.match(
-      await readFile(path.join(projectDir, ".claude/skills/stitches-workflow/SKILL.md"), "utf8"),
-      /Stitches/
+      await readFile(path.join(projectDir, ".claude/skills/letsgo-workflow/SKILL.md"), "utf8"),
+      /LetsGo/
     );
-    await stat(path.join(projectDir, ".claude/skills/stitches-clarify/SKILL.md"));
+    await stat(path.join(projectDir, ".claude/skills/letsgo-clarify/SKILL.md"));
     await stat(path.join(projectDir, ".claude/commands/check.md"));
     await stat(path.join(projectDir, ".claude/commands/structure.md"));
     await stat(path.join(projectDir, ".claude/commands/log.md"));
@@ -61,17 +61,17 @@ test("init 把 Stitches 模板安装进项目", async () => {
       { code: "ENOENT" }
     );
     for (const agent of [
-      "stitches-design-writer",
-      "stitches-plan-writer",
-      "stitches-apply-writer",
-      "stitches-verify-writer",
-      "stitches-archive-writer",
-      "stitches-reviewer",
+      "letsgo-design-writer",
+      "letsgo-plan-writer",
+      "letsgo-apply-writer",
+      "letsgo-verify-writer",
+      "letsgo-archive-writer",
+      "letsgo-reviewer",
     ]) {
       await stat(path.join(projectDir, `.claude/agents/${agent}.md`));
     }
     await assert.rejects(
-      stat(path.join(projectDir, ".claude/agents/stitches-design-reviewer.md")),
+      stat(path.join(projectDir, ".claude/agents/letsgo-design-reviewer.md")),
       { code: "ENOENT" }
     );
     assert.match(
@@ -109,27 +109,27 @@ test("init 把 Stitches 模板安装进项目", async () => {
     assert.deepEqual(
       (await readdir(path.join(projectDir, ".claude/skills"))).sort(),
       [
-        "stitches-apply",
-        "stitches-archive",
-        "stitches-bugfix",
-        "stitches-clarify",
-        "stitches-design",
-        "stitches-feature",
-        "stitches-maintenance",
-        "stitches-plan",
-        "stitches-refactor",
-        "stitches-review",
-        "stitches-spec",
-        "stitches-tdd",
-        "stitches-test",
-        "stitches-verify",
-        "stitches-workflow",
+        "letsgo-apply",
+        "letsgo-archive",
+        "letsgo-bugfix",
+        "letsgo-clarify",
+        "letsgo-design",
+        "letsgo-feature",
+        "letsgo-maintenance",
+        "letsgo-plan",
+        "letsgo-refactor",
+        "letsgo-review",
+        "letsgo-spec",
+        "letsgo-tdd",
+        "letsgo-test",
+        "letsgo-verify",
+        "letsgo-workflow",
       ]
     );
   });
 });
 
-test("disable 和 enable 软切换 .claude 下的 Stitches 条目", async () => {
+test("disable 和 enable 软切换 .claude 下的 LetsGo 条目", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
 
@@ -141,7 +141,7 @@ test("disable 和 enable 软切换 .claude 下的 Stitches 条目", async () => 
   });
 });
 
-test("doctor 报告 Stitches 是否已安装", async () => {
+test("doctor 报告 LetsGo 是否已安装", async () => {
   await withTempProject(async (projectDir) => {
     assert.equal((await doctorProject({ projectDir })).installed, false);
 
@@ -163,12 +163,34 @@ test("claude 插件清单和市场配置有效", async () => {
     await readFile(path.join(packageRoot, ".claude-plugin/marketplace.json"), "utf8")
   );
 
-  assert.match(manifest.name, /^[a-z0-9]+(-[a-z0-9]+)*$/);
+  assert.equal(manifest.name, "lg");
+  assert.equal(manifest.displayName, "LetsGo");
+  assert.equal(marketplace.name, "letsgo");
   assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
   assert.equal(typeof manifest.description, "string");
   assert.equal(marketplace.plugins[0].name, manifest.name);
   assert.equal(marketplace.plugins[0].version, manifest.version);
   assert.equal(marketplace.plugins[0].source, "./");
+
+  const commandNames = (await readdir(path.join(packageRoot, "commands")))
+    .filter((name) => name.endsWith(".md"))
+    .sort();
+  assert.deepEqual(commandNames, [
+    "bugfix.md",
+    "check.md",
+    "letsgo.md",
+    "log.md",
+    "refactor.md",
+    "start.md",
+    "structure.md",
+    "test.md",
+    "tokens.md",
+  ]);
+  for (const filename of commandNames) {
+    const commandName = filename.replace(/\.md$/, "");
+    const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
+    assert.match(content, new RegExp(`/lg:${commandName}\\b`));
+  }
 });
 
 test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", async () => {
@@ -199,7 +221,7 @@ test("cli init 把第一个位置参数当作项目目录", async () => {
   await withTempProject(async (projectDir) => {
     const { stdout } = await execFileAsync(
       process.execPath,
-      [path.join(packageRoot, "stitches"), "init", projectDir],
+      [path.join(packageRoot, "letsgo"), "init", projectDir],
       { cwd: packageRoot }
     );
     const result = JSON.parse(stdout);
@@ -214,13 +236,13 @@ test("cli new 和 status 使用位置参数指定项目目录", async () => {
   await withTempProject(async (projectDir) => {
     await execFileAsync(
       process.execPath,
-      [path.join(packageRoot, "stitches"), "init", projectDir],
+      [path.join(packageRoot, "letsgo"), "init", projectDir],
       { cwd: packageRoot }
     );
 
     const created = await execFileAsync(
       process.execPath,
-      [path.join(packageRoot, "stitches"), "new", "demo-change", "--type", "bugfix", projectDir],
+      [path.join(packageRoot, "letsgo"), "new", "demo-change", "--type", "bugfix", projectDir],
       { cwd: packageRoot }
     );
     const createResult = JSON.parse(created.stdout);
@@ -240,7 +262,7 @@ test("cli new 和 status 使用位置参数指定项目目录", async () => {
 
     const checked = await execFileAsync(
       process.execPath,
-      [path.join(packageRoot, "stitches"), "status", "--change", "demo-change", projectDir],
+      [path.join(packageRoot, "letsgo"), "status", "--change", "demo-change", projectDir],
       { cwd: packageRoot }
     );
     const statusResult = JSON.parse(checked.stdout);
@@ -283,13 +305,13 @@ test("运行时守卫在没有活跃变更时阻止写入", async () => {
     });
 
     assert.equal(decision.status, "deny");
-    assert.match(decision.reason, /未选择活跃的 Stitches 变更/);
+    assert.match(decision.reason, /未选择活跃的 LetsGo 变更/);
   });
 });
 
-test("运行时守卫放行未由 Stitches 管理的项目", async () => {
+test("运行时守卫放行未由 LetsGo 管理的项目", async () => {
   await withTempProject(async (projectDir) => {
-    assert.equal(await isStitchesProject(projectDir), false);
+    assert.equal(await isLetsGoProject(projectDir), false);
 
     const writeDecision = await decideToolUse({
       projectDir,
@@ -300,13 +322,13 @@ test("运行时守卫放行未由 Stitches 管理的项目", async () => {
       },
     });
     assert.equal(writeDecision.status, "allow");
-    assert.match(writeDecision.reason, /未由 Stitches 管理/);
+    assert.match(writeDecision.reason, /未由 LetsGo 管理/);
 
     const rules = await buildSystemRules({ projectDir });
     assert.equal(rules, "");
 
     await initProject({ projectDir });
-    assert.equal(await isStitchesProject(projectDir), true);
+    assert.equal(await isLetsGoProject(projectDir), true);
   });
 });
 
@@ -421,12 +443,20 @@ test("运行时守卫在写入看不到文件路径时请求审查", async () =>
   });
 });
 
-test("运行时守卫放行常见开发命令", async () => {
+test("运行时守卫放行常见开发命令和只读 Node 命令", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "add-login" });
 
-    for (const command of ["npm test", "npm run build", "node --test", "yarn lint"]) {
+    for (const command of [
+      "npm test",
+      "npm run build",
+      "node -v",
+      "node --help",
+      "node --check src/index.js",
+      "node --test tests/login.test.js",
+      "yarn lint",
+    ]) {
       const decision = await decideToolUse({
         projectDir,
         toolName: "Bash",
@@ -434,6 +464,42 @@ test("运行时守卫放行常见开发命令", async () => {
       });
       assert.equal(decision.status, "allow", command);
     }
+  });
+});
+
+test("运行时守卫仅在 apply 和 verify 阶段放行项目内 Node 脚本", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    const decideNode = (command) => decideToolUse({
+      projectDir,
+      toolName: "Bash",
+      toolInput: { command },
+    });
+
+    assert.equal((await decideNode("node scripts/build.js")).status, "ask");
+
+    const statusPath = path.join(projectDir, "openspec/changes/add-login/status.json");
+    const status = JSON.parse(await readFile(statusPath, "utf8"));
+    await writeFile(statusPath, `${JSON.stringify({ ...status, state: "apply" }, null, 2)}\n`);
+
+    assert.equal((await decideNode("node scripts/build.js --target src")).status, "allow");
+    assert.equal((await decideNode("node ./tools/check.mjs")).status, "allow");
+
+    for (const command of [
+      "node -e \"require('node:fs').writeFileSync('x', 'y')\"",
+      "node -p \"process.version\"",
+      "node ../outside.js",
+      "node /tmp/outside.js",
+      "node scripts/build.js && rm -rf dist",
+      "node --check src/index.js | tail -1",
+    ]) {
+      assert.equal((await decideNode(command)).status, "ask", command);
+    }
+
+    await writeFile(statusPath, `${JSON.stringify({ ...status, state: "verify" }, null, 2)}\n`);
+    assert.equal((await decideNode("node scripts/verify.cjs")).status, "allow");
   });
 });
 
@@ -446,7 +512,7 @@ test("运行时守卫允许写入运行问题日志", async () => {
       projectDir,
       toolName: "Write",
       toolInput: {
-        file_path: path.join(projectDir, "openspec/.stitches/issues.md"),
+        file_path: path.join(projectDir, "openspec/.letsgo/issues.md"),
         content: "## 2026-08-08 15:00\n- 测试问题",
       },
     });
@@ -454,7 +520,7 @@ test("运行时守卫允许写入运行问题日志", async () => {
   });
 });
 
-test("运行时守卫放行只读 bash 和 stitches CLI 命令", async () => {
+test("运行时守卫放行只读 bash 和 letsgo CLI 命令", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "add-login" });
@@ -470,7 +536,7 @@ test("运行时守卫放行只读 bash 和 stitches CLI 命令", async () => {
       projectDir,
       toolName: "Bash",
       toolInput: {
-        command: "stitches validate --before clarify --change add-login",
+        command: "letsgo validate --before clarify --change add-login",
       },
     });
     assert.equal(cliCommand.status, "allow");
@@ -506,11 +572,11 @@ test("运行时守卫把活跃状态注入系统规则", async () => {
 
     const rules = await buildSystemRules({ projectDir });
 
-    assert.match(rules, /Stitches 运行时守卫已启用/);
-    assert.match(rules, /当前 Stitches 变更：add-login，类型：feature，阶段：clarify/);
+    assert.match(rules, /LetsGo 运行时守卫已启用/);
+    assert.match(rules, /当前 LetsGo 变更：add-login，类型：feature，阶段：clarify/);
     assert.match(rules, /add-login：clarify（feature）/);
     assert.match(rules, /规划文档默认使用简体中文/);
-    assert.match(rules, /stitches select <change-id>/);
+    assert.match(rules, /letsgo select <change-id>/);
   });
 });
 

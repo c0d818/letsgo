@@ -10,7 +10,7 @@ import { newChangeProject } from "../cli/commands/new.js";
 const packageRoot = path.resolve(import.meta.dirname, "..");
 
 async function withTempProject(fn) {
-  const dir = await mkdtemp(path.join(tmpdir(), "stitches-hooks-test-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "letsgo-hooks-test-"));
   try {
     await fn(dir);
   } finally {
@@ -162,8 +162,8 @@ test("context 脚本注入生命周期规则和活跃变更状态", async () => 
     const context = output.hookSpecificOutput.additionalContext;
 
     assert.equal(code, 0);
-    assert.match(context, /Stitches 运行时守卫已启用/);
-    assert.match(context, /当前 Stitches 变更：add-login，类型：feature，阶段：clarify/);
+    assert.match(context, /LetsGo 运行时守卫已启用/);
+    assert.match(context, /当前 LetsGo 变更：add-login，类型：feature，阶段：clarify/);
     assert.match(context, /clarify -> design -> plan -> apply -> verify -> archive -> done/);
   });
 });
@@ -186,12 +186,12 @@ test("context 脚本在用户消息时只注入当前变更摘要", async () => 
     const context = output.hookSpecificOutput.additionalContext;
 
     assert.equal(code, 0);
-    assert.match(context, /当前 Stitches 变更：add-login/);
-    assert.doesNotMatch(context, /Stitches 运行时守卫已启用/);
+    assert.match(context, /当前 LetsGo 变更：add-login/);
+    assert.doesNotMatch(context, /LetsGo 运行时守卫已启用/);
   });
 });
 
-test("context 脚本在未由 Stitches 管理的项目中保持静默", async () => {
+test("context 脚本在未由 LetsGo 管理的项目中保持静默", async () => {
   await withTempProject(async (projectDir) => {
     const { code, stdout } = await runHookScript(
       "scripts/context.js",

@@ -3,20 +3,20 @@ description: 查看变更状态
 argument-hint: <change-id>
 ---
 
-# 查看 Stitches 状态
+# 查看 LetsGo 状态
 
 这是一个只读命令，不修改任何文件。
 
 使用方式：
 
 ```text
-/check <change-id>
+/lg:check <change-id>
 ```
 
 执行：
 
 ```bash
-stitches status --change <change-id>
+letsgo status --change <change-id>
 ```
 
 向用户显示：

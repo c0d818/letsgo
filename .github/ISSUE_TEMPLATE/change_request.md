@@ -1,6 +1,6 @@
 ---
 name: 变更请求
-about: 提议 Stitches 工作流、命令或 SDD 生命周期的变更
+about: 提议 LetsGo 工作流、命令或 SDD 生命周期的变更
 title: "change: "
 labels: enhancement
 assignees: ""
@@ -9,7 +9,7 @@ assignees: ""
 ## 目标
 
 
-## 为什么属于 Stitches
+## 为什么属于 LetsGo
 
 
 ## 提议的行为

@@ -33,9 +33,9 @@ if (input === null) {
     JSON.stringify({
       hookSpecificOutput: {
         permissionDecision: "ask",
-        permissionDecisionReason: "Stitches guard could not read hook input",
+        permissionDecisionReason: "LetsGo guard could not read hook input",
       },
-      message: "Stitches guard could not read hook input",
+      message: "LetsGo guard could not read hook input",
     })
   );
 } else {

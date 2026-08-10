@@ -16,7 +16,7 @@ const packageRoot = path.resolve(import.meta.dirname, "..");
 const execFileAsync = promisify(execFile);
 
 async function withTempProject(fn) {
-  const dir = await mkdtemp(path.join(tmpdir(), "stitches-token-test-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "letsgo-token-test-"));
   try {
     await fn(dir);
   } finally {
@@ -54,13 +54,13 @@ async function makeTranscripts(sessionDir) {
   ].join("\n"));
   await writeFile(path.join(sessionDir, "session", "subagents", "a.jsonl"), [
     assistantLine({
-      agent: "stitches:stitches-design-writer",
+      agent: "lg:letsgo-design-writer",
       usage: { input_tokens: 200, output_tokens: 30 },
     }),
   ].join("\n"));
   await writeFile(path.join(sessionDir, "session", "subagents", "b.jsonl"), [
     assistantLine({
-      agent: "stitches:stitches-reviewer",
+      agent: "lg:letsgo-reviewer",
       usage: { input_tokens: 80, output_tokens: 10, cache_read_input_tokens: 20 },
     }),
   ].join("\n"));
@@ -79,7 +79,7 @@ test("token 报告解析主代理与 subagent 的用量", async () => {
     assert.equal(report.main.cacheWrite, 5);
     assert.deepEqual(
       report.subagents.map((item) => item.name),
-      ["stitches:stitches-design-writer", "stitches:stitches-reviewer"]
+      ["lg:letsgo-design-writer", "lg:letsgo-reviewer"]
     );
     assert.equal(report.subagents[0].input, 200);
     assert.equal(report.subagents[1].input, 80);
@@ -87,7 +87,7 @@ test("token 报告解析主代理与 subagent 的用量", async () => {
   });
 });
 
-test("token 报告写入 openspec/.stitches/token-report.md", async () => {
+test("token 报告写入 openspec/.letsgo/token-report.md", async () => {
   await withTempProject(async (dir) => {
     const sessionDir = path.join(dir, "session");
     const mainPath = await makeTranscripts(sessionDir);
@@ -97,7 +97,7 @@ test("token 报告写入 openspec/.stitches/token-report.md", async () => {
     const content = await readFile(reportPath, "utf8");
 
     assert.match(content, /# Token 用量报告/);
-    assert.match(content, /stitches:stitches-reviewer/);
+    assert.match(content, /lg:letsgo-reviewer/);
     assert.match(content, /\*\*合计\*\*.*\*\*530\*\*/);
   });
 });
@@ -106,11 +106,11 @@ test("formatMarkdown 生成可读表格", () => {
   const markdown = formatMarkdown({
     sessionId: "s1",
     main: { name: "主代理", input: 1, output: 2, cacheRead: 3, cacheWrite: 4 },
-    subagents: [{ name: "stitches:stitches-reviewer", input: 5, output: 6, cacheRead: 0, cacheWrite: 0 }],
+    subagents: [{ name: "lg:letsgo-reviewer", input: 5, output: 6, cacheRead: 0, cacheWrite: 0 }],
     totals: { main: 10, subagents: 11, all: 21 },
   });
   assert.match(markdown, /\| 主代理 \| 1 \| 2 \| 3 \| 4 \| 10 \|/);
-  assert.match(markdown, /stitches:stitches-reviewer/);
+  assert.match(markdown, /lg:letsgo-reviewer/);
   assert.match(markdown, /\*\*21\*\*/);
 });
 
@@ -130,13 +130,13 @@ test("cli tokens 生成报告并输出汇总", async () => {
 
     const { stdout } = await execFileAsync(
       process.execPath,
-      [path.join(packageRoot, "stitches"), "tokens", mainPath, projectDir],
+      [path.join(packageRoot, "letsgo"), "tokens", mainPath, projectDir],
       { cwd: packageRoot }
     );
     const result = JSON.parse(stdout);
 
     assert.equal(result.report.totals.all, 530);
     assert.equal(result.report.subagents.length, 2);
-    await stat(path.join(projectDir, "openspec/.stitches/token-report.md"));
+    await stat(path.join(projectDir, "openspec/.letsgo/token-report.md"));
   });
 });

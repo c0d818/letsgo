@@ -48,20 +48,20 @@ export async function main(argv) {
 }
 
 function printHelp() {
-  console.log(`Stitches
+  console.log(`LetsGo
 
 用法：
-  stitches init [project-dir]
-  stitches update [project-dir]
-  stitches enable [project-dir]
-  stitches disable [project-dir]
-  stitches doctor [project-dir]
-  stitches new <change-id> [--type feature|bugfix|refactor|test|maintenance] [project-dir]
-  stitches status --change <change-id> [project-dir]
-  stitches validate --before|--after <state> --change <change-id> [project-dir]
-  stitches advance <state> --change <change-id> [project-dir]
-  stitches select <change-id> [project-dir]
-  stitches tokens [transcript-path] [project-dir]`);
+  letsgo init [project-dir]
+  letsgo update [project-dir]
+  letsgo enable [project-dir]
+  letsgo disable [project-dir]
+  letsgo doctor [project-dir]
+  letsgo new <change-id> [--type feature|bugfix|refactor|test|maintenance] [project-dir]
+  letsgo status --change <change-id> [project-dir]
+  letsgo validate --before|--after <state> --change <change-id> [project-dir]
+  letsgo advance <state> --change <change-id> [project-dir]
+  letsgo select <change-id> [project-dir]
+  letsgo tokens [transcript-path] [project-dir]`);
 }
 
 function parseArgs(commandName, args) {
