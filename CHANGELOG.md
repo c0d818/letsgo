@@ -16,6 +16,9 @@ LetsGo 的所有重要变更都记录在这里。
   并增加自动结构检查，防止后续写法漂移。
 - 新增单文件轻量运行前检查：通过 Hook 记录当前阶段的 Skill、writer 和 reviewer
   状态，并在 Agent 启动及 `advance` 前强制检查正确顺序。
+- 接入 CodeGraph 本地 MCP；大型项目 clarify 阶段优先用单一
+  `codegraph_explore` 获取源码、调用路径和影响范围，索引不可用时自动降级。
+- `letsgo doctor` 新增 CodeGraph CLI、索引和整体就绪状态检查。
 
 ### 修复
 

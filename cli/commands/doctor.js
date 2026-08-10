@@ -1,10 +1,19 @@
+import { execFile } from "node:child_process";
 import { existsAt } from "../../lib/paths.js";
 
-export async function doctorProject({ projectDir }) {
-  const agents = await existsAt(projectDir, "CLAUDE.md");
-  const commands = await existsAt(projectDir, ".claude/commands");
-  const skills = await existsAt(projectDir, ".claude/skills");
-  const openspec = await existsAt(projectDir, "openspec/change-types");
+export async function doctorProject({
+  projectDir,
+  checkCodegraph = hasCodegraphExecutable,
+}) {
+  const [agents, commands, skills, openspec, codegraphIndexed, codegraphExecutable] =
+    await Promise.all([
+      existsAt(projectDir, "CLAUDE.md"),
+      existsAt(projectDir, ".claude/commands"),
+      existsAt(projectDir, ".claude/skills"),
+      existsAt(projectDir, "openspec/change-types"),
+      existsAt(projectDir, ".codegraph/codegraph.db"),
+      checkCodegraph(),
+    ]);
 
   return {
     projectDir,
@@ -13,5 +22,16 @@ export async function doctorProject({ projectDir }) {
     commands,
     skills,
     openspec,
+    codegraphExecutable,
+    codegraphIndexed,
+    codegraphReady: codegraphExecutable && codegraphIndexed,
   };
+}
+
+function hasCodegraphExecutable() {
+  return new Promise((resolve) => {
+    execFile("codegraph", ["version"], { timeout: 5000 }, (error) => {
+      resolve(!error);
+    });
+  });
 }

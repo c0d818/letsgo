@@ -197,15 +197,36 @@ test("disable 和 enable 软切换 .claude 下的 LetsGo 条目", async () => {
 
 test("doctor 报告 LetsGo 是否已安装", async () => {
   await withTempProject(async (projectDir) => {
-    assert.equal((await doctorProject({ projectDir })).installed, false);
+    const beforeInit = await doctorProject({
+      projectDir,
+      checkCodegraph: async () => false,
+    });
+    assert.equal(beforeInit.installed, false);
+    assert.equal(beforeInit.codegraphExecutable, false);
+    assert.equal(beforeInit.codegraphIndexed, false);
+    assert.equal(beforeInit.codegraphReady, false);
 
     await initProject({ projectDir });
 
-    const result = await doctorProject({ projectDir });
+    const result = await doctorProject({
+      projectDir,
+      checkCodegraph: async () => false,
+    });
     assert.equal(result.installed, true);
     assert.equal(result.commands, true);
     assert.equal(result.skills, true);
     assert.equal(result.openspec, true);
+    assert.equal(result.codegraphIndexed, false);
+
+    await mkdir(path.join(projectDir, ".codegraph"));
+    await writeFile(path.join(projectDir, ".codegraph/codegraph.db"), "");
+    const ready = await doctorProject({
+      projectDir,
+      checkCodegraph: async () => true,
+    });
+    assert.equal(ready.codegraphExecutable, true);
+    assert.equal(ready.codegraphIndexed, true);
+    assert.equal(ready.codegraphReady, true);
   });
 });
 
@@ -226,6 +247,15 @@ test("claude 插件清单和市场配置有效", async () => {
   assert.equal(marketplace.plugins[0].version, manifest.version);
   assert.equal(marketplace.plugins[0].source, "./");
 
+  const mcp = JSON.parse(
+    await readFile(path.join(packageRoot, ".mcp.json"), "utf8")
+  );
+  assert.deepEqual(mcp.mcpServers.codegraph, {
+    type: "stdio",
+    command: "codegraph",
+    args: ["serve", "--mcp"],
+  });
+
   const commandNames = (await readdir(path.join(packageRoot, "commands")))
     .filter((name) => name.endsWith(".md"))
     .sort();
@@ -245,6 +275,23 @@ test("claude 插件清单和市场配置有效", async () => {
     const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
     assert.match(content, new RegExp(`/lg:${commandName}\\b`));
   }
+});
+
+test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () => {
+  const clarify = await readFile(
+    path.join(packageRoot, "skills/letsgo-clarify/SKILL.md"),
+    "utf8"
+  );
+  const projectRules = await readFile(
+    path.join(packageRoot, "templates/CLAUDE.md"),
+    "utf8"
+  );
+
+  assert.match(clarify, /codegraph_explore/);
+  assert.match(clarify, /Grep.*Read/);
+  assert.match(projectRules, /codegraph init/);
+  assert.match(projectRules, /\.codegraph\//);
+  assert.match(projectRules, /不要提交/);
 });
 
 test("所有 Skill 和 Subagent 使用统一模板", async () => {

@@ -18,6 +18,7 @@
 - 使用 `tdd-evidence.md` 强制记录 TDD 或有效豁免证据。
 - 所有 Skill 和 Subagent 统一使用“职责、输入、执行流程、输出、边界”模板。
 - 增加 Skill 和 Subagent 结构一致性自动测试。
+- 接入 CodeGraph MCP，并在 clarify 阶段优先做代码图谱影响分析。
 
 ### 候选迭代
 
@@ -39,6 +40,22 @@
 - [x] `advance` 前检查 Skill、writer 和 reviewer 通过。
 - [x] writer 重启后使旧 reviewer 结论失效。
 - [x] Subagent 使用机器可读的 `LETGO_RESULT` 结果行。
+
+#### CodeGraph 大项目上下文
+
+- 状态：已完成
+- 目标：在大型项目中减少重复 Grep、多文件读取和人工调用链拼接。
+- 技术决策：插件只声明 `codegraph serve --mcp`，MCP 默认暴露单一的
+  `codegraph_explore`；索引保存在项目本地 `.codegraph/`，不产生每任务日志。
+- 降级策略：CLI、MCP 或索引不可用时明确回退内置工具，不阻断 LetsGo 生命周期。
+
+实施结果：
+
+- [x] `.mcp.json` 接入 CodeGraph stdio MCP。
+- [x] clarify 优先图谱分析，并禁止机械重复读取已返回源码。
+- [x] `letsgo doctor` 报告 CLI、索引和整体就绪状态。
+- [x] `.codegraph/` 从当前仓库 Git 跟踪中排除。
+- [x] 自动测试覆盖配置、索引检测和降级规则。
 
 ## 迭代模板
 

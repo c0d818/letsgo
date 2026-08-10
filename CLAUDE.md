@@ -6,6 +6,7 @@ Superpowers 式工程纪律与 OpenSpec 式生命周期管理缝合为 SDD 工�
 ## 结构
 
 - `.claude-plugin/`：插件清单与市场配置
+- `.mcp.json`：Context7 远程文档与 CodeGraph 本地代码图谱 MCP
 - `commands/`：斜杠命令，文件名即命令名
 - `skills/`：技能，全部 `user-invocable: false`（只做按需读取/自动激活）
 - `agents/`：5 个阶段 writer + 1 个通用 `lg:letsgo-reviewer`
@@ -46,4 +47,6 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
 - 插件校验：`claude plugin validate .claude-plugin/plugin.json --strict`。
 - `letsgo` CLI 已通过 `npm link` 全局可用，仓库改动即时生效。
 - 插件组件改动需新开 Claude Code 会话生效。
+- 大型代码分析优先使用 `codegraph_explore`；首次使用前在仓库根运行
+  `codegraph init`，`.codegraph/` 只保留在本机。
 - 发布流程见 `VERSIONING.md`，更新日志记入 `CHANGELOG.md`。

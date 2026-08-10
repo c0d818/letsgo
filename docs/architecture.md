@@ -7,6 +7,10 @@ LetsGo 有四层：
 3. Claude Code 技能和代理：为以后的代理定义持久的过程规则。
 4. Claude Code 钩子：注入状态上下文并拦截写权限。
 
+插件根目录的 `.mcp.json` 还声明两个只读上下文来源：Context7 查询当前官方文档，
+CodeGraph 查询本地代码图谱。CodeGraph 由独立的 `codegraph serve --mcp` 进程提供，
+索引保存在目标项目的 `.codegraph/`，不进入 LetsGo 的运行状态或版本库。
+
 第一个版本不分支 OpenSpec 或 Superpowers，而是通过安装项目本地文件来组合它们。
 
 ## 运行时结构
@@ -98,3 +102,11 @@ Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；des
 ```
 
 仓库根目录还保留包元数据、`letsgo` CLI 启动器、文档和测试。
+
+## CodeGraph 使用边界
+
+- 只在目标项目已有 `.codegraph/` 索引时优先使用 `codegraph_explore`。
+- 返回的源码、调用路径和影响摘要作为一次查询结果使用，不再机械重复 Grep/Read。
+- MCP 或索引不可用时显式降级到内置工具，CodeGraph 不成为生命周期硬依赖。
+- `letsgo doctor` 用 `codegraph version` 检查 CLI，并检查
+  `.codegraph/codegraph.db` 是否存在；它不启动后台服务，也不写入检查日志。

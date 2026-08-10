@@ -41,6 +41,22 @@ cc --plugin-dir /Users/gc0d/harness/letsgo
 
 `letsgo init <project>` 会把命令、技能、代理安装到项目本地（`.claude/`）。
 
+### CodeGraph（大项目推荐）
+
+LetsGo 已声明 CodeGraph MCP，不需要再手写 Claude 配置。每台开发机安装一次 CLI，
+每个项目建立一次本地索引：
+
+```bash
+npm install -g @colbymchenry/codegraph
+cd <project>
+codegraph init
+```
+
+`.codegraph/` 是自动同步的本地 SQLite 索引，应加入项目 `.gitignore`，不要提交。
+`letsgo doctor <project>` 会报告 `codegraphExecutable`、`codegraphIndexed` 和
+`codegraphReady`。未安装或未建索引时，LetsGo 会明确降级到内置的 `Grep`、
+`Read`，不会中断工作流。
+
 ## 发布
 
 ```bash
@@ -86,6 +102,9 @@ apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果�
 LetsGo 还使用单一的 `openspec/.letsgo/runtime-state.json` 做轻量运行前检查：
 writer 启动前确认阶段 Skill，reviewer 启动前确认 writer，状态推进前确认 reviewer
 通过。该文件只保存当前阶段状态，不累积每次任务的 JSON 日志。
+
+大型项目的 clarify 分析会优先调用单一的 `codegraph_explore`，一次返回相关源码、
+调用路径和影响范围，避免重复的全仓库搜索和多文件读取。
 
 细节见 [docs/workflow.md](docs/workflow.md) 和
 [docs/architecture.md](docs/architecture.md)。

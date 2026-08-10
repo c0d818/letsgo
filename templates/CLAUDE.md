@@ -2,8 +2,13 @@
 
 本项目由 LetsGo 管理。
 
-LetsGo 插件会提供 Context7 远程 MCP（`context7`），写操作由插件守卫按阶段
-管理。CodeGraph 需要先在本机安装后再自行加入 MCP 配置。
+LetsGo 插件会提供 Context7 远程 MCP（`context7`）和 CodeGraph 本地 MCP
+（`codegraph`），写操作由插件守卫按阶段管理。
+
+较大项目先在本机安装 CodeGraph CLI，并在项目根目录运行一次 `codegraph init`。
+该命令只创建本地 `.codegraph/` 索引；把目录加入 `.gitignore`，不要提交。项目
+存在索引时，代码结构、调用路径和影响面分析优先使用 `codegraph_explore`；工具或
+索引不可用时说明原因，再降级到 `Grep`、`Read` 等内置工具。
 
 ## 语言规则
 
