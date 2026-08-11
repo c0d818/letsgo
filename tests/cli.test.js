@@ -306,6 +306,27 @@ test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () =>
   assert.match(projectRules, /不要提交/);
 });
 
+test("设计决策文档记录关键门禁的理由与调整条件", async () => {
+  const decisions = await readFile(
+    path.join(packageRoot, "docs/design-decisions.md"),
+    "utf8"
+  );
+  const readme = await readFile(path.join(packageRoot, "README.md"), "utf8");
+
+  for (const topic of [
+    "CodeGraph 为什么最多两次",
+    "为什么不增加监督 Subagent",
+    "Reviewer 为什么最多两轮",
+    "为什么 Apply 必须真实 TDD",
+    "为什么 Verify 必须零未验收项",
+    "为什么默认本地提交但不自动推送",
+  ]) {
+    assert.match(decisions, new RegExp(topic));
+  }
+  assert.match(decisions, /调整条件/);
+  assert.match(readme, /docs\/design-decisions\.md/);
+});
+
 test("所有 Skill 和 Subagent 使用统一模板", async () => {
   const requiredSections = ["职责", "输入", "执行流程", "输出", "边界"];
   const skillRoot = path.join(packageRoot, "skills");

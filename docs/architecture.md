@@ -64,7 +64,7 @@ commands/*.md   ->   skills/*/SKILL.md   ->   agents/*.md
    以及 subagent 编排规则。
 2. **技能层**（`skills/letsgo-design/SKILL.md` 等）：告诉 agent 具体怎么做。
    阶段 Skill 负责派发专用 subagent（`<阶段>-writer` -> `lg:letsgo-reviewer`），
-   reviewer 不通过时交回 writer 修复并仅复审一次；clarify 由主 Agent完成需求交互。
+   reviewer 不通过时交回 writer 修复并仅复审一次；clarify 由主 Agent 完成需求交互。
 3. **代理层**（5 个阶段 writer + 1 个通用 `lg:letsgo-reviewer`）：执行具体
    工作（写文档、写代码、跑验证、归档）和只读审查，遵守只读或只写边界。
 
@@ -123,3 +123,6 @@ Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；des
   `.codegraph/codegraph.db` 是否存在；它不启动后台服务，也不写入检查日志。
 - clarify 默认一次聚焦图谱查询；只有关键调用边缺失时才允许补一次并记录原因，
   禁止第三次查询，防止重复上下文消耗。
+
+这些限制的实测依据、权衡和调整条件见
+[design-decisions.md](design-decisions.md)。
