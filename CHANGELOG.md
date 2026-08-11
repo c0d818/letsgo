@@ -11,6 +11,20 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.4] - 2026-08-11
+
+### 新增
+
+- 新增 `letsgo reopen <state> --change <id> --reason <理由>` 和 `/lg:reopen`：经用户
+  明确确认后，将被 reviewer/验收阻塞的同一变更退回已完成的更早阶段。
+- reopen 自动撤销目标阶段及其后的完成/批准状态，并把旧 reviewer/runtime 和失效阶段
+  快照保存在 `status.json.reopens` 与 `run-summary.json.reopens`，随后重新执行完整门禁。
+
+### 修复
+
+- verify 发现生产代码遗漏时不再建议另建 bugfix、手改状态或无审查推进；必须停止并等待
+  用户授权 reopen，避免原变更的实现与验收证据割裂。
+
 ## [0.4.3] - 2026-08-11
 
 ### 修复

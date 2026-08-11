@@ -26,6 +26,8 @@ user-invocable: false
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，核对命令、结果、验收标准覆盖、未测试区域和剩余
    风险；任何验收项仍写“待手动/浏览器验证”时必须阻塞。
 4. reviewer 有阻塞问题时，将问题交回 writer 补充验证并只重新审查一次；仍阻塞时停止。
+   若阻塞证明生产代码或测试需要修改，报告应退回的阶段并等待用户明确授权
+   `/lg:reopen`；不得另建变更、在 verify 越界写代码或直接推进。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after verify --change <change-id>` 和
    `letsgo advance verify --change <change-id>`。
@@ -40,3 +42,4 @@ user-invocable: false
 - writer 不修改生产代码、测试代码或任务内容。
 - reviewer 只读，不修改文件或推进状态。
 - 没有充分证据时不得写 `Status: Pass`。
+- `/lg:reopen` 只能由用户明确授权；verify Skill 不自动执行阶段回退。

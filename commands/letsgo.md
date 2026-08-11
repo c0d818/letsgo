@@ -53,7 +53,8 @@ Required skill: `lg:letsgo-workflow`
    `lg:letsgo-verify`，archive -> `lg:letsgo-archive`。
 
 4. 校验或审查失败 → 先把问题记录到 `openspec/.letsgo/issues.md`，然后停止并
-   报告；不进入下一阶段，不手动修改 `status.json`。
+   报告；不进入下一阶段，不手动修改 `status.json`。若阻塞要求修改更早阶段产物或
+   代码，等待用户明确授权 `/lg:reopen`，不得自动回退或另建变更绕过。
 5. 全部完成 → 默认安全执行本地提交，再向用户汇总变更内容和验证证据。
 
 ## 规则

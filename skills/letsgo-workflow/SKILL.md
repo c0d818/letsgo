@@ -36,6 +36,8 @@ user-invocable: false
    diff 和风险重点；不让 reviewer 重新遍历整个项目。
 5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查；同一产物只允许
    一次初审和一次修订后复审；第二次仍阻塞时停止，不得第三次启动。
+   阻塞证明需要修改更早阶段时，等待用户明确授权 `/lg:reopen`；不得自动回退、
+   另建变更或手动修改状态。reopen 后从目标阶段重新执行完整门禁。
 6. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
 7. 遵守运行前检查：只使用 `lg:letsgo-*` 命名空间 Agent；先加载阶段 Skill，再启动
    writer；writer 完成后再启动 reviewer。每个 Agent prompt 必须写入当前阶段、角色和

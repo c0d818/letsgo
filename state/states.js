@@ -42,6 +42,7 @@ export function initialStatus(changeId, type, now = new Date()) {
     state: "clarify",
     completed: [],
     approved: Object.fromEntries(STATES.map((state) => [state, false])),
+    reopens: [],
     createdAt: timestamp,
     updatedAt: timestamp,
   };

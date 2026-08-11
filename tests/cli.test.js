@@ -105,6 +105,7 @@ test("init 把 LetsGo 模板安装进项目", async () => {
     await stat(path.join(projectDir, ".claude/commands/structure.md"));
     await stat(path.join(projectDir, ".claude/commands/log.md"));
     await stat(path.join(projectDir, ".claude/commands/recover.md"));
+    await stat(path.join(projectDir, ".claude/commands/reopen.md"));
     await assert.rejects(
       stat(path.join(projectDir, ".claude/commands/maintenance.md")),
       { code: "ENOENT" }
@@ -268,6 +269,7 @@ test("claude 插件清单和市场配置有效", async () => {
     "log.md",
     "recover.md",
     "refactor.md",
+    "reopen.md",
     "start.md",
     "structure.md",
     "test.md",
@@ -320,6 +322,7 @@ test("设计决策文档记录关键门禁的理由与调整条件", async () =>
     "为什么 Apply 必须真实 TDD",
     "为什么 Verify 必须零未验收项",
     "为什么默认本地提交但不自动推送",
+    "为什么阻塞后必须显式 Reopen",
   ]) {
     assert.match(decisions, new RegExp(topic));
   }

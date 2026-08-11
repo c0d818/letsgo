@@ -54,10 +54,14 @@ letsgo validate --before <state> --change <change-id>
 letsgo validate --after <state> --change <change-id>
 letsgo advance <state> --change <change-id>
 letsgo recover
+letsgo reopen <state> --change <change-id> --reason "<人工解除理由>"
 ```
 
 第一个实现通过 `status.json` 加必需文件强制生命周期。
 `letsgo advance <state>` 只在 `<state>` 与 `status.json` 当前状态一致时推进。
+`letsgo reopen <state>` 只允许经用户确认后回到已经完成的更早阶段。它撤销目标阶段
+及其后续 completed/approved，保留旧 reviewer/runtime 证据并重置目标阶段运行门禁；
+不能用于自动增加第三次 reviewer，也不能省略人工解除理由。
 
 `letsgo new` 从 OpenSpec 变更类型模板创建工作区：
 
@@ -122,6 +126,8 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 `run-summary.json` 保存阶段结果与真实权限提示、澄清问题、CodeGraph 查询、自动拒绝、
 压缩和重复守卫拒绝计数。
 `letsgo recover` 可根据 `status.json` 恢复唯一活跃变更，多个活跃变更时要求明确选择。
+`recover` 只修复中断或残留状态；后期验收发现实现遗漏时使用 `reopen`，两者不能互相
+替代。reopen 后必须重新执行目标阶段的 Skill、writer、reviewer 和全部质量门。
 
 生命周期完成后默认创建作用域明确的本地提交（用户明确拒绝时除外）；守卫允许
 非 amend/fixup/squash 的本地 `git add` 和 `git commit`，`git push` 仍保留权限确认。

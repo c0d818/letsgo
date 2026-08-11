@@ -10,6 +10,7 @@ import { advanceProject } from "./commands/advance.js";
 import { selectProject } from "./commands/select.js";
 import { tokensProject } from "./commands/tokens.js";
 import { recoverProject } from "./commands/recover.js";
+import { reopenProject } from "./commands/reopen.js";
 
 const commands = {
   init: initProject,
@@ -24,6 +25,7 @@ const commands = {
   select: selectProject,
   tokens: tokensProject,
   recover: recoverProject,
+  reopen: reopenProject,
 };
 
 export async function main(argv) {
@@ -64,6 +66,7 @@ function printHelp() {
   letsgo advance <state> --change <change-id> [project-dir]
   letsgo select <change-id> [project-dir]
   letsgo recover [project-dir]
+  letsgo reopen <state> --change <change-id> --reason <人工解除理由> [project-dir]
   letsgo tokens [transcript-path] [project-dir]`);
 }
 
@@ -106,6 +109,12 @@ function parseArgs(commandName, args) {
       continue;
     }
 
+    if (arg === "--reason" || arg === "-r") {
+      options.reason = args[index + 1];
+      index += 1;
+      continue;
+    }
+
     positional.push(arg);
   }
 
@@ -127,7 +136,7 @@ function parseArgs(commandName, args) {
     return options;
   }
 
-  if (commandName === "advance") {
+  if (["advance", "reopen"].includes(commandName)) {
     if (!options.state && positional.length > 0) {
       options.state = positional[0];
       positional.shift();

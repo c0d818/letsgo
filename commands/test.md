@@ -25,7 +25,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 4. 推进：`letsgo advance <state> --change <change-id>`
 
 校验或审查失败时先将问题记录到 `openspec/.letsgo/issues.md`，然后停止并
-报告；不进入下一阶段，不手动修改 `status.json`。
+报告；不进入下一阶段，不手动修改 `status.json`。若阻塞要求修改更早阶段，等待用户
+明确授权 `/lg:reopen`；不得自动回退或另建变更绕过。
 
 ## 前置
 

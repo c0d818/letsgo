@@ -44,6 +44,8 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
   并按阶段时间窗计算增量。
 - `runtime-state.json` 只保存当前阶段门禁；`run-summary.json` 覆盖保存本次生命周期
   阶段摘要和轻量指标。中断后使用 `letsgo recover`，不得通过新建维护变更绕过守卫。
+- 后期审查发现遗漏时，只有用户明确授权才能用 `letsgo reopen` 回到更早阶段；旧审查
+  证据必须保留，不得直接推进、手改状态或另建变更掩盖验收缺口。
 
 ## 开发
 
