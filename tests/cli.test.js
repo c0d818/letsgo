@@ -749,12 +749,37 @@ test("运行时守卫放行只读 bash 和 letsgo CLI 命令", async () => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "add-login" });
 
-    const readOnly = await decideToolUse({
-      projectDir,
-      toolName: "Bash",
-      toolInput: { command: "git status" },
-    });
-    assert.equal(readOnly.status, "allow");
+    for (const command of [
+      "sed -n '95,115p' src/server/index.js",
+      "sed -n '1,$p' README.md",
+      "rg -n clear src test",
+      "ls -la openspec/changes",
+      "pwd",
+      "git status",
+      "git diff --stat",
+      "git show --stat HEAD",
+      "git log -5 --oneline",
+    ]) {
+      const readOnly = await decideToolUse({
+        projectDir,
+        toolName: "Bash",
+        toolInput: { command },
+      });
+      assert.equal(readOnly.status, "allow", command);
+    }
+
+    for (const command of [
+      "sed -i '' 's/old/new/' src/server/index.js",
+      "sed -n '1,3w output.txt' src/server/index.js",
+      "sed -n '1,3p' src/server/index.js > output.txt",
+    ]) {
+      const writeCapable = await decideToolUse({
+        projectDir,
+        toolName: "Bash",
+        toolInput: { command },
+      });
+      assert.notEqual(writeCapable.status, "allow", command);
+    }
 
     const cliCommand = await decideToolUse({
       projectDir,
