@@ -20,10 +20,11 @@ user-invocable: false
 
 1. 运行 `letsgo validate --before design --change <change-id>`；失败时停止并报告。
 2. 派发 `@lg:letsgo-design-writer` 编写 `design.md`，必要时更新变更目录下的
-   `specs/**`。
+   `specs/**`。prompt 必须包含 writer 的完整 `LETGO_RESULT` ready JSON 示例。
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，只审查 design 相关产物、目标文件和
-   diff，检查架构、数据流、影响范围、替代方案、风险和测试策略。
-4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
+   diff，检查架构、数据流、影响范围、替代方案、风险和测试策略。prompt 必须同时
+   包含 reviewer 的 pass 与 blocked 两条完整 `LETGO_RESULT` JSON 示例。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after design --change <change-id>` 和
    `letsgo advance design --change <change-id>`。

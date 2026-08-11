@@ -110,20 +110,22 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 1. `PostToolUse Skill` 记录阶段 Skill 已加载；apply 同时要求 `letsgo-apply` 和
    `letsgo-tdd`。
 2. `PreToolUse Agent` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
-   writer 已完成。
+   writer 已完成，同时拒绝非 `lg:` 名称、旧结果协议和第三次 reviewer。
 3. `SubagentStart` 和 `SubagentStop` 记录 Subagent 状态；writer 和 reviewer 最后
    一行使用 `LETGO_RESULT` 输出机器可读结论。
 4. `letsgo advance <state>` 在更新 `status.json` 前检查阶段 Skill、writer 和
-   reviewer；缺少证据时不推进。
+   reviewer；verify 还要求 `未验证验收项：0`，缺少证据时不推进。
 5. writer 重新启动后，旧 reviewer 结论立即过期，必须重新审查。
 
 该文件不保存提示词、代码内容、历史事件或 token 记录；阶段推进后自动重置为
 下一阶段，archive 完成后重置为空状态并清除 active 标记。另有一个覆盖更新的
-`run-summary.json` 保存阶段结果与权限提示、自动拒绝、压缩和重复守卫拒绝计数。
+`run-summary.json` 保存阶段结果与真实权限提示、澄清问题、CodeGraph 查询、自动拒绝、
+压缩和重复守卫拒绝计数。
 `letsgo recover` 可根据 `status.json` 恢复唯一活跃变更，多个活跃变更时要求明确选择。
 
-生命周期完成后，守卫允许作用域明确且非 amend/fixup/squash 的本地 `git add` 和
-`git commit`；`git push` 仍保留权限确认。任何相同守卫拒绝都必须停止重试，不能
+生命周期完成后默认创建作用域明确的本地提交（用户明确拒绝时除外）；守卫允许
+非 amend/fixup/squash 的本地 `git add` 和 `git commit`，`git push` 仍保留权限确认。
+任何相同守卫拒绝都必须停止重试，不能
 用 Bash、临时脚本或递归维护变更绕过。
 
 守卫直接读取 `openspec/changes/*/status.json`。只有一个活跃变更时自动使用；

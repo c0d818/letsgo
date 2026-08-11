@@ -34,15 +34,21 @@ user-invocable: false
 
 4. 派发 reviewer 时只传最小审查包：阶段、change-id、目标文件、验收标准、相关
    diff 和风险重点；不让 reviewer 重新遍历整个项目。
-5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查；同一产物默认只允许
-   一次初审和一次修订后复审。
+5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查；同一产物只允许
+   一次初审和一次修订后复审；第二次仍阻塞时停止，不得第三次启动。
 6. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
-7. 遵守运行前检查：先加载阶段 Skill，再启动 writer；writer 完成后再启动
-   reviewer。Subagent 最后一行必须输出约定的 `LETGO_RESULT`。
+7. 遵守运行前检查：只使用 `lg:letsgo-*` 命名空间 Agent；先加载阶段 Skill，再启动
+   writer；writer 完成后再启动 reviewer。每个 Agent prompt 必须写入当前阶段、角色和
+   全部必需字段的完整 `LETGO_RESULT` 示例，不能依赖 Subagent 自己猜协议。
 8. 同一 Guard/Write 错误出现后立即停止，不重复调用，不创建另一个 maintenance
    变更，也不使用 Bash/Node/临时脚本绕过。
-9. 生命周期 `done` 后的本地 `git add`/`git commit` 是交付动作，不创建新变更；
-   提交汇总必须来自最终 `git show --stat`，`git push` 仍需用户明确批准。
+9. 生命周期 `done` 后默认执行本地 Git 交付，除非用户明确说“不提交”：先用
+   `git status --short` 区分本变更和既有用户改动，只对本变更的生产/测试文件与
+   `openspec/changes/<change-id>/` 使用显式路径 `git add -- ...`，再 `git commit`。
+   无法安全区分时停止并报告；不创建新变更。提交汇总必须来自最终
+   `git show --stat`，`git push` 仍需用户明确批准。
+10. 检查文件优先使用 Read/Glob/Grep；Bash 一次只执行一个命令，不用 `;`、`&&`、
+    管道或重定向拼接只读检查，减少权限提示。
 
 ## 输出
 

@@ -215,7 +215,13 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
         session_id: "session-1",
         hook_event_name: "PreToolUse",
         tool_name: "Agent",
-        tool_input: { subagent_type: "lg:letsgo-reviewer" },
+        tool_input: {
+          subagent_type: "lg:letsgo-reviewer",
+          prompt: [
+            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["证据"],"risks":[]}',
+            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["问题"],"evidence":["证据"],"risks":[]}',
+          ].join("\n"),
+        },
       },
       projectDir
     );
@@ -240,13 +246,37 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
       "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
     );
 
+    const obsolete = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: {
+          subagent_type: "letsgo-reviewer",
+          prompt: 'LETGO_RESULT: {"review":"passed"}',
+        },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(obsolete.stdout).hookSpecificOutput.permissionDecision,
+      "deny"
+    );
+
     const allowed = await runHookScript(
       "scripts/runtime-state.js",
       {
         session_id: "session-1",
         hook_event_name: "PreToolUse",
         tool_name: "Agent",
-        tool_input: { subagent_type: "lg:letsgo-reviewer" },
+        tool_input: {
+          subagent_type: "lg:letsgo-reviewer",
+          prompt: [
+            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["证据"],"risks":[]}',
+            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["问题"],"evidence":["证据"],"risks":[]}',
+          ].join("\n"),
+        },
       },
       projectDir
     );
@@ -380,6 +410,15 @@ test("Hook 用单一 run-summary 统计权限提示、压缩和重复 Guard 拒�
       "scripts/metrics.js",
       {
         session_id: "session-1",
+        hook_event_name: "PermissionRequest",
+        tool_name: "AskUserQuestion",
+      },
+      projectDir
+    );
+    await runHookScript(
+      "scripts/metrics.js",
+      {
+        session_id: "session-1",
         hook_event_name: "PostCompact",
         trigger: "auto",
         compact_summary: "summary",
@@ -406,8 +445,32 @@ test("Hook 用单一 run-summary 统计权限提示、压缩和重复 Guard 拒�
 
     const summary = await readRunSummary(projectDir);
     assert.equal(summary.metrics.permissionPrompts, 1);
+    assert.equal(summary.metrics.clarificationQuestions, 1);
     assert.equal(summary.metrics.compactions, 1);
     assert.equal(summary.metrics.guardDenials, 2);
     assert.equal(summary.metrics.repeatedGuardDenials, 1);
+  });
+});
+
+test("CodeGraph 最多放行两次聚焦查询并记录实际调用数", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+    const input = {
+      session_id: "session-1",
+      hook_event_name: "PreToolUse",
+      tool_name: "mcp__plugin_lg_codegraph__codegraph_explore",
+      tool_input: { query: "login flow" },
+    };
+
+    const first = JSON.parse((await runHookScript("scripts/guard.js", input, projectDir)).stdout);
+    const second = JSON.parse((await runHookScript("scripts/guard.js", input, projectDir)).stdout);
+    const third = JSON.parse((await runHookScript("scripts/guard.js", input, projectDir)).stdout);
+
+    assert.equal(first.hookSpecificOutput.permissionDecision, "allow");
+    assert.equal(second.hookSpecificOutput.permissionDecision, "allow");
+    assert.equal(third.hookSpecificOutput.permissionDecision, "deny");
+    assert.match(third.hookSpecificOutput.permissionDecisionReason, /CodeGraph.*2|第三次/);
+    assert.equal((await readRunSummary(projectDir)).metrics.codeGraphQueries, 2);
   });
 });

@@ -20,10 +20,12 @@ user-invocable: false
 ## 执行流程
 
 1. 运行 `letsgo validate --before archive --change <change-id>`；失败时停止并报告。
-2. 派发 `@lg:letsgo-archive-writer` 更新长期规格并填写 `archive.md`。
+2. 派发 `@lg:letsgo-archive-writer` 更新长期规格并填写 `archive.md`；prompt 必须包含
+   writer 的完整 `LETGO_RESULT` ready JSON 示例。
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，审查归档完整性、长期规格准确性、证据可追溯性和
-   后续工作。
-4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
+   后续工作。prompt 必须同时包含 reviewer 的 pass 与 blocked 两条完整
+   `LETGO_RESULT` JSON 示例。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after archive --change <change-id>` 和
    `letsgo advance archive --change <change-id>`。

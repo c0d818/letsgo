@@ -2,10 +2,11 @@
 import {
   activeChanges,
   decideToolUse,
+  isCodeGraphExploreTool,
   resolveActiveChange,
 } from "../lib/guard.js";
 import { reconcileRuntimeState } from "../lib/runtime-state.js";
-import { recordGuardDenial } from "../lib/run-summary.js";
+import { recordGuardDenial, recordRunMetric } from "../lib/run-summary.js";
 
 async function readStdin() {
   const chunks = [];
@@ -53,8 +54,22 @@ if (input === null) {
     toolName: input.tool_name ?? input.toolName,
     toolInput: input.tool_input ?? input.toolInput ?? {},
   });
+  const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
+  if (
+    decision.status === "allow" &&
+    context &&
+    isCodeGraphExploreTool(input.tool_name ?? input.toolName)
+  ) {
+    await recordRunMetric({
+      projectDir,
+      sessionId: input.session_id ?? null,
+      changeId: context.changeId,
+      stage: context.state,
+      metric: "codeGraphQueries",
+      detail: { tool: input.tool_name ?? input.toolName },
+    });
+  }
   if (decision.status === "deny") {
-    const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
     if (context) {
       const toolInput = input.tool_input ?? input.toolInput ?? {};
       const fingerprint = JSON.stringify({

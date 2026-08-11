@@ -28,7 +28,8 @@ user-invocable: false
 4. 对代码行为变更，若项目存在 `.codegraph/` 且 `codegraph_explore` 可用，默认只用
    一次聚焦查询获取相关源码、调用路径、影响范围和测试线索；把返回的源码视为
    已读，不再用文件遍历重复验证。只有第一次结果明确缺少关键调用边时才允许第二次
-   查询，并把原因写入 proposal；不得调用第三次。索引或工具不可用时记录降级原因，
+   查询，并把原因写入 proposal；若首次结果为零匹配则直接降级 Read/Grep，不得以换关键词
+   重试；不得调用第三次（运行时也会硬拒绝）。索引或工具不可用时记录降级原因，
    再使用 `Grep`、`Read` 等内置工具检查相关模块、调用方、数据流和现有测试。
 5. 涉及框架、库、API、协议、配置格式或版本行为时，查询当前可用的官方文档；
    记录版本、约束和关键结论。纯内部逻辑可跳过并说明原因。
@@ -38,7 +39,9 @@ user-invocable: false
 8. 起草 `proposal.md` 并确认 `letsgo validate --after clarify` 的产物检查通过后，
    派发 `@lg:letsgo-reviewer` 做只读反向审查，检查目标
    遗漏、未经验证的假设、兼容性、权限、安全、性能、测试、迁移和回滚风险。
-9. 审查不通过时修订草稿并重新审查；通过后定稿。
+   Agent prompt 必须原样包含当前阶段的 pass 与 blocked 两条完整 `LETGO_RESULT`
+   JSON 示例，不得使用 `LETGO_RESULT:` 或 `{ "review": ... }` 旧协议。
+9. 审查不通过时修订草稿并只复审一次；第二次仍阻塞时停止并报告，不得第三次启动 reviewer。
 10. 由主 Agent 运行 `letsgo validate --after clarify --change <change-id>` 和
     `letsgo advance clarify --change <change-id>`。
 11. Write/Edit/Guard 失败时立即读取一次状态并停止；不得重复同一写入，不得改用

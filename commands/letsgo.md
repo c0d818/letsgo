@@ -54,7 +54,7 @@ Required skill: `lg:letsgo-workflow`
 
 4. 校验或审查失败 → 先把问题记录到 `openspec/.letsgo/issues.md`，然后停止并
    报告；不进入下一阶段，不手动修改 `status.json`。
-5. 全部完成 → 向用户汇总变更内容和验证证据。
+5. 全部完成 → 默认安全执行本地提交，再向用户汇总变更内容和验证证据。
 
 ## 规则
 
@@ -65,5 +65,9 @@ Required skill: `lg:letsgo-workflow`
 - 规划文档统一使用简体中文；代码、测试和用户文案沿用项目现有语言。
 - Skill Hook 只表示 Skill 已加载，不表示阶段产物已完成；reviewer 前必须有有效产物。
 - 同一 Guard/Write 失败后立即停止，不重复调用或换工具绕过。
-- 用户要求提交时，在 `done` 后直接执行本地 Git 交付，不创建新的 maintenance 变更；
-  汇总使用最终 `git show --stat`，push 仍需明确批准。
+- 只使用 `lg:letsgo-*` Agent；派发 prompt 必须包含当前阶段和角色的完整
+  `LETGO_RESULT` JSON。reviewer 最多初审一次、修订后复审一次。
+- verify 必须明确 `未验证验收项：0`；仍有待手动/浏览器验证项时不得推进。
+- 除非用户明确说不提交，`done` 后仅暂存本变更显式路径并本地 commit；无法与用户
+  既有改动安全区分时停止。汇总使用 `git show --stat`，不自动 push。
+- 最终只输出一次不超过 12 行的简洁汇总，不使用宽表格。

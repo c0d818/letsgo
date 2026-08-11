@@ -39,12 +39,15 @@ if (!context) {
 }
 
 const metricByEvent = {
-  PermissionRequest: "permissionPrompts",
   PermissionDenied: "autoDenials",
   PreCompact: "compactionAttempts",
   PostCompact: "compactions",
 };
-const metric = metricByEvent[input.hook_event_name];
+const metric = input.hook_event_name === "PermissionRequest"
+  ? input.tool_name === "AskUserQuestion"
+    ? "clarificationQuestions"
+    : "permissionPrompts"
+  : metricByEvent[input.hook_event_name];
 if (metric) {
   await recordRunMetric({
     projectDir,

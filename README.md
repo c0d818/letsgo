@@ -56,6 +56,7 @@ codegraph init
 `letsgo doctor <project>` 会报告 `codegraphExecutable`、`codegraphIndexed` 和
 `codegraphReady`。未安装或未建索引时，LetsGo 会明确降级到内置的 `Grep`、
 `Read`，不会中断工作流。
+每次 clarify 最多放行两次聚焦查询，第三次由 Hook 直接拒绝并记录到单一运行摘要。
 
 ## 发布
 

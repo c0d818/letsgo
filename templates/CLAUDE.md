@@ -54,19 +54,24 @@ LetsGo 的规划文档统一使用简体中文：
 和 Subagent 状态，并在单一 `openspec/.letsgo/run-summary.json` 中保留最近一次运行的
 阶段顺序、权限提示、Guard 拒绝和上下文压缩计数。必须先加载阶段 Skill，再启动
 writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一行必须输出其
-定义中要求的 `LETGO_RESULT` 英文机器协议，说明文字使用简体中文；缺少运行证据时
-`letsgo advance` 不会推进。
+定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型必须使用完整 `lg:` 命名空间，
+派发 prompt 必须包含当前阶段、角色及全部必需字段的完整协议示例；禁止
+`LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
+不会推进。每个产物最多初审一次、writer 修订后复审一次；第二次仍阻塞时停止。
 
 apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行
 `RED -> GREEN -> REFACTOR`，并把真实命令和结果记录到
 `openspec/changes/<change-id>/tdd-evidence.md`。只有纯文档、注释、模板、仅测试或
 其他不改变生产行为的修改可以记录理由后豁免；缺少有效证据不得推进 verify。
+verify 只有在逐条完成验收且 `未验证验收项：0` 时通过；仍有待手动或浏览器验证项
+时不得归档。
 
 随时可以使用 `/lg:check <change-id>` 查看当前阶段、已完成阶段和下一步。
 
 同一 Guard/Write 错误只允许出现一次：立即读取状态、记录问题并停止，不重复 Write，
 不改用 Bash/Node/临时脚本绕过。状态残留时运行 `letsgo recover` 或 `/lg:recover`。
 
-生命周期到 `done` 后，本地 `git add` 和 `git commit` 属于交付动作，不要为提交再创建
-maintenance 变更。提交前运行测试和 `git diff --check`，提交后必须用
-`git show --stat` 生成真实汇总。`git push` 修改远端，仍需用户明确批准。
+生命周期到 `done` 后，默认运行验证并执行本地 `git add` 和 `git commit`；用户明确
+要求不提交时才跳过。不要为提交再创建 maintenance 变更。提交前运行测试和
+`git diff --check`，提交后必须用 `git show --stat` 生成真实汇总。`git push` 修改
+远端，仍需用户明确批准。最终只输出一次不超过 12 行的简洁汇总。

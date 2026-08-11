@@ -124,7 +124,7 @@ test("token 报告合并同类型 Subagent 并按阶段时间窗统计增量", a
     await writeFile(
       path.join(sessionDir, "session", "subagents", "c.jsonl"),
       assistantLine({
-        agent: "lg:letsgo-reviewer",
+        agent: "letsgo-reviewer",
         usage: { input_tokens: 10, output_tokens: 2 },
       })
     );

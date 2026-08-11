@@ -40,9 +40,11 @@ lib/
 
 `scripts/runtime-state.js` 监听 Skill 和 Subagent 生命周期，`lib/runtime-state.js`
 维护唯一的 `openspec/.letsgo/runtime-state.json`。它在 writer 启动前检查阶段
-Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。
+Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。Agent
+启动还会校验完整 `lg:` 命名空间和 prompt 内的机器协议，每个 reviewer 最多两次。
 状态只覆盖当前 session、变更和阶段。`lib/run-summary.js` 另外维护一个覆盖更新的
 `run-summary.json`，按阶段保存精简结果，并由权限、压缩和守卫 Hook 累加轻量指标；
+澄清问题和真实权限提示分别统计，并记录 CodeGraph 的实际放行次数；
 不会为每个阶段或每次调用创建文件。
 
 Skill 的 `PostToolUse` 只记录 `loaded`，不会把读取 Skill 当成完成阶段。完成结论来自
@@ -62,7 +64,7 @@ commands/*.md   ->   skills/*/SKILL.md   ->   agents/*.md
    以及 subagent 编排规则。
 2. **技能层**（`skills/letsgo-design/SKILL.md` 等）：告诉 agent 具体怎么做。
    阶段 Skill 负责派发专用 subagent（`<阶段>-writer` -> `lg:letsgo-reviewer`），
-   reviewer 不通过时交回 writer 修复；clarify 由主 Agent 完成需求交互。
+   reviewer 不通过时交回 writer 修复并仅复审一次；clarify 由主 Agent完成需求交互。
 3. **代理层**（5 个阶段 writer + 1 个通用 `lg:letsgo-reviewer`）：执行具体
    工作（写文档、写代码、跑验证、归档）和只读审查，遵守只读或只写边界。
 

@@ -21,10 +21,11 @@ user-invocable: false
 
 1. 运行 `letsgo validate --before verify --change <change-id>`；失败时停止并报告。
 2. 派发 `@lg:letsgo-verify-writer` 执行真实测试、构建、lint 和规格检查，并填写
-   `verification.md`。
+   `verification.md`；必须逐条执行验收标准并写 `未验证验收项：0`。缺少浏览器框架
+   不是跳过用户可见行为的理由：改用可复现的手动验收并记录结果，无法执行则写阻塞。
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，核对命令、结果、验收标准覆盖、未测试区域和剩余
-   风险；证据不足时不得通过。
-4. reviewer 有阻塞问题时，将问题交回 writer 补充验证并重新审查。
+   风险；任何验收项仍写“待手动/浏览器验证”时必须阻塞。
+4. reviewer 有阻塞问题时，将问题交回 writer 补充验证并只重新审查一次；仍阻塞时停止。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after verify --change <change-id>` 和
    `letsgo advance verify --change <change-id>`。

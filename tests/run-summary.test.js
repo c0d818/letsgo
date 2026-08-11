@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -59,5 +59,26 @@ test("单一 run-summary 保留阶段顺序、指标和压缩恢复上下文", a
     assert.match(recovery, /fix-login/);
     assert.match(recovery, /clarify.*completed/);
     assert.match(recovery, /design/);
+  });
+});
+
+test("读取 0.4.0 旧摘要时补齐新增指标默认值", async () => {
+  await withTempDir(async (projectDir) => {
+    const summaryDir = path.join(projectDir, "openspec/.letsgo");
+    await mkdir(summaryDir, { recursive: true });
+    await writeFile(
+      path.join(summaryDir, "run-summary.json"),
+      JSON.stringify({
+        version: 1,
+        changeId: "legacy-change",
+        metrics: { permissionPrompts: 3 },
+        stages: [],
+      })
+    );
+
+    const summary = await readRunSummary(projectDir);
+    assert.equal(summary.metrics.permissionPrompts, 3);
+    assert.equal(summary.metrics.clarificationQuestions, 0);
+    assert.equal(summary.metrics.codeGraphQueries, 0);
   });
 });

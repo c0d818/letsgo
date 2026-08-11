@@ -19,10 +19,12 @@ user-invocable: false
 ## 执行流程
 
 1. 运行 `letsgo validate --before plan --change <change-id>`；失败时停止并报告。
-2. 派发 `@lg:letsgo-plan-writer` 将设计拆分为 `tasks.md`。
+2. 派发 `@lg:letsgo-plan-writer` 将设计拆分为 `tasks.md`；prompt 必须包含 writer 的
+   完整 `LETGO_RESULT` ready JSON 示例。
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，只审查 tasks 和必要的前置设计，
-   检查设计覆盖、任务顺序、目标文件、测试策略和完成条件。
-4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
+   检查设计覆盖、任务顺序、目标文件、测试策略和完成条件。prompt 必须同时包含
+   reviewer 的 pass 与 blocked 两条完整 `LETGO_RESULT` JSON 示例。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after plan --change <change-id>` 和
    `letsgo advance plan --change <change-id>`。

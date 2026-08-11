@@ -278,6 +278,14 @@ test("claude 插件清单和市场配置有效", async () => {
     const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
     assert.match(content, new RegExp(`/lg:${commandName}\\b`));
   }
+
+  for (const filename of ["start.md", "bugfix.md", "refactor.md", "test.md", "letsgo.md"]) {
+    const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
+    assert.match(content, /未验证验收项：0/, `${filename} 必须阻止未完成验收`);
+    assert.match(content, /最多再派发一次|初审一次、修订后复审一次/, `${filename} 必须限制 reviewer`);
+    assert.match(content, /默认.*git add|默认.*本地.*commit/s, `${filename} 必须默认本地提交`);
+    assert.match(content, /不超过 12 行/, `${filename} 必须限制最终汇总`);
+  }
 });
 
 test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () => {
@@ -365,6 +373,11 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   );
   assert.equal(hooks.hooks.PreToolUse[1].matcher, "Agent");
   assert.match(hooks.hooks.PreToolUse[1].hooks[0].command, /runtime-state\.js/);
+  assert.equal(
+    hooks.hooks.PreToolUse[2].matcher,
+    "mcp__plugin_lg_codegraph__codegraph_explore"
+  );
+  assert.match(hooks.hooks.PreToolUse[2].hooks[0].command, /guard\.js/);
   assert.equal(hooks.hooks.PostToolUse[0].matcher, "Skill");
   assert.equal(hooks.hooks.PostToolUseFailure[0].matcher, "Skill");
   assert.match(hooks.hooks.SubagentStart[0].hooks[0].command, /runtime-state\.js/);
@@ -931,6 +944,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
     await writeFile(path.join(changeDir, "verification.md"), [
       "# Verification",
       "Status: Pass",
+      "Unverified Acceptance Criteria: 0",
       "Command: npm test",
       "Exit: 0",
       "",
@@ -969,5 +983,70 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
         ["archive", "completed"],
       ]
     );
+  });
+});
+
+test("verify 有待手动验收项时不得推进 archive", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "manual-pending" });
+    const statusPath = path.join(projectDir, "openspec/changes/manual-pending/status.json");
+    const status = JSON.parse(await readFile(statusPath, "utf8"));
+    await writeFile(
+      statusPath,
+      `${JSON.stringify({
+        ...status,
+        state: "verify",
+        completed: ["clarify", "design", "plan", "apply"],
+        approved: { clarify: true, design: true, plan: true, apply: true },
+      }, null, 2)}\n`
+    );
+    const changeDir = path.dirname(statusPath);
+    await writeFile(path.join(changeDir, "proposal.md"), [
+      "# Proposal",
+      "Why: Need manual acceptance.",
+      "What Changes: Add browser behavior.",
+      "Acceptance Criteria: Browser flow works.",
+      "",
+    ].join("\n"));
+    await writeFile(path.join(changeDir, "design.md"), [
+      "# Design",
+      "Architecture: Browser interaction.",
+      "Test Strategy: Run browser acceptance.",
+      "",
+    ].join("\n"));
+    await writeFile(path.join(changeDir, "tasks.md"), "# Tasks\n- [x] 实现\n");
+    await writeFile(path.join(changeDir, "tdd-evidence.md"), [
+      "# TDD 证据",
+      "模式：TDD",
+      "## Cycle 1：行为",
+      "### RED",
+      "- 测试命令：npm test",
+      "- 结果：失败",
+      "### GREEN",
+      "- 测试命令：npm test",
+      "- 结果：通过",
+      "### REFACTOR",
+      "- 重构：无",
+      "- 测试命令：npm test",
+      "- 结果：通过",
+      "",
+    ].join("\n"));
+    await writeFile(path.join(changeDir, "verification.md"), [
+      "# Verification",
+      "状态：通过",
+      "未验证验收项：8",
+      "验收标准 1-8 需浏览器手动验证。",
+      "",
+    ].join("\n"));
+
+    const result = await validateProject({
+      projectDir,
+      changeId: "manual-pending",
+      mode: "after",
+      state: "verify",
+    });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join("\n"), /未验证验收项|手动验证/);
   });
 });

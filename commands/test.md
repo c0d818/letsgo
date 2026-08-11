@@ -71,6 +71,7 @@ letsgo select <change-id>
 - Skill：`lg:letsgo-verify`
 - 派发 subagent：`@lg:letsgo-verify-writer` -> `@lg:letsgo-reviewer`
 - 重点：新测试真实运行、覆盖目标达成、生产行为未变
+- `verification.md` 必须写明“未验证验收项：0”；存在待手动或浏览器验证项时停止
 
 ### 6. archive（归档沉淀）
 
@@ -82,8 +83,10 @@ letsgo select <change-id>
 
 - 每个阶段 Skill 负责派发 subagent，顺序固定：
   `<阶段>-writer -> letsgo-reviewer -> 主 Agent 校验并推进`
-- reviewer 不通过时，把问题交回当前 writer 修复，再重新派发 reviewer
+- reviewer 不通过时，把问题交回当前 writer 修复，最多再派发一次 reviewer；仍阻塞则停止
 - reviewer 不能修改文件，也不能推进状态
+- Agent 类型只使用完整 `lg:` 命名空间；每个 Agent prompt 必须包含当前阶段、角色和完整
+  `LETGO_RESULT` JSON 示例，禁止旧的 `LETGO_RESULT:` 协议
 - Skill Hook 只表示已加载；writer/reviewer 前必须验证阶段产物与前置条件
 - 相同 Guard/Write 错误出现后立即停止，不重复操作或用其他工具绕过
 
@@ -94,6 +97,7 @@ letsgo select <change-id>
 
 ## 完成
 
-archive 推进后 `status.json` 变为 `done`，向用户汇总测试变更和验证证据。
-用户要求提交时直接执行本地 `git add`/`git commit`，不要创建新的维护变更；最终
-文件数和增删行必须来自 `git show --stat`。
+archive 推进后 `status.json` 变为 `done`，默认运行验证并执行本地
+`git add`/`git commit`；用户明确说不提交时才跳过。不要创建新的维护变更，不自动
+`git push`。最终只输出一次不超过 12 行的简洁汇总，文件数和增删行来自
+`git show --stat`。

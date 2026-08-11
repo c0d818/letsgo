@@ -246,3 +246,99 @@ test("解析 Subagent 最后一行的 LETGO_RESULT", () => {
     null
   );
 });
+
+test("Agent 启动前拒绝非命名空间和错误 LETGO_RESULT 协议", async () => {
+  await withTempDir(async (projectDir) => {
+    const common = {
+      projectDir,
+      sessionId: "session-1",
+      changeId: "add-login",
+      stage: "design",
+    };
+    await recordSkillCompleted({ ...common, skillName: "lg:letsgo-design" });
+
+    const validPrompt =
+      '最后一行：LETGO_RESULT {"stage":"design","role":"writer","status":"ready","filesChanged":[],"evidence":["证据"],"risks":[]}';
+    const unnamespaced = await decideAgentStart({
+      ...common,
+      agentType: "letsgo-design-writer",
+      prompt: validPrompt,
+      enforceNamespace: true,
+    });
+    assert.equal(unnamespaced.status, "deny");
+    assert.match(unnamespaced.reason, /lg:letsgo-design-writer/);
+
+    const legacyProtocol = await decideAgentStart({
+      ...common,
+      agentType: "lg:letsgo-design-writer",
+      prompt: 'LETGO_RESULT: {"review":"passed"}',
+      enforceNamespace: true,
+    });
+    assert.equal(legacyProtocol.status, "deny");
+    assert.match(legacyProtocol.reason, /LETGO_RESULT.*协议/);
+
+    const valid = await decideAgentStart({
+      ...common,
+      agentType: "lg:letsgo-design-writer",
+      prompt: validPrompt,
+      enforceNamespace: true,
+    });
+    assert.equal(valid.status, "allow");
+  });
+});
+
+test("reviewer 最多启动初审和一次复审", async () => {
+  await withTempDir(async (projectDir) => {
+    const common = {
+      projectDir,
+      sessionId: "session-1",
+      changeId: "fix-login",
+      stage: "clarify",
+    };
+    const reviewerPrompt = [
+      'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["证据"],"risks":[]}',
+      'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["问题"],"evidence":["证据"],"risks":[]}',
+    ].join("\n");
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "fix-login", type: "bugfix" });
+    await recordSkillCompleted({ ...common, skillName: "lg:letsgo-clarify" });
+    await writeFile(
+      path.join(projectDir, "openspec/changes/fix-login/proposal.md"),
+      "# 提案\n\n## 为什么做\n修复登录。\n\n## 改变什么\n传递状态。\n\n## 验收标准\n测试通过。\n"
+    );
+
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      assert.equal(
+        (await decideAgentStart({
+          ...common,
+          agentType: REVIEWER,
+          prompt: reviewerPrompt,
+          enforceNamespace: true,
+        })).status,
+        "allow"
+      );
+      await recordAgentStarted({
+        ...common,
+        agentType: REVIEWER,
+        agentId: `reviewer-${attempt}`,
+      });
+      await recordAgentStopped({
+        ...common,
+        agentType: REVIEWER,
+        agentId: `reviewer-${attempt}`,
+        lastAssistantMessage:
+          'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["仍需修订"],"evidence":["proposal"],"risks":[]}',
+      });
+    }
+
+    const third = await decideAgentStart({
+      ...common,
+      agentType: REVIEWER,
+      prompt: reviewerPrompt,
+      enforceNamespace: true,
+    });
+    assert.equal(third.status, "deny");
+    assert.match(third.reason, /最多.*2|两次/);
+    assert.equal((await readRuntimeState(projectDir)).agents[REVIEWER].attempts, 2);
+  });
+});

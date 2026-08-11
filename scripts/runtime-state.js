@@ -83,6 +83,8 @@ try {
     const decision = await decideAgentStart({
       ...common,
       agentType: agentNameFromToolInput(input.tool_input),
+      prompt: input.tool_input?.prompt ?? null,
+      enforceNamespace: true,
     });
     process.stdout.write(JSON.stringify(preToolOutput(decision.status, decision.reason)));
   } else if (event === "PostToolUse" && input.tool_name === "Skill") {

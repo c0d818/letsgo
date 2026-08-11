@@ -236,6 +236,16 @@ async function requireVerificationPassed(projectDir, changeId, errors) {
     if (!/status:\s*pass|状态：\s*通过/i.test(text)) {
       errors.push("verification.md 必须包含“状态：通过”（或 Status: Pass）");
     }
+    if (!/未验证验收项[：:]\s*0\b|unverified acceptance criteria[：:]\s*0\b/i.test(text)) {
+      errors.push("verification.md 必须明确包含“未验证验收项：0”");
+    }
+    const narrative = text.replace(
+      /(?:未验证验收项[：:]\s*0\b|unverified acceptance criteria[：:]\s*0\b)/gi,
+      ""
+    );
+    if (/(?:待|需).{0,12}(?:手动|浏览器).{0,8}(?:验证|确认)|未(?:在.{0,20})?验证.{0,20}(?:验收|浏览器)/i.test(narrative)) {
+      errors.push("verification.md 仍包含待手动/浏览器验证的验收项，不能标记通过");
+    }
   } catch {
     errors.push(`缺少 openspec/changes/${changeId}/verification.md`);
   }
