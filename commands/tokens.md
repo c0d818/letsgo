@@ -17,6 +17,7 @@ token 用量。
 2. 把返回结果整理成表格展示给用户：
    - 主代理和每个 subagent 的输入、输出、缓存读取、缓存写入、总计
    - 全部合计
-3. 报告已保存到 `openspec/.letsgo/token-report.md`，把位置告诉用户。
+3. 最新快照已覆盖保存到 `openspec/.letsgo/token-report.md`，不会重复追加完整累计
+   快照；把位置告诉用户。
 
 只读命令，不修改任何业务文件。

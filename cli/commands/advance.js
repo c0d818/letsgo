@@ -5,7 +5,9 @@ import {
   resetRuntimeState,
   validateRuntimeBeforeAdvance,
 } from "../../lib/runtime-state.js";
+import { recordStageCompleted } from "../../lib/run-summary.js";
 import { validateProject } from "./validate.js";
+import { clearActiveMarker } from "../../lib/guard.js";
 
 export async function advanceProject({ projectDir, changeId, state }) {
   if (!changeId) {
@@ -62,12 +64,23 @@ export async function advanceProject({ projectDir, changeId, state }) {
     approved,
   });
   const runtimeState = await readRuntimeState(projectDir);
+  await recordStageCompleted({
+    projectDir,
+    sessionId: runtimeState?.sessionId ?? null,
+    changeId,
+    stage: state,
+    runtimeState: runtimeState ?? {},
+    nextStage: NEXT_STATE[state],
+  });
   await resetRuntimeState({
     projectDir,
     sessionId: runtimeState?.sessionId ?? null,
     changeId: NEXT_STATE[state] === "done" ? null : changeId,
     stage: NEXT_STATE[state] === "done" ? null : NEXT_STATE[state],
   });
+  if (NEXT_STATE[state] === "done") {
+    await clearActiveMarker(projectDir);
+  }
 
   return {
     projectDir,

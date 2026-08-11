@@ -26,6 +26,8 @@ letsgo status --change <change-id>
 - 已完成阶段
 - 下一阶段
 - 是否存在未完成任务或验证阻塞
+- `run-summary.json` 中已实际加载的 Skill、Subagent 顺序、权限提示、Guard 拒绝和
+  上下文压缩计数
 
 不要根据对话记忆猜测状态，必须读取 `status.json`。如果找不到变更，明确
 报告变更不存在。

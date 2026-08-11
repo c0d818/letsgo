@@ -21,7 +21,7 @@ user-invocable: false
 
 1. 运行 `letsgo validate --before archive --change <change-id>`；失败时停止并报告。
 2. 派发 `@lg:letsgo-archive-writer` 更新长期规格并填写 `archive.md`。
-3. 派发 `@lg:letsgo-reviewer` 审查归档完整性、长期规格准确性、证据可追溯性和
+3. 向 `@lg:letsgo-reviewer` 传递最小审查包，审查归档完整性、长期规格准确性、证据可追溯性和
    后续工作。
 4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
 5. reviewer 通过后，交回主 Agent 运行

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { copyTemplateTree } from "../lib/copy-template.js";
 import { changeTypeTemplateRoot, existsAtPath } from "../lib/paths.js";
@@ -18,16 +18,30 @@ export async function createChange(projectDir, changeId, type = DEFAULT_CHANGE_T
   const dir = changeDir(projectDir, changeId);
   const statusPath = path.join(dir, "status.json");
 
-  await mkdir(dir, { recursive: true });
   if (await existsAtPath(statusPath)) {
     return readStatus(projectDir, changeId);
   }
+  if (await existsAtPath(dir)) {
+    throw new Error(
+      `变更目录已存在但缺少 status.json：${dir}；请检查内容后运行 letsgo recover，不会自动覆盖或删除`
+    );
+  }
 
-  await installChangeTemplates(projectDir, dir, type);
-
-  const status = initialStatus(changeId, type);
-  await writeStatus(projectDir, changeId, status);
-  return status;
+  const changesDir = path.dirname(dir);
+  await mkdir(changesDir, { recursive: true });
+  const temporary = await mkdtemp(path.join(changesDir, `.${changeId}.tmp-`));
+  try {
+    await installChangeTemplates(projectDir, temporary, type);
+    const status = initialStatus(changeId, type);
+    await writeFile(
+      path.join(temporary, "status.json"),
+      `${JSON.stringify(status, null, 2)}\n`
+    );
+    await rename(temporary, dir);
+    return status;
+  } finally {
+    await rm(temporary, { recursive: true, force: true }).catch(() => {});
+  }
 }
 
 async function installChangeTemplates(projectDir, targetDir, type) {

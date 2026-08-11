@@ -7,6 +7,7 @@ import {
   recordAgentStopped,
   recordSkillCompleted,
   recordSkillFailed,
+  reconcileRuntimeState,
   skillNameFromToolInput,
 } from "../lib/runtime-state.js";
 
@@ -58,6 +59,7 @@ if (!input) {
 }
 
 const projectDir = projectDirOf(input);
+await reconcileRuntimeState({ projectDir });
 const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
 
 if (!context) {

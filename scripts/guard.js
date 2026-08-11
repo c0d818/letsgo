@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-import { decideToolUse } from "../lib/guard.js";
+import {
+  activeChanges,
+  decideToolUse,
+  resolveActiveChange,
+} from "../lib/guard.js";
+import { reconcileRuntimeState } from "../lib/runtime-state.js";
+import { recordGuardDenial } from "../lib/run-summary.js";
 
 async function readStdin() {
   const chunks = [];
@@ -40,11 +46,35 @@ if (input === null) {
     })
   );
 } else {
+  const projectDir = projectDirOf(input);
+  await reconcileRuntimeState({ projectDir });
   const decision = await decideToolUse({
-    projectDir: projectDirOf(input),
+    projectDir,
     toolName: input.tool_name ?? input.toolName,
     toolInput: input.tool_input ?? input.toolInput ?? {},
   });
+  if (decision.status === "deny") {
+    const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
+    if (context) {
+      const toolInput = input.tool_input ?? input.toolInput ?? {};
+      const fingerprint = JSON.stringify({
+        tool: input.tool_name ?? input.toolName ?? "",
+        command: toolInput.command ?? toolInput.cmd ?? "",
+        path: toolInput.file_path ?? toolInput.notebook_path ?? toolInput.path ?? "",
+      });
+      const tracked = await recordGuardDenial({
+        projectDir,
+        sessionId: input.session_id ?? null,
+        changeId: context.changeId,
+        stage: context.state,
+        fingerprint,
+        reason: decision.reason,
+      });
+      if (tracked.repeatCount > 1) {
+        decision.reason = `${decision.reason}；同一操作已被阻止 ${tracked.repeatCount} 次，立即停止重试`;
+      }
+    }
+  }
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {

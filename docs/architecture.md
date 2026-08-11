@@ -23,9 +23,12 @@ hooks/
 scripts/
 ├── guard.js
 ├── context.js
+├── metrics.js
+├── token-report.js
 └── runtime-state.js
 lib/
 ├── guard.js
+├── run-summary.js
 └── runtime-state.js
 ```
 
@@ -38,7 +41,13 @@ lib/
 `scripts/runtime-state.js` 监听 Skill 和 Subagent 生命周期，`lib/runtime-state.js`
 维护唯一的 `openspec/.letsgo/runtime-state.json`。它在 writer 启动前检查阶段
 Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。
-状态只覆盖当前 session、变更和阶段，不保存历史运行日志。
+状态只覆盖当前 session、变更和阶段。`lib/run-summary.js` 另外维护一个覆盖更新的
+`run-summary.json`，按阶段保存精简结果，并由权限、压缩和守卫 Hook 累加轻量指标；
+不会为每个阶段或每次调用创建文件。
+
+Skill 的 `PostToolUse` 只记录 `loaded`，不会把读取 Skill 当成完成阶段。完成结论来自
+产物校验、writer/reviewer 最后一行的英文 `LETGO_RESULT` 和状态推进。变更完成后
+active 标记被清除；中断后 `letsgo recover` 依据 `status.json` 恢复唯一活跃变更。
 
 ## 三层编排
 
@@ -110,3 +119,5 @@ Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；des
 - MCP 或索引不可用时显式降级到内置工具，CodeGraph 不成为生命周期硬依赖。
 - `letsgo doctor` 用 `codegraph version` 检查 CLI，并检查
   `.codegraph/codegraph.db` 是否存在；它不启动后台服务，也不写入检查日志。
+- clarify 默认一次聚焦图谱查询；只有关键调用边缺失时才允许补一次并记录原因，
+  禁止第三次查询，防止重复上下文消耗。

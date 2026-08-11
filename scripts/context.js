@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { buildActiveContext, buildSystemRules } from "../lib/guard.js";
+import { reconcileRuntimeState } from "../lib/runtime-state.js";
 
 async function readStdin() {
   const chunks = [];
@@ -25,6 +26,7 @@ const projectDir =
   input.working_directory ||
   process.cwd();
 const isUserPrompt = typeof input.prompt === "string";
+await reconcileRuntimeState({ projectDir });
 const hookEventName =
   input.hook_event_name === "SessionStart" ||
   input.hook_event_name === "UserPromptSubmit"

@@ -6,6 +6,8 @@ LetsGo 的所有重要变更都记录在这里。
 
 ## [未发布]
 
+## [0.4.0] - 2026-08-11
+
 ### 变更
 
 - `/lg:bugfix` 改为接收针对项目的修复需求描述，并由代理自动生成唯一的
@@ -19,11 +21,25 @@ LetsGo 的所有重要变更都记录在这里。
 - 接入 CodeGraph 本地 MCP；大型项目 clarify 阶段优先用单一
   `codegraph_explore` 获取源码、调用路径和影响范围，索引不可用时自动降级。
 - `letsgo doctor` 新增 CodeGraph CLI、索引和整体就绪状态检查。
+- 新增 `letsgo recover` 与 `/lg:recover`，可在中断或上下文压缩后恢复唯一活跃
+  变更，并自动清理幽灵 runtime 和失效的 active 标记。
+- 新增覆盖更新的 `run-summary.json`：按阶段保留 Skill/Agent 结果，并统计权限提示、
+  自动拒绝、压缩和重复守卫拒绝；不为每次任务创建独立 JSON。
+- token 报告改为覆盖最新快照、合并同类 Subagent 调用，并显示阶段时间窗增量，
+  避免累计快照导致总量虚高。
 
 ### 修复
 
 - 为 `SessionStart`、`UserPromptSubmit` 和 `PreToolUse` Hook 输出补齐 Claude Code
   要求的 `hookEventName`，恢复生命周期上下文注入和运行时守卫决策。
+- Skill Hook 只表示“已加载”，不再误判阶段已完成；writer/reviewer 必须提供结构化
+  证据，clarify reviewer 还必须等 `proposal.md` 通过校验。
+- clarify 第一问必须在同一回复直接给出完整问题和选项，恢复时从未回答问题继续。
+- 相同守卫错误不再反复重试或通过 Bash/临时脚本绕过；变更完成后允许本地
+  `git add`/`git commit`，`git push` 仍交给权限审查。
+- 变更目录改为原子创建，既有不完整目录不会被覆盖；archive 完成后清除活跃标记。
+- CodeGraph 默认只进行一次聚焦查询，缺少关键边时最多补一次并记录原因，禁止第三次。
+- Subagent 统一使用精简中文摘要与英文 `LETGO_RESULT` 协议，限制复审轮次和上下文量。
 
 ## [0.3.0] - 2026-08-10
 

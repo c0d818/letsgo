@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { aggregateTranscript, appendReport } from "../lib/token-report.js";
+import { readRunSummary } from "../lib/run-summary.js";
 
 async function readStdin() {
   const chunks = [];
@@ -27,7 +28,8 @@ const projectDir =
 
 if (transcriptPath) {
   try {
-    const report = await aggregateTranscript(transcriptPath);
+    const summary = await readRunSummary(projectDir);
+    const report = await aggregateTranscript(transcriptPath, { stages: summary?.stages ?? [] });
     await appendReport(projectDir, report);
   } catch {
     // 静默失败：不阻断会话退出

@@ -4,6 +4,7 @@ import {
   appendReport,
   latestTranscriptForProject,
 } from "../../lib/token-report.js";
+import { readRunSummary } from "../../lib/run-summary.js";
 
 export async function tokensProject({ projectDir, transcriptPath }) {
   const resolved = transcriptPath
@@ -13,7 +14,8 @@ export async function tokensProject({ projectDir, transcriptPath }) {
     throw new Error(`未找到 ${projectDir} 的会话记录；可手动指定 transcript 路径`);
   }
 
-  const report = await aggregateTranscript(resolved);
+  const summary = await readRunSummary(projectDir);
+  const report = await aggregateTranscript(resolved, { stages: summary?.stages ?? [] });
   const reportPath = await appendReport(projectDir, report);
   return {
     projectDir,

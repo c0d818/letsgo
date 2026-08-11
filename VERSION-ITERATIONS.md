@@ -5,9 +5,9 @@
 
 ## 当前版本
 
-- 版本：`0.3.0`
+- 版本：`0.4.0`
 - 分支：`main`
-- 状态：已发布；后续改动暂列入“未发布”
+- 状态：待发布验证
 
 ## 未发布
 
@@ -19,6 +19,10 @@
 - 所有 Skill 和 Subagent 统一使用“职责、输入、执行流程、输出、边界”模板。
 - 增加 Skill 和 Subagent 结构一致性自动测试。
 - 接入 CodeGraph MCP，并在 clarify 阶段优先做代码图谱影响分析。
+- 修正 Skill “加载即完成”、clarify 首问提前结束和 proposal 写入死循环。
+- 增加单文件运行摘要、权限/压缩指标、恢复命令和阶段 token 增量。
+- 允许完成生命周期后的本地 Git 交付，禁止递归创建维护变更绕过守卫。
+- 变更创建原子化，并在 archive 后清理 active/runtime 残留状态。
 
 ### 候选迭代
 
@@ -27,14 +31,14 @@
 - 状态：已完成
 - 目标：在启动 writer、reviewer 和推进阶段前，确认要求的 Skill 与 Subagent
   已按顺序执行。
-- 建议方案：只维护一个 `openspec/.letsgo/runtime-state.json`，不创建每次任务的
-  独立日志文件。
+- 建议方案：当前门禁使用 `runtime-state.json`，生命周期摘要使用一个覆盖更新的
+  `run-summary.json`，不创建每次任务的独立日志文件。
 - 第一阶段范围：记录 Skill 完成、Subagent 启动/完成和 reviewer 结果。
 - 暂不包含：完整审计日志、常驻监督 Subagent、硬性 token 上限和复杂预算系统。
 
 实施结果：
 
-- [x] 使用唯一的 `openspec/.letsgo/runtime-state.json`，不创建任务历史日志。
+- [x] 使用 `runtime-state.json` + 单一 `run-summary.json`，不创建任务历史日志。
 - [x] writer 启动前检查阶段 Skill；apply 同时检查 TDD Skill。
 - [x] reviewer 启动前检查 writer 已完成。
 - [x] `advance` 前检查 Skill、writer 和 reviewer 通过。

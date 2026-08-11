@@ -35,8 +35,8 @@ color: orange
 - 任务允许的生产代码和测试代码
 - 已完成的 `tasks.md`
 - 与任务逐项对应的 `tdd-evidence.md`
-- 供 reviewer 审查的完成摘要
-- 最后一行输出：`LETGO_RESULT {"stage":"apply","role":"writer","status":"ready"}`
+- 供 reviewer 审查的简体中文完成摘要，最多 10 行；代码、路径、命令和错误保持原文
+- 最后一行输出固定英文机器协议：`LETGO_RESULT {"stage":"apply","role":"writer","status":"ready","filesChanged":["实际文件"],"evidence":["RED/GREEN/REFACTOR 命令与结果"],"risks":[]}`
 
 ## 边界
 
@@ -44,3 +44,5 @@ color: orange
 - 不修改 proposal、design、specs 或验证结论。
 - 不手动修改或推进 `status.json`。
 - 不编造或事后伪装 TDD 证据。
+- 按 `tasks.md` 当前任务读取最小必要上下文；不重复读取已批准文档，不全仓遍历。
+- 不输出思考过程、完整测试日志或大段 diff；证据写入文件，返回摘要。

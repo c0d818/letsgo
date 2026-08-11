@@ -25,7 +25,7 @@ user-invocable: false
    `RED -> GREEN -> REFACTOR`，完成一个 Cycle 后再勾选对应任务。
 4. 仅纯文档、注释、模板、仅测试或其他不改变生产行为的修改可以豁免；在
    `tdd-evidence.md` 中记录具体理由、验证命令和通过结果。
-5. 派发 `@lg:letsgo-reviewer`，逐项对照任务、代码差异和 TDD Cycle，审查规格
+5. 向 `@lg:letsgo-reviewer` 传递最小审查包，逐项对照任务、相关代码差异和 TDD Cycle，审查规格
    符合性、行为回归、测试质量、边界条件与安全风险。
 6. 缺少证据、任务与 Cycle 不对应、RED 未真实失败或豁免不成立时必须阻塞，
    将问题交回 writer 修复并重新审查。

@@ -63,3 +63,7 @@ Required skill: `lg:letsgo-workflow`
   reviewer。
 - 运行中遇到的任何问题都记录到 `openspec/.letsgo/issues.md`。
 - 规划文档统一使用简体中文；代码、测试和用户文案沿用项目现有语言。
+- Skill Hook 只表示 Skill 已加载，不表示阶段产物已完成；reviewer 前必须有有效产物。
+- 同一 Guard/Write 失败后立即停止，不重复调用或换工具绕过。
+- 用户要求提交时，在 `done` 后直接执行本地 Git 交付，不创建新的 maintenance 变更；
+  汇总使用最终 `git show --stat`，push 仍需明确批准。

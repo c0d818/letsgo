@@ -29,11 +29,13 @@ color: gray
 
 - 更新后的长期规格 `openspec/specs/**`
 - 完整的 `archive.md`
-- 供 reviewer 审查的归档摘要
-- 最后一行输出：`LETGO_RESULT {"stage":"archive","role":"writer","status":"ready"}`
+- 供 reviewer 审查的简体中文归档摘要，最多 8 行；路径与标识保持原文
+- 最后一行输出固定英文机器协议：`LETGO_RESULT {"stage":"archive","role":"writer","status":"ready","filesChanged":["archive.md","openspec/specs/..."],"evidence":["规格与验证对应关系"],"risks":[]}`
 
 ## 边界
 
 - 不修改生产代码、测试代码或验证结论。
 - 不归档未经验证的行为。
 - 不手动修改或推进 `status.json`。
+- 只读取当前变更产物和受影响长期规格，不全仓遍历或重复实现分析。
+- 不输出思考过程或重复粘贴归档正文。

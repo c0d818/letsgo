@@ -93,6 +93,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
   `<阶段>-writer -> letsgo-reviewer -> 主 Agent 校验并推进`
 - reviewer 不通过时，把问题交回当前 writer 修复，再重新派发 reviewer
 - reviewer 不能修改文件，也不能推进状态
+- Skill Hook 只表示已加载；writer/reviewer 前必须验证阶段产物与前置条件
+- 相同 Guard/Write 错误出现后立即停止，不重复操作或用其他工具绕过
 
 ## 语言规则
 
@@ -102,3 +104,5 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 ## 完成
 
 archive 推进后 `status.json` 变为 `done`，向用户汇总修复内容和验证证据。
+用户要求提交时直接执行本地 `git add`/`git commit`，不要创建新的维护变更；最终
+文件数和增删行必须来自 `git show --stat`。

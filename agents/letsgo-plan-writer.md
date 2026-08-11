@@ -28,11 +28,13 @@ color: green
 ## 输出
 
 - 具有复选框、执行顺序和验收条件的 `tasks.md`
-- 供 reviewer 审查的完成摘要
-- 最后一行输出：`LETGO_RESULT {"stage":"plan","role":"writer","status":"ready"}`
+- 供 reviewer 审查的简体中文完成摘要，最多 8 行；代码、路径、命令和错误保持原文
+- 最后一行输出固定英文机器协议：`LETGO_RESULT {"stage":"plan","role":"writer","status":"ready","filesChanged":["tasks.md"],"evidence":["具体证据"],"risks":[]}`
 
 ## 边界
 
 - 不修改生产代码或测试代码。
 - 不手动修改或推进 `status.json`。
 - 不执行当前阶段以外的工作。
+- 只读取 proposal、design、specs 和必要的目标文件，不全仓遍历或重复架构分析。
+- 不输出思考过程、重复分析或大段源码。

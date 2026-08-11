@@ -9,6 +9,7 @@ import { validateProject } from "./commands/validate.js";
 import { advanceProject } from "./commands/advance.js";
 import { selectProject } from "./commands/select.js";
 import { tokensProject } from "./commands/tokens.js";
+import { recoverProject } from "./commands/recover.js";
 
 const commands = {
   init: initProject,
@@ -22,6 +23,7 @@ const commands = {
   advance: advanceProject,
   select: selectProject,
   tokens: tokensProject,
+  recover: recoverProject,
 };
 
 export async function main(argv) {
@@ -61,6 +63,7 @@ function printHelp() {
   letsgo validate --before|--after <state> --change <change-id> [project-dir]
   letsgo advance <state> --change <change-id> [project-dir]
   letsgo select <change-id> [project-dir]
+  letsgo recover [project-dir]
   letsgo tokens [transcript-path] [project-dir]`);
 }
 
@@ -106,7 +109,7 @@ function parseArgs(commandName, args) {
     positional.push(arg);
   }
 
-  if (["init", "update", "enable", "disable", "doctor"].includes(commandName)) {
+  if (["init", "update", "enable", "disable", "doctor", "recover"].includes(commandName)) {
     if (!options.projectDir && positional.length > 0) {
       options.projectDir = positional[0];
     }

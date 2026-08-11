@@ -53,6 +53,7 @@ letsgo status --change <change-id>
 letsgo validate --before <state> --change <change-id>
 letsgo validate --after <state> --change <change-id>
 letsgo advance <state> --change <change-id>
+letsgo recover
 ```
 
 第一个实现通过 `status.json` 加必需文件强制生命周期。
@@ -106,7 +107,7 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 插件使用一个覆盖更新的 `openspec/.letsgo/runtime-state.json` 记录当前 session、
 变更和阶段的编排状态，不为每次任务创建独立日志：
 
-1. `PostToolUse Skill` 记录阶段 Skill 已完成；apply 同时要求 `letsgo-apply` 和
+1. `PostToolUse Skill` 记录阶段 Skill 已加载；apply 同时要求 `letsgo-apply` 和
    `letsgo-tdd`。
 2. `PreToolUse Agent` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
    writer 已完成。
@@ -117,7 +118,13 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 5. writer 重新启动后，旧 reviewer 结论立即过期，必须重新审查。
 
 该文件不保存提示词、代码内容、历史事件或 token 记录；阶段推进后自动重置为
-下一阶段，archive 完成后重置为空状态。
+下一阶段，archive 完成后重置为空状态并清除 active 标记。另有一个覆盖更新的
+`run-summary.json` 保存阶段结果与权限提示、自动拒绝、压缩和重复守卫拒绝计数。
+`letsgo recover` 可根据 `status.json` 恢复唯一活跃变更，多个活跃变更时要求明确选择。
+
+生命周期完成后，守卫允许作用域明确且非 amend/fixup/squash 的本地 `git add` 和
+`git commit`；`git push` 仍保留权限确认。任何相同守卫拒绝都必须停止重试，不能
+用 Bash、临时脚本或递归维护变更绕过。
 
 守卫直接读取 `openspec/changes/*/status.json`。只有一个活跃变更时自动使用；
 有多个变更时，`letsgo select <change-id>` 写入

@@ -77,6 +77,7 @@ npm publish
 | `/lg:check` | 查看变更状态 |
 | `/lg:log` | 记录运行问题 |
 | `/lg:tokens` | 查看 token 用量 |
+| `/lg:recover` | 从中断、压缩或残留状态恢复 |
 
 `lg` 是插件命名空间，因此插件命令始终以 `/lg:` 开头。
 
@@ -88,6 +89,7 @@ letsgo select <change-id>
 letsgo status --change <change-id>
 letsgo validate --before|--after <state> --change <change-id>
 letsgo advance <state> --change <change-id>
+letsgo recover
 ```
 
 ## 生命周期
@@ -99,9 +101,9 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果记录到
 `tdd-evidence.md`；不改变生产行为的修改必须记录明确的 TDD 豁免和验证证据。
 
-LetsGo 还使用单一的 `openspec/.letsgo/runtime-state.json` 做轻量运行前检查：
-writer 启动前确认阶段 Skill，reviewer 启动前确认 writer，状态推进前确认 reviewer
-通过。该文件只保存当前阶段状态，不累积每次任务的 JSON 日志。
+LetsGo 使用 `openspec/.letsgo/runtime-state.json` 做当前阶段运行前检查，并用一个
+覆盖更新的 `run-summary.json` 保存阶段摘要与权限、压缩、守卫拒绝指标。两者都不
+按任务创建 JSON；`letsgo recover` 可在中断后恢复唯一活跃变更并清理幽灵状态。
 
 大型项目的 clarify 分析会优先调用单一的 `codegraph_explore`，一次返回相关源码、
 调用路径和影响范围，避免重复的全仓库搜索和多文件读取。

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -15,6 +15,8 @@ import {
   resetRuntimeState,
   validateRuntimeBeforeAdvance,
 } from "../lib/runtime-state.js";
+import { initProject } from "../cli/commands/init.js";
+import { newChangeProject } from "../cli/commands/new.js";
 
 async function withTempDir(fn) {
   const dir = await mkdtemp(path.join(tmpdir(), "letsgo-runtime-test-"));
@@ -43,6 +45,10 @@ test("运行前检查按 Skill、writer、reviewer 顺序放行", async () => {
 
     await recordSkillCompleted({ ...common, skillName: "letsgo-design" });
     assert.equal(
+      (await readRuntimeState(projectDir)).skills["lg:letsgo-design"],
+      "loaded"
+    );
+    assert.equal(
       (await decideAgentStart({ ...common, agentType: "letsgo-design-writer" })).status,
       "allow"
     );
@@ -61,7 +67,7 @@ test("运行前检查按 Skill、writer、reviewer 顺序放行", async () => {
       agentType: "lg:letsgo-design-writer",
       agentId: "writer-1",
       lastAssistantMessage:
-        '完成\nLETGO_RESULT {"stage":"design","role":"writer","status":"ready"}',
+        '完成\nLETGO_RESULT {"stage":"design","role":"writer","status":"ready","filesChanged":["design.md"],"evidence":["校验通过"],"risks":[]}',
     });
     assert.equal(
       (await decideAgentStart({ ...common, agentType: REVIEWER })).status,
@@ -73,7 +79,7 @@ test("运行前检查按 Skill、writer、reviewer 顺序放行", async () => {
       agentType: REVIEWER,
       agentId: "reviewer-1",
       lastAssistantMessage:
-        '通过\nLETGO_RESULT {"stage":"design","role":"reviewer","status":"pass","blocking":[]}',
+        '通过\nLETGO_RESULT {"stage":"design","role":"reviewer","status":"pass","blocking":[],"evidence":["设计覆盖验收标准"],"risks":[]}',
     });
     assert.deepEqual(
       await validateRuntimeBeforeAdvance({
@@ -185,7 +191,38 @@ test("运行状态始终只覆盖一个 JSON 文件", async () => {
     });
 
     const raw = await readFile(path.join(projectDir, RUNTIME_STATE_RELATIVE), "utf8");
-    assert.equal(JSON.parse(raw).skills["lg:letsgo-clarify"], "completed");
+    assert.equal(JSON.parse(raw).skills["lg:letsgo-clarify"], "loaded");
+  });
+});
+
+test("clarify reviewer 只有在 proposal 通过产物校验后才能启动", async () => {
+  await withTempDir(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "fix-login", type: "bugfix" });
+    const common = {
+      projectDir,
+      sessionId: "session-1",
+      changeId: "fix-login",
+      stage: "clarify",
+    };
+
+    await recordSkillCompleted({ ...common, skillName: "lg:letsgo-clarify" });
+    const beforeProposal = await decideAgentStart({
+      ...common,
+      agentType: REVIEWER,
+    });
+    assert.equal(beforeProposal.status, "deny");
+    assert.match(beforeProposal.reason, /proposal\.md/);
+
+    await writeFile(
+      path.join(projectDir, "openspec/changes/fix-login/proposal.md"),
+      "# 提案\n\n## 为什么做\n修复登录。\n\n## 改变什么\n传递状态。\n\n## 验收标准\n测试通过。\n"
+    );
+    const afterProposal = await decideAgentStart({
+      ...common,
+      agentType: REVIEWER,
+    });
+    assert.equal(afterProposal.status, "allow");
   });
 });
 

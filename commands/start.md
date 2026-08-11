@@ -52,8 +52,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 - Skill：`lg:letsgo-clarify`（主 Agent 完成，不派发 subagent）
 - 流程：需求问答（一次一题带选项）-> 用户确认摘要 -> 代码影响分析 -> 外部知识
-  -> 头脑风暴方案（至少 3 个候选）-> 用户确认方案 -> 反向审查
-  （`@lg:letsgo-reviewer`）-> 写入 `proposal.md`
+  -> 头脑风暴方案（至少 3 个候选）-> 用户确认方案 -> 起草并校验 `proposal.md`
+  -> 反向审查（`@lg:letsgo-reviewer`）-> 修订定稿
 - 本阶段不修改生产代码、测试代码或设计文档。
 
 ### 2. design（技术设计）
@@ -93,6 +93,8 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
   `<阶段>-writer -> letsgo-reviewer -> 主 Agent 校验并推进`
 - reviewer 不通过时，把问题交回当前 writer 修复，再重新派发 reviewer
 - reviewer 不能修改文件，也不能推进状态
+- Skill Hook 只表示已加载；writer/reviewer 前必须验证阶段产物与前置条件
+- 相同 Guard/Write 错误出现后立即停止，不重复操作或用其他工具绕过
 
 ## 语言规则
 
@@ -102,3 +104,5 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 ## 完成
 
 archive 推进后 `status.json` 变为 `done`，向用户汇总变更内容和验证证据。
+用户要求提交时直接执行本地 `git add`/`git commit`，不要创建新的维护变更；最终
+文件数和增删行必须来自 `git show --stat`。

@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { initProject } from "../cli/commands/init.js";
 import { newChangeProject } from "../cli/commands/new.js";
 import { readRuntimeState } from "../lib/runtime-state.js";
+import { readRunSummary } from "../lib/run-summary.js";
+import { readStatus, writeStatus } from "../state/change.js";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
 
@@ -130,6 +132,55 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
   });
 });
 
+test("完成生命周期后允许本地 git add/commit，但 push 仍请求批准", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "done-change" });
+    const status = await readStatus(projectDir, "done-change");
+    await writeStatus(projectDir, "done-change", {
+      ...status,
+      state: "done",
+      completed: ["clarify", "design", "plan", "apply", "verify", "archive"],
+      approved: Object.fromEntries(
+        ["clarify", "design", "plan", "apply", "verify", "archive"].map((stage) => [stage, true])
+      ),
+    });
+
+    for (const command of [
+      "git add src/index.js openspec/changes/done-change",
+      "git commit -m 'fix: complete change'",
+    ]) {
+      const result = await runHookScript(
+        "scripts/guard.js",
+        {
+          session_id: "session-1",
+          hook_event_name: "PreToolUse",
+          tool_name: "Bash",
+          tool_input: { command },
+        },
+        projectDir
+      );
+      assert.equal(
+        JSON.parse(result.stdout).hookSpecificOutput.permissionDecision,
+        "allow",
+        command
+      );
+    }
+
+    const push = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "git push origin main" },
+      },
+      projectDir
+    );
+    assert.equal(JSON.parse(push.stdout).hookSpecificOutput.permissionDecision, "ask");
+  });
+});
+
 test("PreToolUse 守卫脚本在钩子输入无法解析时请求审查", async () => {
   await withTempProject(async (projectDir) => {
     const child = spawn(process.execPath, [path.join(packageRoot, "scripts/guard.js")], {
@@ -184,6 +235,11 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
       projectDir
     );
 
+    await writeFile(
+      path.join(projectDir, "openspec/changes/add-login/proposal.md"),
+      "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
+    );
+
     const allowed = await runHookScript(
       "scripts/runtime-state.js",
       {
@@ -217,13 +273,13 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
         agent_type: "lg:letsgo-reviewer",
         agent_id: "reviewer-1",
         last_assistant_message:
-          '通过\nLETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[]}',
+          '通过\nLETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["proposal 通过"],"risks":[]}',
       },
       projectDir
     );
 
     const state = await readRuntimeState(projectDir);
-    assert.equal(state.skills["lg:letsgo-clarify"], "completed");
+    assert.equal(state.skills["lg:letsgo-clarify"], "loaded");
     assert.equal(state.agents["lg:letsgo-reviewer"].status, "passed");
   });
 });
@@ -292,5 +348,66 @@ test("context 脚本在未由 LetsGo 管理的项目中保持静默", async () =
 
     assert.equal(code, 0);
     assert.equal(stdout.trim(), "{}");
+  });
+});
+
+test("Hook 用单一 run-summary 统计权限提示、压缩和重复 Guard 拒绝", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PostToolUse",
+        tool_name: "Skill",
+        tool_input: { skill: "lg:letsgo-clarify" },
+      },
+      projectDir
+    );
+
+    await runHookScript(
+      "scripts/metrics.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PermissionRequest",
+        tool_name: "Bash",
+        tool_input: { command: "npm publish" },
+      },
+      projectDir
+    );
+    await runHookScript(
+      "scripts/metrics.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PostCompact",
+        trigger: "auto",
+        compact_summary: "summary",
+      },
+      projectDir
+    );
+
+    const blockedInput = {
+      session_id: "session-1",
+      hook_event_name: "PreToolUse",
+      tool_name: "Write",
+      tool_input: {
+        file_path: path.join(projectDir, "src/index.js"),
+        content: "x",
+      },
+    };
+    const first = await runHookScript("scripts/guard.js", blockedInput, projectDir);
+    const second = await runHookScript("scripts/guard.js", blockedInput, projectDir);
+    assert.equal(JSON.parse(first.stdout).hookSpecificOutput.permissionDecision, "deny");
+    assert.match(
+      JSON.parse(second.stdout).hookSpecificOutput.permissionDecisionReason,
+      /已被阻止 2 次/
+    );
+
+    const summary = await readRunSummary(projectDir);
+    assert.equal(summary.metrics.permissionPrompts, 1);
+    assert.equal(summary.metrics.compactions, 1);
+    assert.equal(summary.metrics.guardDenials, 2);
+    assert.equal(summary.metrics.repeatedGuardDenials, 1);
   });
 });

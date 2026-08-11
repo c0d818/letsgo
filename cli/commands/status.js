@@ -1,5 +1,6 @@
 import { changeDir, readStatus } from "../../state/change.js";
 import { NEXT_STATE, STATE_LABELS } from "../../state/states.js";
+import { readRunSummary } from "../../lib/run-summary.js";
 
 export async function statusProject({ projectDir, changeId }) {
   if (!changeId) {
@@ -8,6 +9,7 @@ export async function statusProject({ projectDir, changeId }) {
 
   const status = await readStatus(projectDir, changeId);
   const nextState = NEXT_STATE[status.state] ?? null;
+  const runSummary = await readRunSummary(projectDir);
 
   return {
     projectDir,
@@ -25,5 +27,6 @@ export async function statusProject({ projectDir, changeId }) {
       state,
       label: STATE_LABELS[state] ?? state,
     })),
+    runSummary: runSummary?.changeId === changeId ? runSummary : null,
   };
 }

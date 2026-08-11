@@ -29,11 +29,13 @@ color: purple
 ## 输出
 
 - 可复核的 `verification.md`
-- 供 reviewer 审查的验证摘要
-- 最后一行输出：`LETGO_RESULT {"stage":"verify","role":"writer","status":"ready"}`
+- 供 reviewer 审查的简体中文验证摘要，最多 8 行；命令与错误保持原文
+- 最后一行输出固定英文机器协议：`LETGO_RESULT {"stage":"verify","role":"writer","status":"ready","filesChanged":["verification.md"],"evidence":["实际命令和结果"],"risks":[]}`
 
 ## 边界
 
 - 不修改生产代码、测试代码或任务内容。
 - 不手动修改或推进 `status.json`。
 - 不夸大测试覆盖或隐藏剩余风险。
+- 只读取验收标准、tasks、TDD 证据和相关 diff；不重新分析整个代码库。
+- 不输出完整测试日志；在 `verification.md` 留证，返回摘要。

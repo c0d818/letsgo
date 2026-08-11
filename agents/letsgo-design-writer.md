@@ -28,11 +28,13 @@ color: blue
 
 - `design.md`
 - 必要的变更规格 `specs/**`
-- 供 reviewer 审查的完成摘要
-- 最后一行输出：`LETGO_RESULT {"stage":"design","role":"writer","status":"ready"}`
+- 供 reviewer 审查的简体中文完成摘要，最多 8 行；代码、路径、命令和错误保持原文
+- 最后一行输出固定英文机器协议：`LETGO_RESULT {"stage":"design","role":"writer","status":"ready","filesChanged":["design.md"],"evidence":["具体证据"],"risks":[]}`
 
 ## 边界
 
 - 不修改生产代码、测试代码或 `tasks.md`。
 - 不手动修改或推进 `status.json`。
 - 不执行当前阶段以外的工作。
+- 只读取输入列出的产物、相关代码和阶段 Skill 指定的文件；不全仓遍历，不重复读取主 Agent 已提供的 CodeGraph 源码。
+- 不输出思考过程、重复分析或大段源码。

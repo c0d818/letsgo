@@ -20,8 +20,8 @@ user-invocable: false
 
 1. 运行 `letsgo validate --before plan --change <change-id>`；失败时停止并报告。
 2. 派发 `@lg:letsgo-plan-writer` 将设计拆分为 `tasks.md`。
-3. 派发 `@lg:letsgo-reviewer` 审查设计覆盖、任务顺序、目标文件、测试策略和
-   完成条件。
+3. 向 `@lg:letsgo-reviewer` 传递最小审查包，只审查 tasks 和必要的前置设计，
+   检查设计覆盖、任务顺序、目标文件、测试策略和完成条件。
 4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after plan --change <change-id>` 和

@@ -21,8 +21,8 @@ user-invocable: false
 1. 运行 `letsgo validate --before design --change <change-id>`；失败时停止并报告。
 2. 派发 `@lg:letsgo-design-writer` 编写 `design.md`，必要时更新变更目录下的
    `specs/**`。
-3. 派发 `@lg:letsgo-reviewer` 审查架构、数据流、影响范围、替代方案、风险和
-   测试策略。
+3. 向 `@lg:letsgo-reviewer` 传递最小审查包，只审查 design 相关产物、目标文件和
+   diff，检查架构、数据流、影响范围、替代方案、风险和测试策略。
 4. reviewer 有阻塞问题时，将问题交回 writer 修复并重新审查。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after design --change <change-id>` 和

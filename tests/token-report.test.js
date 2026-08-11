@@ -24,10 +24,11 @@ async function withTempProject(fn) {
   }
 }
 
-function assistantLine({ agent = null, usage }) {
+function assistantLine({ agent = null, usage, timestamp = "2026-08-11T10:00:00.000Z" }) {
   const event = {
     type: "assistant",
     sessionId: "s1",
+    timestamp,
     message: { usage },
   };
   if (agent) {
@@ -94,11 +95,14 @@ test("token 报告写入 openspec/.letsgo/token-report.md", async () => {
     const report = await aggregateTranscript(mainPath);
 
     const reportPath = await appendReport(dir, report);
+    await appendReport(dir, report);
     const content = await readFile(reportPath, "utf8");
 
     assert.match(content, /# Token 用量报告/);
     assert.match(content, /lg:letsgo-reviewer/);
     assert.match(content, /\*\*合计\*\*.*\*\*530\*\*/);
+    assert.equal((content.match(/## Token 用量：/g) ?? []).length, 1);
+    assert.match(content, /覆盖写入/);
   });
 });
 
@@ -109,9 +113,37 @@ test("formatMarkdown 生成可读表格", () => {
     subagents: [{ name: "lg:letsgo-reviewer", input: 5, output: 6, cacheRead: 0, cacheWrite: 0 }],
     totals: { main: 10, subagents: 11, all: 21 },
   });
-  assert.match(markdown, /\| 主代理 \| 1 \| 2 \| 3 \| 4 \| 10 \|/);
+  assert.match(markdown, /\| 主代理 \| 1 \| 1 \| 2 \| 3 \| 4 \| 10 \|/);
   assert.match(markdown, /lg:letsgo-reviewer/);
   assert.match(markdown, /\*\*21\*\*/);
+});
+
+test("token 报告合并同类型 Subagent 并按阶段时间窗统计增量", async () => {
+  await withTempProject(async (sessionDir) => {
+    const mainPath = await makeTranscripts(sessionDir);
+    await writeFile(
+      path.join(sessionDir, "session", "subagents", "c.jsonl"),
+      assistantLine({
+        agent: "lg:letsgo-reviewer",
+        usage: { input_tokens: 10, output_tokens: 2 },
+      })
+    );
+    const report = await aggregateTranscript(mainPath, {
+      stages: [
+        {
+          stage: "clarify",
+          startedAt: "2026-08-11T09:00:00.000Z",
+          completedAt: "2026-08-11T11:00:00.000Z",
+        },
+      ],
+    });
+    const reviewer = report.subagents.find((item) => item.name === "lg:letsgo-reviewer");
+    assert.equal(reviewer.runs, 2);
+    assert.equal(reviewer.input, 90);
+    assert.equal(report.stageDeltas[0].stage, "clarify");
+    assert.equal(report.stageDeltas[0].total, 542);
+    assert.match(formatMarkdown(report), /## 阶段增量/);
+  });
 });
 
 test("encodeProjectPath 匹配 Claude Code 目录编码", () => {

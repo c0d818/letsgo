@@ -30,6 +30,7 @@ import {
   readActiveMarker,
   resolveActiveChange,
 } from "../lib/guard.js";
+import { readRunSummary } from "../lib/run-summary.js";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
 const execFileAsync = promisify(execFile);
@@ -61,7 +62,7 @@ async function markRuntimeStageReady(projectDir, changeId, stage) {
       changeId,
       stage,
       agentType: STAGE_WRITERS[stage],
-      lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"writer","status":"ready"}`,
+      lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"writer","status":"ready","filesChanged":["artifact.md"],"evidence":["校验通过"],"risks":[]}`,
     });
   }
   await recordAgentStopped({
@@ -70,7 +71,7 @@ async function markRuntimeStageReady(projectDir, changeId, stage) {
     changeId,
     stage,
     agentType: REVIEWER,
-    lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"reviewer","status":"pass","blocking":[]}`,
+    lastAssistantMessage: `LETGO_RESULT {"stage":"${stage}","role":"reviewer","status":"pass","blocking":[],"evidence":["审查通过"],"risks":[]}`,
   });
 }
 
@@ -103,6 +104,7 @@ test("init 把 LetsGo 模板安装进项目", async () => {
     await stat(path.join(projectDir, ".claude/commands/check.md"));
     await stat(path.join(projectDir, ".claude/commands/structure.md"));
     await stat(path.join(projectDir, ".claude/commands/log.md"));
+    await stat(path.join(projectDir, ".claude/commands/recover.md"));
     await assert.rejects(
       stat(path.join(projectDir, ".claude/commands/maintenance.md")),
       { code: "ENOENT" }
@@ -264,6 +266,7 @@ test("claude 插件清单和市场配置有效", async () => {
     "check.md",
     "letsgo.md",
     "log.md",
+    "recover.md",
     "refactor.md",
     "start.md",
     "structure.md",
@@ -288,6 +291,7 @@ test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () =>
   );
 
   assert.match(clarify, /codegraph_explore/);
+  assert.match(clarify, /不得调用第三次/);
   assert.match(clarify, /Grep.*Read/);
   assert.match(projectRules, /codegraph init/);
   assert.match(projectRules, /\.codegraph\//);
@@ -338,6 +342,10 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
       `${filename} 的章节顺序不符合统一模板`
     );
     assert.doesNotMatch(content, /\bsubagent\b|子 Agent/);
+    assert.match(content, /简体中文/);
+    assert.match(content, /filesChanged|blocking/);
+    assert.match(content, /evidence/);
+    assert.match(content, /risks/);
   }
 
   const reviewer = await readFile(path.join(agentRoot, "letsgo-reviewer.md"), "utf8");
@@ -373,6 +381,10 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
     hooks.hooks.Stop[0].hooks[0].command,
     /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/token-report\.js/
   );
+  assert.match(hooks.hooks.PermissionRequest[0].hooks[0].command, /metrics\.js/);
+  assert.match(hooks.hooks.PermissionDenied[0].hooks[0].command, /metrics\.js/);
+  assert.match(hooks.hooks.PreCompact[0].hooks[0].command, /metrics\.js/);
+  assert.match(hooks.hooks.PostCompact[0].hooks[0].command, /metrics\.js/);
 });
 
 test("cli init 把第一个位置参数当作项目目录", async () => {
@@ -793,6 +805,22 @@ test("状态机创建变更并阻止跳阶段", async () => {
   });
 });
 
+test("创建变更不会覆盖缺少 status.json 的已有目录", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    const partialDir = path.join(projectDir, "openspec/changes/partial-change");
+    const notePath = path.join(partialDir, "manual-note.md");
+    await mkdir(partialDir, { recursive: true });
+    await writeFile(notePath, "keep me\n");
+
+    await assert.rejects(
+      newChangeProject({ projectDir, changeId: "partial-change" }),
+      /已存在但缺少 status\.json/
+    );
+    assert.equal(await readFile(notePath, "utf8"), "keep me\n");
+  });
+});
+
 test("TDD 证据强制 RED、GREEN、REFACTOR 顺序并支持非行为豁免", () => {
   const validTdd = [
     "# TDD 证据",
@@ -925,5 +953,21 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
     assert.equal(status.status.state, "done");
     assert.equal(status.current.label, "已完成");
     assert.equal(status.next, null);
+    assert.equal(await readActiveMarker(projectDir), null);
+
+    const runSummary = await readRunSummary(projectDir);
+    assert.equal(runSummary.status, "completed");
+    assert.equal(runSummary.currentStage, null);
+    assert.deepEqual(
+      runSummary.stages.map(({ stage, status: stageStatus }) => [stage, stageStatus]),
+      [
+        ["clarify", "completed"],
+        ["design", "completed"],
+        ["plan", "completed"],
+        ["apply", "completed"],
+        ["verify", "completed"],
+        ["archive", "completed"],
+      ]
+    );
   });
 });
