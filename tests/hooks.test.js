@@ -132,7 +132,7 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
   });
 });
 
-test("完成生命周期后允许本地 git add/commit，但 push 仍请求批准", async () => {
+test("完成生命周期后允许本地 git add/commit 与安全交付链，但 push 仍请求批准", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "done-change" });
@@ -149,6 +149,15 @@ test("完成生命周期后允许本地 git add/commit，但 push 仍请求批�
     for (const command of [
       "git add src/index.js openspec/changes/done-change",
       "git commit -m 'fix: complete change'",
+      "git add src/index.js openspec/changes/done-change && git commit -m 'fix: complete change'",
+      "git add src/index.js openspec/changes/done-change && git diff --cached --stat",
+      "git commit -m 'fix: complete change' && git show --stat",
+      `git add src/index.js openspec/changes/done-change && git commit -m "$(cat <<'EOF'
+fix: complete change
+
+Keep the delivery local.
+EOF
+)"`,
     ]) {
       const result = await runHookScript(
         "scripts/guard.js",
@@ -178,6 +187,124 @@ test("完成生命周期后允许本地 git add/commit，但 push 仍请求批�
       projectDir
     );
     assert.equal(JSON.parse(push.stdout).hookSpecificOutput.permissionDecision, "ask");
+
+    for (const command of [
+      "git add src/index.js && rm src/index.js",
+      "git add src/index.js && git commit -m 'fix: complete change' && git push origin main",
+      "git commit --amend -m 'rewrite history'",
+      "git commit --fixup=HEAD",
+      "git commit --squash=HEAD",
+    ]) {
+      const unsafe = await runHookScript(
+        "scripts/guard.js",
+        {
+          session_id: "session-1",
+          hook_event_name: "PreToolUse",
+          tool_name: "Bash",
+          tool_input: { command },
+        },
+        projectDir
+      );
+      assert.equal(
+        JSON.parse(unsafe.stdout).hookSpecificOutput.permissionDecision,
+        "deny",
+        command
+      );
+    }
+  });
+});
+
+test("没有已完成生命周期时不开放本地 Git 交付命令", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+
+    for (const command of [
+      "git add src/index.js",
+      "git commit -m 'chore: unrelated change'",
+    ]) {
+      const result = await runHookScript(
+        "scripts/guard.js",
+        {
+          session_id: "session-1",
+          hook_event_name: "PreToolUse",
+          tool_name: "Bash",
+          tool_input: { command },
+        },
+        projectDir
+      );
+      assert.equal(
+        JSON.parse(result.stdout).hookSpecificOutput.permissionDecision,
+        "deny",
+        command
+      );
+    }
+  });
+});
+
+test("完成生命周期后仍允许记录 LetsGo 运行问题，但拒绝普通文件写入", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "done-change" });
+    const status = await readStatus(projectDir, "done-change");
+    await writeStatus(projectDir, "done-change", {
+      ...status,
+      state: "done",
+      completed: ["clarify", "design", "plan", "apply", "verify", "archive"],
+      approved: Object.fromEntries(
+        ["clarify", "design", "plan", "apply", "verify", "archive"].map((stage) => [stage, true])
+      ),
+    });
+
+    const issueWrite = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Write",
+        tool_input: {
+          file_path: path.join(projectDir, "openspec/.letsgo/issues.md"),
+          content: "# issue",
+        },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(issueWrite.stdout).hookSpecificOutput.permissionDecision,
+      "allow"
+    );
+
+    const sourceWrite = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Write",
+        tool_input: {
+          file_path: path.join(projectDir, "src/index.js"),
+          content: "// unexpected",
+        },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(sourceWrite.stdout).hookSpecificOutput.permissionDecision,
+      "deny"
+    );
+
+    const issueDelete = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "rm openspec/.letsgo/issues.md" },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(issueDelete.stdout).hookSpecificOutput.permissionDecision,
+      "deny"
+    );
   });
 });
 

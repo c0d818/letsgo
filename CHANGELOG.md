@@ -11,6 +11,36 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.7] - 2026-08-12
+
+### 修复
+
+- done 后的安全本地交付链新增只读验收步骤：允许
+  `git add && git diff --cached --stat` 和 `git commit && git show --stat`，覆盖 Claude
+  Code 实际的暂存检查与提交汇总流程。
+- 只读步骤采用精确白名单且限制顺序；push、额外命令和历史改写仍不放行。
+
+## [0.4.6] - 2026-08-12
+
+### 修复
+
+- LetsGo CLI 判定改为只匹配命令行开头的 `letsgo` 可执行程序，不再把
+  `openspec/.letsgo/` 文件路径误认成 CLI 命令。
+- `done` 后的问题日志例外只适用于 Write/Edit 类工具，删除或其他 Bash 操作不再
+  因目标路径是 `issues.md` 而被放行。
+
+## [0.4.5] - 2026-08-12
+
+### 修复
+
+- 修复 archive 推进到 `done` 并清除 active 标记后，本地 Git 收尾仍可能被 Guard
+  误判为“未选择活跃变更”的问题。
+- 仅在存在六阶段均完成并批准的 `done` 变更时开放本地交付；支持单条
+  `git add`/`git commit`、安全的 `git add && git commit` 链和 Claude Code 标准
+  quoted-heredoc 多行提交信息。
+- `done` 后仍允许写入 `openspec/.letsgo/issues.md`；普通业务写入、`git push`、
+  额外 shell 链以及 amend/fixup/squash 历史改写继续被拦截。
+
 ## [0.4.4] - 2026-08-11
 
 ### 新增
