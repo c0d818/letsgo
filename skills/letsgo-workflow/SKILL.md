@@ -51,6 +51,9 @@ user-invocable: false
    `git show --stat`，`git push` 仍需用户明确批准。
 10. 检查文件优先使用 Read/Glob/Grep；Bash 一次只执行一个命令，不用 `;`、`&&`、
     管道或重定向拼接只读检查，减少权限提示。
+11. 需要用户决定且存在有限选项时，主 Agent 必须调用 `AskUserQuestion`；只有路径、
+    密钥或需求描述等自由文本才普通提问。Subagent 不直接询问用户，只把阻塞问题
+    和候选选项结构化交回主 Agent。
 
 ## 输出
 

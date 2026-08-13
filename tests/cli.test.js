@@ -378,11 +378,34 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
     assert.match(content, /filesChanged|blocking/);
     assert.match(content, /evidence/);
     assert.match(content, /risks/);
+    assert.match(
+      content,
+      /不直接询问用户[^\n]*阻塞问题[^\n]*主 Agent/,
+      `${filename} 必须把需要用户决定的问题交回主 Agent`
+    );
   }
 
   const reviewer = await readFile(path.join(agentRoot, "letsgo-reviewer.md"), "utf8");
   assert.match(reviewer, /tools: Read, Glob, Grep, Bash/);
   assert.doesNotMatch(reviewer, /tools: .*Write|tools: .*Edit/);
+});
+
+test("有限选择使用 AskUserQuestion，自由文本才允许普通输入", async () => {
+  const clarify = await readFile(
+    path.join(packageRoot, "skills/letsgo-clarify/SKILL.md"),
+    "utf8"
+  );
+  const workflow = await readFile(
+    path.join(packageRoot, "skills/letsgo-workflow/SKILL.md"),
+    "utf8"
+  );
+  const projectRules = await readFile(path.join(packageRoot, "templates/CLAUDE.md"), "utf8");
+
+  for (const content of [clarify, workflow, projectRules]) {
+    assert.match(content, /有限选项[\s\S]{0,100}AskUserQuestion/);
+    assert.match(content, /自由文本/);
+    assert.match(content, /Subagent[\s\S]{0,150}不直接询问用户[\s\S]{0,150}主 Agent/);
+  }
 });
 
 test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", async () => {

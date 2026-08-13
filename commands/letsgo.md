@@ -62,6 +62,8 @@ Required skill: `lg:letsgo-workflow`
 - clarify 阶段只在需求信息不足时向用户提最少的问题；确认后不再逐阶段询问。
 - clarify 由主 Agent 完成需求交互；其余阶段由对应 Skill 调度 writer 和
   reviewer。
+- 存在有限选项时主 Agent 必须调用 `AskUserQuestion`；路径、密钥或需求描述等自由文本
+  才普通提问。Subagent 不直接询问用户，只把阻塞问题和候选选项交回主 Agent。
 - 运行中遇到的任何问题都记录到 `openspec/.letsgo/issues.md`。
 - 规划文档统一使用简体中文；代码、测试和用户文案沿用项目现有语言。
 - Skill Hook 只表示 Skill 已加载，不表示阶段产物已完成；reviewer 前必须有有效产物。

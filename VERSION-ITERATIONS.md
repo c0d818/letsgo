@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.9`
+- 版本：`0.4.10`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- 统一用户提问策略：有限选项由主 Agent 调用 `AskUserQuestion`，无法合理枚举的
+  自由文本才普通提问；Subagent 只上报阻塞问题和候选选项，不直接询问用户。
 
 - 为所有 Hook 使用 `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 根目录回退并
   引用完整脚本路径，兼容两个宿主及 Windows 含空格的本地 Marketplace 安装目录。

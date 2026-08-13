@@ -36,6 +36,8 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
 - Skill Hook 只表示 Skill 已加载；阶段是否完成由产物校验、writer/reviewer 的
   `LETGO_RESULT` 证据和 `advance` 共同决定。
 - Subagent 说明用精简中文，文件路径、命令、错误和最后一行英文 JSON 协议保持原样。
+- 存在有限选项时主 Agent 必须调用 `AskUserQuestion`；只有无法合理枚举的自由文本才
+  普通提问。Subagent 不直接询问用户，只把阻塞问题与候选选项交回主 Agent。
 - 新增钩子脚本放 `scripts/`，在 `hooks/hooks.json` 里注册，路径用
   `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 并引用完整脚本路径。
 - 运行问题由 `/lg:log` 命令记录到项目的 `openspec/.letsgo/issues.md`，守卫允许
