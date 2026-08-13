@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/guard.js\"",
             "timeout": 15
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/runtime-state.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/runtime-state.js\"",
             "timeout": 15
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/guard.js\"",
             "timeout": 15
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/runtime-state.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/runtime-state.js\"",
             "timeout": 15
           }
         ]
@@ -51,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/runtime-state.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/runtime-state.js\"",
             "timeout": 15
           }
         ]
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/metrics.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/metrics.js\"",
             "timeout": 15
           }
         ]
@@ -73,7 +73,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/metrics.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/metrics.js\"",
             "timeout": 15
           }
         ]
@@ -84,7 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/runtime-state.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/runtime-state.js\"",
             "timeout": 15
           }
         ]
@@ -95,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/runtime-state.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/runtime-state.js\"",
             "timeout": 15
           }
         ]
@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/context.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/context.js\"",
             "timeout": 15
           }
         ]
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/context.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/context.js\"",
             "timeout": 15
           }
         ]
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/metrics.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/metrics.js\"",
             "timeout": 15
           }
         ]
@@ -139,7 +139,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/metrics.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/metrics.js\"",
             "timeout": 15
           }
         ]
@@ -150,7 +150,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/token-report.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}/scripts/token-report.js\"",
             "timeout": 30
           }
         ]

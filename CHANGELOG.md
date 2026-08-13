@@ -15,8 +15,10 @@ LetsGo 的所有重要变更都记录在这里。
 
 ### 修复
 
-- 所有 Hook 命令统一引用完整的 `${CLAUDE_PLUGIN_ROOT}` 脚本路径，修复 Windows
-  安装目录含空格时命令被截断、`SessionStart` 无法加载 `scripts/context.js` 的问题。
+- 所有 Hook 命令统一使用
+  `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 并引用完整脚本路径，兼容 Claude
+  Code 与 CodeAgent3；同时修复 Windows 安装目录含空格时命令被截断、
+  `SessionStart` 无法加载 `scripts/context.js` 的问题。
 - 新增 Hook 路径引用回归测试，覆盖 SessionStart、Guard、运行状态、指标和 token
   报告等全部入口。
 

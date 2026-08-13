@@ -37,7 +37,7 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
   `LETGO_RESULT` 证据和 `advance` 共同决定。
 - Subagent 说明用精简中文，文件路径、命令、错误和最后一行英文 JSON 协议保持原样。
 - 新增钩子脚本放 `scripts/`，在 `hooks/hooks.json` 里注册，路径用
-  `${CLAUDE_PLUGIN_ROOT}`。
+  `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 并引用完整脚本路径。
 - 运行问题由 `/lg:log` 命令记录到项目的 `openspec/.letsgo/issues.md`，守卫允许
   写入该文件。
 - token 用量由 `/lg:tokens` 命令或 Stop 钩子覆盖写入最新报告，合并同类 Subagent

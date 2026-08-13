@@ -12,8 +12,9 @@
 - 区域：Hook / Windows 路径兼容
 - 首次发现：2026-08-13
 - 关闭时间：2026-08-13
-- 解决方式：所有 Hook 命令统一引用完整的 `${CLAUDE_PLUGIN_ROOT}` 脚本路径，并
-  用自动测试约束全部 Hook 入口，防止路径含空格时 Node 将入口截断为错误路径。
+- 解决方式：所有 Hook 命令统一使用
+  `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 并引用完整脚本路径，兼容两个
+  宿主环境；用自动测试约束全部 Hook 入口，防止路径含空格时 Node 截断入口。
 
 ### BUG-0021：Reviewer prompt 重复协议门禁阻止正常派发
 

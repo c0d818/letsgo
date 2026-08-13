@@ -13,8 +13,8 @@
 
 ### 已完成
 
-- 为所有 Hook 的插件脚本路径增加完整引用，兼容 Windows 上包含空格的本地
-  Marketplace 安装目录，避免 SessionStart 加载错误。
+- 为所有 Hook 使用 `${CLAUDE_PLUGIN_ROOT:-${CODEAGENT3_PLUGIN_ROOT}}` 根目录回退并
+  引用完整脚本路径，兼容两个宿主及 Windows 含空格的本地 Marketplace 安装目录。
 
 - 将 Agent 定义设为结果协议唯一来源，允许最小派发 prompt；修复只读 grep 携带
   `/dev/null` 重定向时被误判为写入的问题。

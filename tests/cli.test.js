@@ -393,7 +393,7 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   assert.match(hooks.hooks.PreToolUse[0].matcher, /Bash\|Write\|Edit\|MultiEdit\|NotebookEdit/);
   assert.match(
     hooks.hooks.PreToolUse[0].hooks[0].command,
-    /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/guard\.js/
+    /\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/guard\.js/
   );
   assert.equal(hooks.hooks.PreToolUse[1].matcher, "Agent");
   assert.match(hooks.hooks.PreToolUse[1].hooks[0].command, /runtime-state\.js/);
@@ -408,15 +408,15 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   assert.match(hooks.hooks.SubagentStop[0].hooks[0].command, /runtime-state\.js/);
   assert.match(
     hooks.hooks.SessionStart[0].hooks[0].command,
-    /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/context\.js/
+    /\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/context\.js/
   );
   assert.match(
     hooks.hooks.UserPromptSubmit[0].hooks[0].command,
-    /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/context\.js/
+    /\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/context\.js/
   );
   assert.match(
     hooks.hooks.Stop[0].hooks[0].command,
-    /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/token-report\.js/
+    /\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/token-report\.js/
   );
   assert.match(hooks.hooks.PermissionRequest[0].hooks[0].command, /metrics\.js/);
   assert.match(hooks.hooks.PermissionDenied[0].hooks[0].command, /metrics\.js/);
@@ -428,7 +428,7 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
       for (const hook of registration.hooks) {
         assert.match(
           hook.command,
-          /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/[^"]+\.js"$/,
+          /^node "\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/[^"]+\.js"$/,
           `Hook 入口必须引用完整插件路径，兼容含空格的安装目录：${hook.command}`
         );
       }
