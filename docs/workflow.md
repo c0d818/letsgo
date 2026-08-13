@@ -54,6 +54,7 @@ letsgo validate --before <state> --change <change-id>
 letsgo validate --after <state> --change <change-id>
 letsgo advance <state> --change <change-id>
 letsgo recover
+letsgo continue [change-id]
 letsgo reopen <state> --change <change-id> --reason "<人工解除理由>"
 ```
 
@@ -125,7 +126,9 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 下一阶段，archive 完成后重置为空状态并清除 active 标记。另有一个覆盖更新的
 `run-summary.json` 保存阶段结果与真实权限提示、澄清问题、CodeGraph 查询、自动拒绝、
 压缩和重复守卫拒绝计数。
-`letsgo recover` 可根据 `status.json` 恢复唯一活跃变更，多个活跃变更时要求明确选择。
+`letsgo continue` 用于正常会话重启，保留同一 change/stage 的有效运行证据并返回下一
+动作；多个活跃变更时要求明确选择。`letsgo recover` 用于清理幽灵或损坏状态，会重建
+空 runtime，不能替代正常续跑。
 `recover` 只修复中断或残留状态；后期验收发现实现遗漏时使用 `reopen`，两者不能互相
 替代。reopen 后必须重新执行目标阶段的 Skill、writer、reviewer 和全部质量门。
 

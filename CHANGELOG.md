@@ -11,6 +11,21 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.16] - 2026-08-13
+
+### 新增
+
+- 新增 `/lg:continue [change-id]` 和 `letsgo continue [change-id]`，用于退出、重启、
+  上下文压缩或模型切换后从断点安全续跑。
+- continue 自动选择 marker 指向或唯一活跃变更；多个活跃变更返回选择列表，并按
+  持久化证据给出 `advance`、`load-skill`、`run-writer`、`run-reviewer` 或 `blocked`。
+
+### 安全
+
+- 新 session 只有显式执行 continue 后才能接管同一 change/stage 的 runtime；普通跨
+  session 复用仍拒绝。reviewer pass 会保留，两轮 blocked 不重置，跨阶段证据不恢复。
+- `recover` 保持为损坏/幽灵状态清理命令，不再作为正常重启续跑入口。
+
 ## [0.4.15] - 2026-08-13
 
 ### 修复

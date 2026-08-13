@@ -80,7 +80,9 @@ Subagent 不直接询问用户，只把阻塞问题和候选选项结构化交�
 原阶段时立即停止，不得加载下一阶段 Skill、启动 Subagent 或创建后续阶段产物。
 
 同一 Guard/Write 错误只允许出现一次：立即读取状态、记录问题并停止，不重复 Write，
-不改用 Bash/Node/临时脚本绕过。状态残留时运行 `letsgo recover` 或 `/lg:recover`。
+不改用 Bash/Node/临时脚本绕过。正常退出、重启、压缩或模型切换后运行
+`/lg:continue [change-id]` 从断点续跑；只有状态残留或损坏时才运行 `letsgo recover`
+或 `/lg:recover`。
 reviewer 或验收证明需要修改更早阶段时，停止并等待用户明确授权 `/lg:reopen`；该命令
 必须记录人工解除理由并保留旧审查历史，不得自动回退、另建变更或手改状态。
 

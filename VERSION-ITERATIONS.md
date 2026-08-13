@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.15`
+- 版本：`0.4.16`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- 新增 `/lg:continue [change-id]` 与 `letsgo continue`：正常重启后保留同阶段有效
+  runtime，以显式 handoff 交给新 session，并返回精确断点动作；recover 仅处理损坏状态。
 
 - reviewer 的 `LETGO_RESULT` 只从最终对话响应回传，不写阶段文件；CodeAgent3 可从
   `PostToolUse(Agent).toolResponse` 记录结果。advance 后强制核对成功标记与状态。

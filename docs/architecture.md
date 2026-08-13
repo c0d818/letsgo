@@ -49,7 +49,8 @@ Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewe
 
 Skill 的 `PostToolUse` 只记录 `loaded`，不会把读取 Skill 当成完成阶段。完成结论来自
 产物校验、writer/reviewer 最后一行的英文 `LETGO_RESULT` 和状态推进。变更完成后
-active 标记被清除；中断后 `letsgo recover` 依据 `status.json` 恢复唯一活跃变更。
+active 标记被清除；正常中断后 `letsgo continue` 保留有效 runtime 并交给新 session，
+损坏状态才由 `letsgo recover` 依据 `status.json` 重建。
 reviewer 或验收发现早期实现遗漏时，`letsgo reopen` 把同一变更退回已完成的更早阶段，
 并在 `status.json.reopens` 与 `run-summary.json.reopens` 中保留旧审查和失效阶段快照。
 

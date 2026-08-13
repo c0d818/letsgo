@@ -26,6 +26,7 @@
 | D-16 | 阻塞后必须显式 Reopen | 后期验收发现遗漏时必须回到同一变更修复；直接推进会伪造通过，另建变更会割裂验收 | 平台提供原生可审计的阶段回退和人工批准事件 |
 | D-17 | 有限选择统一由主 Agent 调用 `AskUserQuestion` | 保持可点击交互一致，避免 Subagent 或模型把选择题退化为普通文字 | 平台自动把结构化选择渲染为统一交互，不再依赖工具调用 |
 | D-18 | 两轮阻塞后只允许审计式重开，不允许手动批准 | 手动批准会伪造 reviewer pass；clarify 又没有更早阶段，需要安全出口避免死锁 | 平台提供原生的审查周期和人工授权重开能力 |
+| D-19 | 正常重启用 `continue`，损坏恢复用 `recover` | recover 清空 runtime 会丢失已完成 reviewer；续跑需要保留同阶段有效证据并显式跨 session 接管 | 平台提供原生可持久化任务和 Agent 状态 |
 
 ## D-01：固定生命周期，而不是随机进入实现
 
@@ -171,6 +172,18 @@ reviewer 与用户。增加新门禁前应先有真实失败案例、明确的�
 当前阶段。旧 reviewer 结果和理由进入审计历史，新 runtime 从空状态开始，必须重新加载
 Skill、修订产物并审查。代价是用户可以开启多个审查周期，但每个周期仍严格限两轮且需
 明确授权，既保留退出路径，也不伪造质量结论。
+
+## D-19：为什么 Continue 与 Recover 分开
+
+正常退出、重启、上下文压缩或模型切换不会让已经记录的 Skill、writer、reviewer 证据
+失效。旧的 `recover` 会重建空 runtime，适合清理幽灵状态，却会迫使正常任务重复工作。
+`continue` 因此保留同一 change-id 和同一阶段的有效 runtime，并通过显式 handoff 允许
+新 session 接管；它根据证据返回 advance、load-skill、run-writer、run-reviewer 或
+blocked，不自行伪造完成。
+
+handoff 只对用户显式运行 `continue` 后生效，普通跨 session 仍拒绝；两轮 blocked 也
+保持阻塞，必须经用户授权 reopen。这样既能续跑，又不会让任意新会话复用旧证据。
+状态文件确实损坏、阶段不匹配或存在幽灵 marker 时仍使用 `recover`。
 
 ## 维护规则
 

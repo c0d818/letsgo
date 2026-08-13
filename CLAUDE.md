@@ -50,6 +50,8 @@ commands/*.md（详细流程：逐阶段列出 Skill、校验门、subagent 编�
   证据必须保留，不得直接推进、手改状态或另建变更掩盖验收缺口。
 - reviewer 两轮仍阻塞时展示第二轮 `blocking`，禁止手动批准产物；用户授权后可用
   `letsgo reopen` 重开当前审查周期，旧审查结果必须保留。
+- 正常退出、重启、压缩或模型切换后使用 `letsgo continue` 保留有效阶段证据并显式
+  交给新 session；`letsgo recover` 只用于损坏或幽灵状态，不能代替正常续跑。
 
 ## 开发
 

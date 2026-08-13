@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0028：正常重启只能 recover，导致有效 runtime 被清空
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：中断恢复 / 生命周期编排
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：新增 continue 和显式 runtime handoff；保留同阶段 Skill/Agent 证据并返回
+  下一动作。recover 只用于损坏状态，blocked 次数和 reviewer 结果不会被静默重置。
+
 ### BUG-0027：只读 Reviewer 结果被误当成文件写入且未回传 runtime
 
 - 状态：已关闭

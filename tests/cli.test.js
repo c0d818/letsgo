@@ -105,6 +105,7 @@ test("init 把 LetsGo 模板安装进项目", async () => {
     await stat(path.join(projectDir, ".claude/commands/structure.md"));
     await stat(path.join(projectDir, ".claude/commands/log.md"));
     await stat(path.join(projectDir, ".claude/commands/recover.md"));
+    await stat(path.join(projectDir, ".claude/commands/continue.md"));
     await stat(path.join(projectDir, ".claude/commands/reopen.md"));
     await assert.rejects(
       stat(path.join(projectDir, ".claude/commands/maintenance.md")),
@@ -265,6 +266,7 @@ test("claude 插件清单和市场配置有效", async () => {
   assert.deepEqual(commandNames, [
     "bugfix.md",
     "check.md",
+    "continue.md",
     "letsgo.md",
     "log.md",
     "recover.md",

@@ -79,6 +79,7 @@ npm publish
 | `/lg:log` | 记录运行问题 |
 | `/lg:tokens` | 查看 token 用量 |
 | `/lg:recover` | 从中断、压缩或残留状态恢复 |
+| `/lg:continue` | 从退出、重启或模型切换后的断点安全续跑 |
 | `/lg:reopen` | 经用户确认后把阻塞变更退回更早阶段 |
 
 `lg` 是插件命名空间，因此插件命令始终以 `/lg:` 开头。
@@ -92,6 +93,7 @@ letsgo status --change <change-id>
 letsgo validate --before|--after <state> --change <change-id>
 letsgo advance <state> --change <change-id>
 letsgo recover
+letsgo continue [change-id]
 letsgo reopen <state> --change <change-id> --reason "<人工解除理由>"
 ```
 
@@ -106,7 +108,8 @@ apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果�
 
 LetsGo 使用 `openspec/.letsgo/runtime-state.json` 做当前阶段运行前检查，并用一个
 覆盖更新的 `run-summary.json` 保存阶段摘要与权限、压缩、守卫拒绝指标。两者都不
-按任务创建 JSON；`letsgo recover` 可在中断后恢复唯一活跃变更并清理幽灵状态。
+按任务创建 JSON；正常退出、重启、压缩或模型切换后使用 `letsgo continue` 保留有效
+阶段证据并从缺失步骤续跑；`letsgo recover` 仅用于清理幽灵或损坏状态。
 reviewer 或验收在后期发现真实遗漏时，`letsgo reopen` 经用户明确确认后撤销目标阶段
 及其后的批准，同时把旧审查结果保留在现有状态与运行摘要中；不得手改状态或另建
 变更掩盖原验收缺口。
