@@ -31,8 +31,10 @@ function parseInput(raw) {
 function projectDirOf(input) {
   return (
     process.env.CLAUDE_PROJECT_DIR ||
+    process.env.CODEAGENT3_PROJECT_DIR ||
     input?.cwd ||
     input?.working_directory ||
+    input?.workingDirectory ||
     process.cwd()
   );
 }
@@ -49,7 +51,7 @@ function preToolOutput(status, reason) {
 }
 
 const input = parseInput(await readStdin());
-const event = input?.hook_event_name;
+const event = input?.hook_event_name ?? input?.hookEventName;
 
 if (!input) {
   process.stdout.write(
@@ -73,45 +75,47 @@ if (!context) {
 
 const common = {
   projectDir,
-  sessionId: input.session_id ?? null,
+  sessionId: input.session_id ?? input.sessionId ?? null,
   changeId: context.changeId,
   stage: context.state,
 };
+const toolName = input.tool_name ?? input.toolName;
+const toolInput = input.tool_input ?? input.toolInput ?? {};
 
 try {
-  if (event === "PreToolUse" && input.tool_name === "Agent") {
+  if (event === "PreToolUse" && toolName === "Agent") {
     const decision = await decideAgentStart({
       ...common,
-      agentType: agentNameFromToolInput(input.tool_input),
-      prompt: input.tool_input?.prompt ?? null,
+      agentType: agentNameFromToolInput(toolInput),
+      prompt: toolInput?.prompt ?? null,
       enforceNamespace: true,
     });
     process.stdout.write(JSON.stringify(preToolOutput(decision.status, decision.reason)));
-  } else if (event === "PostToolUse" && input.tool_name === "Skill") {
+  } else if (event === "PostToolUse" && toolName === "Skill") {
     await recordSkillCompleted({
       ...common,
-      skillName: skillNameFromToolInput(input.tool_input),
+      skillName: skillNameFromToolInput(toolInput),
     });
     process.stdout.write("{}");
-  } else if (event === "PostToolUseFailure" && input.tool_name === "Skill") {
+  } else if (event === "PostToolUseFailure" && toolName === "Skill") {
     await recordSkillFailed({
       ...common,
-      skillName: skillNameFromToolInput(input.tool_input),
+      skillName: skillNameFromToolInput(toolInput),
     });
     process.stdout.write("{}");
   } else if (event === "SubagentStart") {
     await recordAgentStarted({
       ...common,
-      agentType: input.agent_type,
-      agentId: input.agent_id ?? null,
+      agentType: input.agent_type ?? input.agentType,
+      agentId: input.agent_id ?? input.agentId ?? null,
     });
     process.stdout.write("{}");
   } else if (event === "SubagentStop") {
     await recordAgentStopped({
       ...common,
-      agentType: input.agent_type,
-      agentId: input.agent_id ?? null,
-      lastAssistantMessage: input.last_assistant_message ?? "",
+      agentType: input.agent_type ?? input.agentType,
+      agentId: input.agent_id ?? input.agentId ?? null,
+      lastAssistantMessage: input.last_assistant_message ?? input.lastAssistantMessage ?? "",
     });
     process.stdout.write("{}");
   } else {

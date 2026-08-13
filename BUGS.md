@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0025：CodeAgent3 Skill 完成事件未写入 runtime-state
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Runtime Hook / CodeAgent3 兼容
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：runtime-state、context、metrics 和 Guard Hook 统一读取 snake_case 与
+  camelCase 输入；补充真实 camelCase PostToolUse 回归测试，验证 Skill 被记为 loaded。
+
 ### BUG-0024：Clarify 两轮审查阻塞后只能手动批准或错误退回
 
 - 状态：已关闭

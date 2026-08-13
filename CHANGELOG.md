@@ -11,6 +11,16 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.13] - 2026-08-13
+
+### 修复
+
+- runtime-state Hook 同时识别 Claude Code snake_case 与 CodeAgent3 camelCase 事件字段，
+  包括 `hookEventName`、`toolName`、`toolInput`、`skillName` 和 `sessionId`，修复 Skill
+  已加载但 `runtime-state.json.skills` 仍为空的问题。
+- Agent 的 start/stop、project directory、context、metrics 和 Guard 审计字段一并兼容，
+  避免后续 writer/reviewer 状态或运行指标再次静默丢失。
+
 ## [0.4.12] - 2026-08-13
 
 ### 修复

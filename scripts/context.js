@@ -22,15 +22,17 @@ function parseInput(raw) {
 const input = parseInput(await readStdin());
 const projectDir =
   process.env.CLAUDE_PROJECT_DIR ||
+  process.env.CODEAGENT3_PROJECT_DIR ||
   input.cwd ||
   input.working_directory ||
+  input.workingDirectory ||
   process.cwd();
 const isUserPrompt = typeof input.prompt === "string";
 await reconcileRuntimeState({ projectDir });
+const inputEvent = input.hook_event_name ?? input.hookEventName;
 const hookEventName =
-  input.hook_event_name === "SessionStart" ||
-  input.hook_event_name === "UserPromptSubmit"
-    ? input.hook_event_name
+  inputEvent === "SessionStart" || inputEvent === "UserPromptSubmit"
+    ? inputEvent
     : isUserPrompt
       ? "UserPromptSubmit"
       : "SessionStart";

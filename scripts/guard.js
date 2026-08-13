@@ -28,8 +28,10 @@ function parseInput(raw) {
 function projectDirOf(input) {
   return (
     process.env.CLAUDE_PROJECT_DIR ||
+    process.env.CODEAGENT3_PROJECT_DIR ||
     input?.cwd ||
     input?.working_directory ||
+    input?.workingDirectory ||
     process.cwd()
   );
 }
@@ -62,7 +64,7 @@ if (input === null) {
   ) {
     await recordRunMetric({
       projectDir,
-      sessionId: input.session_id ?? null,
+      sessionId: input.session_id ?? input.sessionId ?? null,
       changeId: context.changeId,
       stage: context.state,
       metric: "codeGraphQueries",
@@ -75,11 +77,11 @@ if (input === null) {
       const fingerprint = JSON.stringify({
         tool: input.tool_name ?? input.toolName ?? "",
         command: toolInput.command ?? toolInput.cmd ?? "",
-        path: toolInput.file_path ?? toolInput.notebook_path ?? toolInput.path ?? "",
+        path: toolInput.file_path ?? toolInput.filePath ?? toolInput.notebook_path ?? toolInput.notebookPath ?? toolInput.path ?? "",
       });
       const tracked = await recordGuardDenial({
         projectDir,
-        sessionId: input.session_id ?? null,
+        sessionId: input.session_id ?? input.sessionId ?? null,
         changeId: context.changeId,
         stage: context.state,
         fingerprint,

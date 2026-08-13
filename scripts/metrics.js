@@ -28,8 +28,10 @@ if (!input) {
 
 const projectDir =
   process.env.CLAUDE_PROJECT_DIR ||
+  process.env.CODEAGENT3_PROJECT_DIR ||
   input.cwd ||
   input.working_directory ||
+  input.workingDirectory ||
   process.cwd();
 await reconcileRuntimeState({ projectDir });
 const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
@@ -43,22 +45,24 @@ const metricByEvent = {
   PreCompact: "compactionAttempts",
   PostCompact: "compactions",
 };
-const metric = input.hook_event_name === "PermissionRequest"
-  ? input.tool_name === "AskUserQuestion"
+const event = input.hook_event_name ?? input.hookEventName;
+const toolName = input.tool_name ?? input.toolName;
+const metric = event === "PermissionRequest"
+  ? toolName === "AskUserQuestion"
     ? "clarificationQuestions"
     : "permissionPrompts"
-  : metricByEvent[input.hook_event_name];
+  : metricByEvent[event];
 if (metric) {
   await recordRunMetric({
     projectDir,
-    sessionId: input.session_id ?? null,
+    sessionId: input.session_id ?? input.sessionId ?? null,
     changeId: context.changeId,
     stage: context.state,
     metric,
     detail: {
-      event: input.hook_event_name,
+      event,
       trigger: input.trigger ?? null,
-      tool: input.tool_name ?? null,
+      tool: toolName ?? null,
     },
   });
 }

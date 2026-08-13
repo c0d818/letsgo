@@ -473,6 +473,29 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
   });
 });
 
+test("运行状态 Hook 兼容 CodeAgent3 camelCase 事件字段", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "PostToolUse",
+        toolName: "Skill",
+        toolInput: { skillName: "lg:letsgo-clarify" },
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+
+    const state = await readRuntimeState(projectDir);
+    assert.equal(state.sessionId, "codeagent-session-1");
+    assert.equal(state.skills["lg:letsgo-clarify"], "loaded");
+  });
+});
+
 test("context 脚本注入生命周期规则和活跃变更状态", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
