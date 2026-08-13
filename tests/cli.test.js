@@ -26,6 +26,7 @@ import {
   activeChanges,
   buildSystemRules,
   decideToolUse,
+  isAllowedWritePath,
   isLetsGoProject,
   readActiveMarker,
   resolveActiveChange,
@@ -687,6 +688,10 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     assert.equal(prematureVerification.status, "deny");
     assert.match(prematureVerification.reason, /verify 阶段/);
     assert.match(prematureVerification.reason, /advance.*status/);
+    assert.match(
+      prematureVerification.reason,
+      /openspec\/changes\/add-login\/proposal\.md/
+    );
 
     const skippedWrite = await decideToolUse({
       projectDir,
@@ -783,6 +788,31 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     });
     assert.equal(prematureVerifyWrite.status, "deny");
   });
+});
+
+test("Windows 路径规范化后 clarify 仍允许根目录 proposal.md", () => {
+  const context = {
+    changeId: "doc-element-service",
+    state: "clarify",
+    type: "feature",
+  };
+  const projectDir = "D:\\test";
+
+  for (const target of [
+    "D:\\test\\openspec\\changes\\doc-element-service\\proposal.md",
+    "d:\\TEST\\openspec\\changes\\doc-element-service\\proposal.md",
+    "D:/test/openspec/changes/doc-element-service/proposal.md",
+  ]) {
+    assert.equal(isAllowedWritePath(projectDir, target, context), true, target);
+  }
+  assert.equal(
+    isAllowedWritePath(
+      projectDir,
+      "D:\\test\\openspec\\changes\\doc-element-service\\verification.md",
+      context
+    ),
+    false
+  );
 });
 
 test("运行时守卫在写入看不到文件路径时请求审查", async () => {

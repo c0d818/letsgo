@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0029：Windows 路径未命中 Clarify 的 proposal 精确白名单
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Guard / Windows 路径
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：路径比较按 Windows 语义规范化盘符、分隔符和大小写；新增三种 Windows
+  路径形式的 proposal 放行测试，并确认 verification 仍被拒绝。
+
 ### BUG-0028：正常重启只能 recover，导致有效 runtime 被清空
 
 - 状态：已关闭

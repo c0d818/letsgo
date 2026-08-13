@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.16`
+- 版本：`0.4.17`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- Guard 跨平台规范化 Windows 盘符、反斜杠和大小写，确保 clarify 精确放行变更根目录
+  的 `proposal.md`；拒绝信息同时显示当前阶段允许的主产物。
 
 - 新增 `/lg:continue [change-id]` 与 `letsgo continue`：正常重启后保留同阶段有效
   runtime，以显式 handoff 交给新 session，并返回精确断点动作；recover 仅处理损坏状态。
