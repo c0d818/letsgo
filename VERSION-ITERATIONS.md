@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.13`
+- 版本：`0.4.14`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- Guard 兼容 CodeAgent3 的当前变更目录授权，并识别含空格 Node 路径和 Windows
+  `.cmd` 包装的 LetsGo CLI；实际文件写入仍遵循阶段白名单。
 
 - 所有 Hook 统一兼容 CodeAgent3 camelCase 事件字段和项目目录环境变量，修复 Skill
   已执行但 `runtime-state.json.skills` 仍为空的问题，并覆盖 Agent 生命周期字段。

@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0026：Clarify 误拦当前变更目录授权及包装后的 advance
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Guard / CodeAgent3 兼容
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：允许 `ExternalDirectory` 访问当前活跃变更目录，同时继续逐文件执行阶段
+  白名单；LetsGo CLI 识别补充含空格 Node 入口和 Windows `.cmd` 包装，禁止复合命令。
+
 ### BUG-0025：CodeAgent3 Skill 完成事件未写入 runtime-state
 
 - 状态：已关闭

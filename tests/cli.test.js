@@ -619,6 +619,22 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     });
     assert.equal(codeAgent3ClarifyWrite.status, "allow");
 
+    const codeAgent3ChangeDirectory = await decideToolUse({
+      projectDir,
+      toolName: "ExternalDirectory",
+      toolInput: { directoryPath: changeDir },
+    });
+    assert.equal(codeAgent3ChangeDirectory.status, "allow");
+
+    const unrelatedDirectory = await decideToolUse({
+      projectDir,
+      toolName: "ExternalDirectory",
+      toolInput: {
+        directoryPath: path.join(projectDir, "openspec/changes/another-change"),
+      },
+    });
+    assert.equal(unrelatedDirectory.status, "deny");
+
     const codeAgent3SkippedWrite = await decideToolUse({
       projectDir,
       toolName: "Edit",
@@ -868,6 +884,18 @@ test("运行时守卫放行只读 bash 和 letsgo CLI 命令", async () => {
       },
     });
     assert.equal(cliCommand.status, "allow");
+
+    for (const command of [
+      'node "C:/Program Files/letsgo/letsgo" advance clarify --change add-login',
+      '"C:/Program Files/letsgo/letsgo.cmd" advance clarify --change add-login',
+    ]) {
+      const wrappedCli = await decideToolUse({
+        projectDir,
+        toolName: "Bash",
+        toolInput: { command },
+      });
+      assert.equal(wrappedCli.status, "allow", command);
+    }
   });
 });
 

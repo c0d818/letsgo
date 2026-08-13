@@ -11,6 +11,17 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.14] - 2026-08-13
+
+### 修复
+
+- Guard 识别 CodeAgent3 的 `ExternalDirectory`、`directoryPath` 和 `directory_path`，
+  允许当前活跃变更目录的授权访问；其他变更目录仍拒绝，实际文件写入继续按阶段
+  白名单检查。
+- LetsGo CLI 判定兼容 `node ".../letsgo"` 和 Windows `".../letsgo.cmd"` 包装形式，
+  修复 `letsgo advance` 内部访问当前变更目录时被当成普通写入的问题。
+- CLI 包装命令仍拒绝 shell 控制符，不扩大到任意 Node 或复合命令。
+
 ## [0.4.13] - 2026-08-13
 
 ### 修复

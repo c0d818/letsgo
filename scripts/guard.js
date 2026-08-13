@@ -77,7 +77,7 @@ if (input === null) {
       const fingerprint = JSON.stringify({
         tool: input.tool_name ?? input.toolName ?? "",
         command: toolInput.command ?? toolInput.cmd ?? "",
-        path: toolInput.file_path ?? toolInput.filePath ?? toolInput.notebook_path ?? toolInput.notebookPath ?? toolInput.path ?? "",
+        path: toolInput.file_path ?? toolInput.filePath ?? toolInput.notebook_path ?? toolInput.notebookPath ?? toolInput.directory_path ?? toolInput.directoryPath ?? toolInput.path ?? "",
       });
       const tracked = await recordGuardDenial({
         projectDir,
