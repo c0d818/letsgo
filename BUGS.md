@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0023：CodeAgent3 Write 参数导致合法 proposal 写入被误拦截
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Guard / CodeAgent3 兼容
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：`toolPaths()` 同时识别 snake_case 与 camelCase 文件路径字段；补充
+  clarify 合法写入和跨阶段拒绝测试，确保兼容不扩大权限范围。
+
 ### BUG-0022：Windows 含空格的插件路径导致 SessionStart 加载失败
 
 - 状态：已关闭

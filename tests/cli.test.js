@@ -590,6 +590,28 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     });
     assert.equal(clarifyWrite.status, "allow");
 
+    const codeAgent3ClarifyWrite = await decideToolUse({
+      projectDir,
+      toolName: "Write",
+      toolInput: {
+        filePath: path.join(changeDir, "proposal.md"),
+        content: "# Proposal",
+      },
+    });
+    assert.equal(codeAgent3ClarifyWrite.status, "allow");
+
+    const codeAgent3SkippedWrite = await decideToolUse({
+      projectDir,
+      toolName: "Edit",
+      toolInput: {
+        filePath: path.join(changeDir, "design.md"),
+        oldString: "x",
+        newString: "y",
+      },
+    });
+    assert.equal(codeAgent3SkippedWrite.status, "deny");
+    assert.match(codeAgent3SkippedWrite.reason, /design\.md/);
+
     const skippedWrite = await decideToolUse({
       projectDir,
       toolName: "Edit",

@@ -11,6 +11,15 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.11] - 2026-08-13
+
+### 修复
+
+- Guard 新增 CodeAgent3 Write/Edit 参数兼容，除 `file_path`、`notebook_path` 外同时
+  识别 `filePath`、`notebookPath`，不再把 clarify 阶段合法的 `proposal.md` 写入
+  误判为“未看到文件路径”。
+- 参数兼容只参与路径提取，原有阶段白名单不变；跨阶段文件仍会被拒绝。
+
 ## [0.4.10] - 2026-08-13
 
 ### 改进

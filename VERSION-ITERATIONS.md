@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.10`
+- 版本：`0.4.11`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- Guard 同时识别 Claude Code 的 `file_path` / `notebook_path` 与 CodeAgent3 的
+  `filePath` / `notebookPath`，修复合法 Write 被误报“未看到文件路径”的问题。
 
 - 统一用户提问策略：有限选项由主 Agent 调用 `AskUserQuestion`，无法合理枚举的
   自由文本才普通提问；Subagent 只上报阻塞问题和候选选项，不直接询问用户。
