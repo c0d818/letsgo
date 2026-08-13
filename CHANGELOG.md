@@ -11,6 +11,15 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.9] - 2026-08-13
+
+### 修复
+
+- 所有 Hook 命令统一引用完整的 `${CLAUDE_PLUGIN_ROOT}` 脚本路径，修复 Windows
+  安装目录含空格时命令被截断、`SessionStart` 无法加载 `scripts/context.js` 的问题。
+- 新增 Hook 路径引用回归测试，覆盖 SessionStart、Guard、运行状态、指标和 token
+  报告等全部入口。
+
 ## [0.4.8] - 2026-08-13
 
 ### 修复

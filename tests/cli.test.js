@@ -422,6 +422,18 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   assert.match(hooks.hooks.PermissionDenied[0].hooks[0].command, /metrics\.js/);
   assert.match(hooks.hooks.PreCompact[0].hooks[0].command, /metrics\.js/);
   assert.match(hooks.hooks.PostCompact[0].hooks[0].command, /metrics\.js/);
+
+  for (const registrations of Object.values(hooks.hooks)) {
+    for (const registration of registrations) {
+      for (const hook of registration.hooks) {
+        assert.match(
+          hook.command,
+          /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/[^"]+\.js"$/,
+          `Hook 入口必须引用完整插件路径，兼容含空格的安装目录：${hook.command}`
+        );
+      }
+    }
+  }
 });
 
 test("cli init 把第一个位置参数当作项目目录", async () => {
