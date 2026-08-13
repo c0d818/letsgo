@@ -284,6 +284,23 @@ test("Agent 启动前拒绝非命名空间和错误 LETGO_RESULT 协议", async 
       enforceNamespace: true,
     });
     assert.equal(valid.status, "allow");
+
+    const minimal = await decideAgentStart({
+      ...common,
+      agentType: "lg:letsgo-design-writer",
+      prompt: "Write design.md for add-login in the design stage.",
+      enforceNamespace: true,
+    });
+    assert.equal(minimal.status, "allow");
+
+    const partialProtocol = await decideAgentStart({
+      ...common,
+      agentType: "lg:letsgo-design-writer",
+      prompt: 'Return LETGO_RESULT {"stage":"design","role":"writer"}',
+      enforceNamespace: true,
+    });
+    assert.equal(partialProtocol.status, "deny");
+    assert.match(partialProtocol.reason, /缺少字段|完整/);
   });
 });
 
@@ -305,6 +322,16 @@ test("reviewer 最多启动初审和一次复审", async () => {
     await writeFile(
       path.join(projectDir, "openspec/changes/fix-login/proposal.md"),
       "# 提案\n\n## 为什么做\n修复登录。\n\n## 改变什么\n传递状态。\n\n## 验收标准\n测试通过。\n"
+    );
+
+    assert.equal(
+      (await decideAgentStart({
+        ...common,
+        agentType: REVIEWER,
+        prompt: "Review proposal.md for fix-login in the clarify stage.",
+        enforceNamespace: true,
+      })).status,
+      "allow"
     );
 
     for (let attempt = 1; attempt <= 2; attempt += 1) {

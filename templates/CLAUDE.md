@@ -55,8 +55,8 @@ LetsGo 的规划文档统一使用简体中文：
 阶段顺序、权限提示、Guard 拒绝和上下文压缩计数。必须先加载阶段 Skill，再启动
 writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一行必须输出其
 定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型必须使用完整 `lg:` 命名空间，
-派发 prompt 必须包含当前阶段、角色及全部必需字段的完整协议示例；禁止
-`LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
+派发 prompt 只提供当前阶段、change-id、目标文件和任务重点；协议以 Agent 定义为
+唯一来源，禁止复制或使用 `LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
 不会推进。每个产物最多初审一次、writer 修订后复审一次；第二次仍阻塞时停止。
 
 apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行

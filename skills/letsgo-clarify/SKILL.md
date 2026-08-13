@@ -39,8 +39,9 @@ user-invocable: false
 8. 起草 `proposal.md` 并确认 `letsgo validate --after clarify` 的产物检查通过后，
    派发 `@lg:letsgo-reviewer` 做只读反向审查，检查目标
    遗漏、未经验证的假设、兼容性、权限、安全、性能、测试、迁移和回滚风险。
-   Agent prompt 必须原样包含当前阶段的 pass 与 blocked 两条完整 `LETGO_RESULT`
-   JSON 示例，不得使用 `LETGO_RESULT:` 或 `{ "review": ... }` 旧协议。
+   派发 prompt 只传当前阶段、change-id、目标文件、验收标准和风险重点；完整
+   `LETGO_RESULT` 协议由 reviewer Agent 定义统一维护。不得在 prompt 中覆盖协议；
+   若确需提及机器结果，只写协议名称，不复制 JSON 或使用 `LETGO_RESULT:` 旧格式。
 9. 审查不通过时修订草稿并只复审一次；第二次仍阻塞时停止并报告，不得第三次启动 reviewer。
 10. 由主 Agent 运行 `letsgo validate --after clarify --change <change-id>` 和
     `letsgo advance clarify --change <change-id>`。

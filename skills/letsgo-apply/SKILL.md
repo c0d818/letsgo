@@ -22,13 +22,13 @@ user-invocable: false
 1. 运行 `letsgo validate --before apply --change <change-id>`；失败时停止并报告。
 2. 读取并遵循 `lg:letsgo-tdd`，不得自行选择、跳过或重排实现流程。
 3. 派发 `@lg:letsgo-apply-writer`，对每个行为任务固定执行
-   `RED -> GREEN -> REFACTOR`，完成一个 Cycle 后再勾选对应任务；prompt 必须包含
-   writer 的完整 `LETGO_RESULT` ready JSON 示例。
+   `RED -> GREEN -> REFACTOR`，完成一个 Cycle 后再勾选对应任务；prompt 只传阶段、
+   change-id、任务和目标文件，结果协议由 writer Agent 定义统一维护。
 4. 仅纯文档、注释、模板、仅测试或其他不改变生产行为的修改可以豁免；在
    `tdd-evidence.md` 中记录具体理由、验证命令和通过结果。
 5. 向 `@lg:letsgo-reviewer` 传递最小审查包，逐项对照任务、相关代码差异和 TDD Cycle，审查规格
-   符合性、行为回归、测试质量、边界条件与安全风险。prompt 必须同时包含 reviewer
-   的 pass 与 blocked 两条完整 `LETGO_RESULT` JSON 示例。
+   符合性、行为回归、测试质量、边界条件与安全风险。不要在 prompt 中复制或覆盖
+   reviewer Agent 定义的结果协议。
 6. 缺少证据、任务与 Cycle 不对应、RED 未真实失败或豁免不成立时必须阻塞，
    将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
 7. reviewer 通过且任务全部完成后，交回主 Agent 运行

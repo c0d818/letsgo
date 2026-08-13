@@ -65,9 +65,10 @@ Hook：是否加载 Skill、Agent 顺序、命名空间、协议字段、调用�
 启动到错误版本，还会让 token 报告把同一角色拆成两类。统一 `lg:` 既确定实现来源，也
 便于观测；历史记录在报告时做别名归一。
 
-同样，仅在 Agent 模板末尾规定 `LETGO_RESULT` 不够，因为主 Agent 的派发 prompt 曾明确
-要求旧的 `LETGO_RESULT:` 格式。现在 Agent PreToolUse 会在启动前检查阶段、角色、状态和
-必需字段。拒绝发生在运行前，比 Agent 完成后才发现结果不可解析更省成本。
+`LETGO_RESULT` 由 Agent 定义统一维护，派发 prompt 只携带阶段、change-id、目标文件和
+任务重点，避免每次复制 JSON 导致字段漂移和 token 浪费。Agent PreToolUse 允许不重复协议
+的最小 prompt；若 prompt 主动覆盖协议，则仍检查阶段、角色、状态和必需字段，并拒绝
+`LETGO_RESULT:` 旧格式。这样既保留运行前防错，也避免同一契约维护两份。
 
 ## D-07：为什么 Apply 必须真实 TDD
 
