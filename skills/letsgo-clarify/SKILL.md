@@ -43,7 +43,10 @@ user-invocable: false
    派发 prompt 只传当前阶段、change-id、目标文件、验收标准和风险重点；完整
    `LETGO_RESULT` 协议由 reviewer Agent 定义统一维护。不得在 prompt 中覆盖协议；
    若确需提及机器结果，只写协议名称，不复制 JSON 或使用 `LETGO_RESULT:` 旧格式。
-9. 审查不通过时修订草稿并只复审一次；第二次仍阻塞时停止并报告，不得第三次启动 reviewer。
+9. 审查不通过时修订草稿并只复审一次；第二次仍阻塞时停止，逐项报告第二轮
+   `blocking`，不得第三次启动 reviewer，也不得建议手动批准 `proposal.md`。clarify
+   没有更早阶段；需要继续时，等待用户明确授权 `/lg:reopen <change-id> clarify <理由>`
+   重开当前 clarify 审查周期，并保留前两轮证据。
 10. 由主 Agent 运行 `letsgo validate --after clarify --change <change-id>` 和
     `letsgo advance clarify --change <change-id>`。
 11. Write/Edit/Guard 失败时立即读取一次状态并停止；不得重复同一写入，不得改用

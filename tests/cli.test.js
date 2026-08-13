@@ -408,6 +408,25 @@ test("有限选择使用 AskUserQuestion，自由文本才允许普通输入", a
   }
 });
 
+test("两轮审查阻塞后禁止手动批准并允许审计式重开", async () => {
+  const clarify = await readFile(
+    path.join(packageRoot, "skills/letsgo-clarify/SKILL.md"),
+    "utf8"
+  );
+  const workflow = await readFile(
+    path.join(packageRoot, "skills/letsgo-workflow/SKILL.md"),
+    "utf8"
+  );
+  const reopen = await readFile(path.join(packageRoot, "commands/reopen.md"), "utf8");
+
+  for (const content of [clarify, workflow, reopen]) {
+    assert.match(content, /不得.*手动批准|禁止手动批准/);
+    assert.match(content, /第二轮[\s\S]{0,100}blocking|blocking[\s\S]{0,100}第二轮/);
+    assert.match(content, /重开当前[\s\S]{0,50}审查周期|重开当前阶段/);
+  }
+  assert.match(clarify, /clarify[\s\S]{0,30}没有更早阶段/);
+});
+
 test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", async () => {
   const hooks = JSON.parse(
     await readFile(path.join(packageRoot, "hooks/hooks.json"), "utf8")

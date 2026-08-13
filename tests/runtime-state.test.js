@@ -366,6 +366,9 @@ test("reviewer 最多启动初审和一次复审", async () => {
     });
     assert.equal(third.status, "deny");
     assert.match(third.reason, /最多.*2|两次/);
+    assert.match(third.reason, /blocking/);
+    assert.match(third.reason, /不得手动批准/);
+    assert.match(third.reason, /reopen/);
     assert.equal((await readRuntimeState(projectDir)).agents[REVIEWER].attempts, 2);
   });
 });

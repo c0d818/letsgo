@@ -58,6 +58,9 @@ writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一�
 派发 prompt 只提供当前阶段、change-id、目标文件和任务重点；协议以 Agent 定义为
 唯一来源，禁止复制或使用 `LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
 不会推进。每个产物最多初审一次、writer 修订后复审一次；第二次仍阻塞时停止。
+此时必须展示第二轮 `blocking`，不得提供“手动批准当前产物”或伪造 reviewer pass 的
+选项。用户明确授权后，可用 `/lg:reopen` 重开当前阶段的完整审查周期；若需修改已完成
+的更早阶段，则退回对应阶段。clarify 没有更早阶段，只能重开 clarify。
 
 apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行
 `RED -> GREEN -> REFACTOR`，并把真实命令和结果记录到

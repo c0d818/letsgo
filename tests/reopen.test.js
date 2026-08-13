@@ -121,6 +121,45 @@ async function prepareBlockedVerify(projectDir) {
   }
 }
 
+async function prepareBlockedClarify(projectDir) {
+  await initProject({ projectDir });
+  await newChangeProject({ projectDir, changeId: "clarify-again" });
+  await selectProject({ projectDir, changeId: "clarify-again" });
+  await resetRuntimeState({
+    projectDir,
+    sessionId: "session-1",
+    changeId: "clarify-again",
+    stage: "clarify",
+  });
+  await recordSkillCompleted({
+    projectDir,
+    sessionId: "session-1",
+    changeId: "clarify-again",
+    stage: "clarify",
+    skillName: "lg:letsgo-clarify",
+  });
+  for (const agentId of ["reviewer-1", "reviewer-2"]) {
+    await recordAgentStarted({
+      projectDir,
+      sessionId: "session-1",
+      changeId: "clarify-again",
+      stage: "clarify",
+      agentType: "lg:letsgo-reviewer",
+      agentId,
+    });
+    await recordAgentStopped({
+      projectDir,
+      sessionId: "session-1",
+      changeId: "clarify-again",
+      stage: "clarify",
+      agentType: "lg:letsgo-reviewer",
+      agentId,
+      lastAssistantMessage:
+        'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["验收标准仍不明确"],"evidence":["proposal.md"],"risks":[]}',
+    });
+  }
+}
+
 test("reopen 将阻塞的 verify 安全退回 apply 并保留审计历史", async () => {
   await withTempProject(async (projectDir) => {
     await prepareBlockedVerify(projectDir);
@@ -175,6 +214,34 @@ test("reopen 将阻塞的 verify 安全退回 apply 并保留审计历史", asyn
   });
 });
 
+test("clarify 两轮审查仍阻塞时可经用户授权重开当前阶段", async () => {
+  await withTempProject(async (projectDir) => {
+    await prepareBlockedClarify(projectDir);
+
+    const result = await reopenProject({
+      projectDir,
+      changeId: "clarify-again",
+      state: "clarify",
+      reason: "用户确认补充验收标准并开启新的审查周期",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.reopened, true);
+    assert.equal(result.fromState, "clarify");
+    assert.equal(result.status.state, "clarify");
+    assert.deepEqual(result.status.completed, []);
+    assert.equal(result.status.approved.clarify, false);
+    assert.equal(result.status.reopens.length, 1);
+    assert.equal(result.status.reopens[0].reviewer.status, "blocked");
+    assert.equal(result.status.reopens[0].reviewer.attempts, 2);
+
+    const runtime = await readRuntimeState(projectDir);
+    assert.equal(runtime.stage, "clarify");
+    assert.deepEqual(runtime.skills, {});
+    assert.deepEqual(runtime.agents, {});
+  });
+});
+
 test("CLI 解析 reopen 的阶段、change-id 和人工理由", async () => {
   await withTempProject(async (projectDir) => {
     await prepareBlockedVerify(projectDir);
@@ -196,7 +263,7 @@ test("CLI 解析 reopen 的阶段、change-id 和人工理由", async () => {
   });
 });
 
-test("reopen 必须由用户提供理由且只能回到已完成的更早阶段", async () => {
+test("reopen 必须由用户提供理由，或在两轮有效审查阻塞后重开当前阶段", async () => {
   await withTempProject(async (projectDir) => {
     await prepareBlockedVerify(projectDir);
 
@@ -210,15 +277,22 @@ test("reopen 必须由用户提供理由且只能回到已完成的更早阶段"
       /缺少人工解除理由/
     );
 
-    for (const state of ["verify", "archive"]) {
-      const result = await reopenProject({
-        projectDir,
-        changeId: "regenerate-last-reply",
-        state,
-        reason: "用户要求重新处理",
-      });
-      assert.equal(result.ok, false, state);
-      assert.equal(result.reopened, false, state);
-    }
+    const sameStage = await reopenProject({
+      projectDir,
+      changeId: "regenerate-last-reply",
+      state: "verify",
+      reason: "用户确认补充验证证据并开启新的审查周期",
+    });
+    assert.equal(sameStage.ok, true);
+    assert.equal(sameStage.reopened, true);
+
+    const futureStage = await reopenProject({
+      projectDir,
+      changeId: "regenerate-last-reply",
+      state: "archive",
+      reason: "用户要求重新处理",
+    });
+    assert.equal(futureStage.ok, false);
+    assert.equal(futureStage.reopened, false);
   });
 });

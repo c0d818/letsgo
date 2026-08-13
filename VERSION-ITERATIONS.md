@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.11`
+- 版本：`0.4.12`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- reviewer 两轮有效审查仍阻塞时，禁止手动批准产物；展示第二轮阻塞项，并允许用户
+  授权 `reopen` 重开当前阶段审查周期，保留旧证据后重新执行完整门禁。
 
 - Guard 同时识别 Claude Code 的 `file_path` / `notebook_path` 与 CodeAgent3 的
   `filePath` / `notebookPath`，修复合法 Write 被误报“未看到文件路径”的问题。

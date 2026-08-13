@@ -19,16 +19,24 @@ export async function reopenProject({ projectDir, changeId, state, reason }) {
   }
 
   const status = await readStatus(projectDir, changeId);
+  const runtimeState = await readRuntimeState(projectDir);
   const currentIndex = status.state === "done"
     ? STATES.length
     : STATES.indexOf(status.state);
   const targetIndex = STATES.indexOf(state);
+  const currentReviewer = runtimeState?.changeId === changeId && runtimeState?.stage === status.state
+    ? runtimeState.agents?.["lg:letsgo-reviewer"] ?? null
+    : null;
+  const restartsBlockedCurrentStage =
+    state === status.state &&
+    currentReviewer?.status === "blocked" &&
+    Number(currentReviewer?.attempts ?? 0) >= 2;
   const errors = [];
 
-  if (targetIndex >= currentIndex) {
+  if (targetIndex >= currentIndex && !restartsBlockedCurrentStage) {
     errors.push(`只能回到更早阶段：当前是 ${status.state}，目标是 ${state}`);
   }
-  if (!status.completed.includes(state)) {
+  if (!status.completed.includes(state) && !restartsBlockedCurrentStage) {
     errors.push(`只能重新打开已完成阶段：${state} 尚未完成`);
   }
   if (errors.length > 0) {
@@ -44,7 +52,6 @@ export async function reopenProject({ projectDir, changeId, state, reason }) {
     };
   }
 
-  const runtimeState = await readRuntimeState(projectDir);
   const at = new Date().toISOString();
   const reviewer = runtimeState?.changeId === changeId
     ? runtimeState.agents?.["lg:letsgo-reviewer"] ?? null
