@@ -3,6 +3,7 @@ import { activeChanges, resolveActiveChange } from "../lib/guard.js";
 import {
   agentNameFromToolInput,
   decideAgentStart,
+  parseAgentResult,
   recordAgentStarted,
   recordAgentStopped,
   recordSkillCompleted,
@@ -48,6 +49,28 @@ function preToolOutput(status, reason) {
     },
     message: reason,
   };
+}
+
+function textFromAgentResponse(value) {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(textFromAgentResponse).filter(Boolean).join("\n");
+  }
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+  if (typeof value.text === "string") {
+    return value.text;
+  }
+  for (const key of ["content", "message", "result", "output", "response"]) {
+    const text = textFromAgentResponse(value[key]);
+    if (text) {
+      return text;
+    }
+  }
+  return "";
 }
 
 const input = parseInput(await readStdin());
@@ -102,6 +125,23 @@ try {
       ...common,
       skillName: skillNameFromToolInput(toolInput),
     });
+    process.stdout.write("{}");
+  } else if (event === "PostToolUse" && toolName === "Agent") {
+    const toolResponse = input.tool_response ?? input.toolResponse ?? {};
+    const lastAssistantMessage = textFromAgentResponse(toolResponse);
+    if (parseAgentResult(lastAssistantMessage)) {
+      await recordAgentStopped({
+        ...common,
+        agentType: agentNameFromToolInput(toolInput),
+        agentId:
+          toolResponse.agent_id ??
+          toolResponse.agentId ??
+          input.agent_id ??
+          input.agentId ??
+          null,
+        lastAssistantMessage,
+      });
+    }
     process.stdout.write("{}");
   } else if (event === "SubagentStart") {
     await recordAgentStarted({

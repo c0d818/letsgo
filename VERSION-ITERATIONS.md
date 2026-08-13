@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.14`
+- 版本：`0.4.15`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- reviewer 的 `LETGO_RESULT` 只从最终对话响应回传，不写阶段文件；CodeAgent3 可从
+  `PostToolUse(Agent).toolResponse` 记录结果。advance 后强制核对成功标记与状态。
 
 - Guard 兼容 CodeAgent3 的当前变更目录授权，并识别含空格 Node 路径和 Windows
   `.cmd` 包装的 LetsGo CLI；实际文件写入仍遵循阶段白名单。

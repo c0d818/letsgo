@@ -75,6 +75,10 @@ Subagent 不直接询问用户，只把阻塞问题和候选选项结构化交�
 
 随时可以使用 `/lg:check <change-id>` 查看当前阶段、已完成阶段和下一步。
 
+每次 `letsgo advance` 后必须检查结构化输出的 `advanced: true`，再运行 `letsgo status`
+确认已进入预期下一阶段。仅仅执行过命令不代表推进成功；输出失败、无法解析或状态仍在
+原阶段时立即停止，不得加载下一阶段 Skill、启动 Subagent 或创建后续阶段产物。
+
 同一 Guard/Write 错误只允许出现一次：立即读取状态、记录问题并停止，不重复 Write，
 不改用 Bash/Node/临时脚本绕过。状态残留时运行 `letsgo recover` 或 `/lg:recover`。
 reviewer 或验收证明需要修改更早阶段时，停止并等待用户明确授权 `/lg:reopen`；该命令

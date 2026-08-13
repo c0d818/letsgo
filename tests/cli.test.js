@@ -388,6 +388,8 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
   const reviewer = await readFile(path.join(agentRoot, "letsgo-reviewer.md"), "utf8");
   assert.match(reviewer, /tools: Read, Glob, Grep, Bash/);
   assert.doesNotMatch(reviewer, /tools: .*Write|tools: .*Edit/);
+  assert.match(reviewer, /最终对话响应/);
+  assert.match(reviewer, /不得.*Write|禁止.*Write/);
 });
 
 test("有限选择使用 AskUserQuestion，自由文本才允许普通输入", async () => {
@@ -405,6 +407,29 @@ test("有限选择使用 AskUserQuestion，自由文本才允许普通输入", a
     assert.match(content, /有限选项[\s\S]{0,100}AskUserQuestion/);
     assert.match(content, /自由文本/);
     assert.match(content, /Subagent[\s\S]{0,150}不直接询问用户[\s\S]{0,150}主 Agent/);
+  }
+});
+
+test("阶段推进必须确认 advanced 与下一状态后才能创建后续产物", async () => {
+  const files = [
+    "commands/letsgo.md",
+    "commands/start.md",
+    "commands/bugfix.md",
+    "commands/refactor.md",
+    "commands/test.md",
+    "skills/letsgo-workflow/SKILL.md",
+    "templates/CLAUDE.md",
+  ];
+
+  for (const filename of files) {
+    const content = await readFile(path.join(packageRoot, filename), "utf8");
+    assert.match(content, /advanced.*true/si, `${filename} 必须检查 advance 成功标记`);
+    assert.match(content, /letsgo status/si, `${filename} 必须重新读取状态`);
+    assert.match(
+      content,
+      /不(?:得|可).*后续阶段|禁止.*后续阶段/si,
+      `${filename} 必须禁止失败后创建未来阶段产物`
+    );
   }
 });
 
@@ -445,6 +470,8 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   );
   assert.match(hooks.hooks.PreToolUse[2].hooks[0].command, /guard\.js/);
   assert.equal(hooks.hooks.PostToolUse[0].matcher, "Skill");
+  assert.equal(hooks.hooks.PostToolUse[1].matcher, "Agent");
+  assert.match(hooks.hooks.PostToolUse[1].hooks[0].command, /runtime-state\.js/);
   assert.equal(hooks.hooks.PostToolUseFailure[0].matcher, "Skill");
   assert.match(hooks.hooks.SubagentStart[0].hooks[0].command, /runtime-state\.js/);
   assert.match(hooks.hooks.SubagentStop[0].hooks[0].command, /runtime-state\.js/);
@@ -646,6 +673,18 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
     });
     assert.equal(codeAgent3SkippedWrite.status, "deny");
     assert.match(codeAgent3SkippedWrite.reason, /design\.md/);
+
+    const prematureVerification = await decideToolUse({
+      projectDir,
+      toolName: "Write",
+      toolInput: {
+        filePath: path.join(changeDir, "verification.md"),
+        content: "# Verification",
+      },
+    });
+    assert.equal(prematureVerification.status, "deny");
+    assert.match(prematureVerification.reason, /verify 阶段/);
+    assert.match(prematureVerification.reason, /advance.*status/);
 
     const skippedWrite = await decideToolUse({
       projectDir,

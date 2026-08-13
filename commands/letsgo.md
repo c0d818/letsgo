@@ -48,6 +48,11 @@ Required skill: `lg:letsgo-workflow`
    letsgo advance <state> --change <change-id>
    ```
 
+   必须解析 `advance` 输出：只有 `advanced: true` 时，才运行 `letsgo status`
+   重新读取状态；且状态必须等于预期下一阶段，才能加载下一阶段 Skill 或创建其产物。
+   `advanced` 非 true、输出无法解析或状态仍停在原阶段时立即报告并停止，不得创建
+   `design.md`、`tasks.md`、`verification.md` 等后续阶段文件。
+
    阶段 Skill 映射：clarify -> `lg:letsgo-clarify`，design -> `lg:letsgo-design`，
    plan -> `lg:letsgo-plan`，apply -> `lg:letsgo-apply`，verify ->
    `lg:letsgo-verify`，archive -> `lg:letsgo-archive`。

@@ -40,10 +40,13 @@ color: blue
   - 通过：`LETGO_RESULT {"stage":"<当前阶段>","role":"reviewer","status":"pass","blocking":[],"evidence":["通过依据"],"risks":[]}`
   - 阻塞：`LETGO_RESULT {"stage":"<当前阶段>","role":"reviewer","status":"blocked","blocking":["具体问题"],"evidence":["定位证据"],"risks":["剩余风险"]}`
   - 必须把 `<当前阶段>` 替换为派发时提供的实际阶段名。
+- 上述协议只能作为 Subagent 的最终对话响应返回，由 Hook 从 Agent 结果写入
+  `runtime-state.json`；不得调用 Write/Edit、重定向或脚本把协议保存到任何文件。
 
 ## 边界
 
 - 只读审查，不修改任何文件或推进状态。
+- 不得用 Write/Edit 写审查结果；`LETGO_RESULT` 不是阶段产物文件。
 - 不夸大或编造证据；证据不足时明确指出。
 - 不替 writer 修复问题。
 - 不直接询问用户；需要用户决定时，把阻塞问题和候选选项结构化交回主 Agent。

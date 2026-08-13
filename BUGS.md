@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0027：只读 Reviewer 结果被误当成文件写入且未回传 runtime
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Reviewer / CodeAgent3 Agent Hook
+- 首次发现：2026-08-13
+- 关闭时间：2026-08-13
+- 解决方式：协议只作为 reviewer 最终响应；runtime Hook 同时从 SubagentStop 和
+  PostToolUse(Agent) 提取结果。推进后必须核对 `advanced: true` 与实际状态，失败时
+  不得创建未来阶段产物。
+
 ### BUG-0026：Clarify 误拦当前变更目录授权及包装后的 advance
 
 - 状态：已关闭

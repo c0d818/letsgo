@@ -41,6 +41,9 @@ user-invocable: false
    阻塞证明需要修改更早阶段时，等待用户明确授权 `/lg:reopen`；不得自动回退、
    另建变更或手动修改状态。reopen 后从目标阶段重新执行完整门禁。
 6. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
+   必须检查 `letsgo advance` 返回 `advanced: true`，再运行 `letsgo status` 确认状态
+   已进入预期下一阶段。命令执行过不等于推进成功；返回失败、无法解析或状态未变化时
+   立即停止，不得加载下一阶段 Skill、启动其 Subagent 或创建任何后续阶段产物。
 7. 遵守运行前检查：只使用 `lg:letsgo-*` 命名空间 Agent；先加载阶段 Skill，再启动
    writer；writer 完成后再启动 reviewer。派发 prompt 只提供阶段、change-id、目标文件
    和任务重点；完整 `LETGO_RESULT` 协议以 Agent 定义为唯一来源，不在 prompt 中复制。

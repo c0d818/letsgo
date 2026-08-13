@@ -11,6 +11,18 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.15] - 2026-08-13
+
+### 修复
+
+- 明确 reviewer 的 `LETGO_RESULT` 只能作为最终对话响应返回，由 Hook 写入 runtime；
+  reviewer 不得 Write/Edit 文件，避免 clarify 阶段因错误写入未来产物而被 Guard 拦截。
+- 新增 CodeAgent3 `PostToolUse(Agent).toolResponse` 结果回传通道；即使没有
+  `SubagentStop.lastAssistantMessage`，也能把只读 reviewer 结果记录为 passed/blocked。
+- 每次 `letsgo advance` 后必须确认 `advanced: true` 并用 `letsgo status` 核对下一状态；
+  推进失败时禁止加载后续 Skill 或创建 `verification.md` 等未来阶段产物。
+- Guard 拦截未来阶段产物时明确指出所属阶段和状态核对方法，不再诱导 Bash 绕过。
+
 ## [0.4.14] - 2026-08-13
 
 ### 修复

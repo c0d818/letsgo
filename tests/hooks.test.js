@@ -496,6 +496,64 @@ test("运行状态 Hook 兼容 CodeAgent3 camelCase 事件字段", async () => {
   });
 });
 
+test("CodeAgent3 通过 Agent 工具响应记录只读 reviewer 结果", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "PostToolUse",
+        toolName: "Skill",
+        toolInput: { skillName: "lg:letsgo-clarify" },
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+    await writeFile(
+      path.join(projectDir, "openspec/changes/add-login/proposal.md"),
+      "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
+    );
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "SubagentStart",
+        agentType: "lg:letsgo-reviewer",
+        agentId: "reviewer-1",
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "PostToolUse",
+        toolName: "Agent",
+        toolInput: { subagentType: "lg:letsgo-reviewer" },
+        toolResponse: {
+          agentId: "reviewer-1",
+          content: [
+            { type: "text", text: "审查通过" },
+            {
+              type: "text",
+              text: 'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["proposal 通过"],"risks":[]}',
+            },
+          ],
+        },
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+
+    const state = await readRuntimeState(projectDir);
+    assert.equal(state.agents["lg:letsgo-reviewer"].status, "passed");
+    assert.equal(state.agents["lg:letsgo-reviewer"].attempts, 1);
+  });
+});
+
 test("context 脚本注入生命周期规则和活跃变更状态", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
