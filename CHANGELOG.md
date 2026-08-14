@@ -11,6 +11,14 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.31] - 2026-08-14
+
+### 修复
+
+- `/lg:continue` 在 runtime tracking 丢失但阶段产物通过硬校验时，由 CLI 自动恢复 Writer
+  检查点，消除 Agent 手工补写 `runtime-state.json` 被 Guard 拦截的恢复死锁。
+- 恢复的 Writer 不能直接授权推进：新 session 仍须加载阶段 Skill 并重新运行 reviewer。
+
 ## [0.4.30] - 2026-08-14
 
 ### 修复

@@ -6,6 +6,7 @@ import {
   REVIEWER,
   prepareRuntimeHandoff,
   readRuntimeState,
+  recoverWriterCheckpointFromArtifacts,
 } from "../../lib/runtime-state.js";
 import { STAGE_SKILLS, STAGE_WRITERS } from "../../lib/runtime-state.js";
 import { readStatus } from "../../state/change.js";
@@ -37,7 +38,12 @@ export async function continueProject({ projectDir, changeId = null }) {
 
   await selectProject({ projectDir, changeId: selected.id });
   const status = await readStatus(projectDir, selected.id);
-  const runtime = await prepareRuntimeHandoff({
+  let runtime = await prepareRuntimeHandoff({
+    projectDir,
+    changeId: selected.id,
+    stage: status.state,
+  });
+  runtime = await recoverWriterCheckpointFromArtifacts({
     projectDir,
     changeId: selected.id,
     stage: status.state,

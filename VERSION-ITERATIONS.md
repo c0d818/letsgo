@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.30`
+- 版本：`0.4.31`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- `/lg:continue` 可从通过硬校验的阶段产物恢复丢失的 Writer tracking；状态恢复只由 CLI
+  写 `runtime-state.json`，普通 Agent 继续禁止手补，并强制新 session 重载 Skill、复审。
 
 - Agent 白名单前检测 continue runtime 与 active/status 身份冲突，显示双方变更、阶段与
   项目根目录；continue 派发前必须核对结构化绑定，避免选错项目被误报成阶段错误。

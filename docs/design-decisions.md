@@ -215,6 +215,19 @@ writer”，掩盖真正的状态源冲突。冲突错误会显示双方身份�
 用户需重新选择目标变更并运行 continue。项目根目录仍以宿主提供的
 `CLAUDE_PROJECT_DIR` 为准，符合 Hook 对项目根目录与当前 `cwd` 的区分。
 
+## D-22：为什么 tracking 丢失时由 Continue 恢复 Writer，而不是开放状态文件写入
+
+`runtime-state.json` 是 Hook/CLI 的控制面，允许主 Agent或 Subagent 用 Write、Edit、Bash
+直接修改会使其可以伪造 Skill、Writer 或 Reviewer 通过，因此 Guard 必须继续阻止手工
+写入。宿主若在 session 结束时漏发 Agent 完成事件，代码和 TDD 证据可能已经完整，但新
+session 只看到空 tracking；重复执行全部 Apply 会浪费时间，手补状态又会形成死锁。
+
+`continue` 因此只在阶段产物通过与 `validate --after` 相同的硬校验、且当前 Writer 记录
+确实缺失时，写入带 `recoveredFromArtifacts` 标记的 Writer 检查点。它不恢复 Skill 和
+Reviewer：新 session 必须重载阶段 Skill，reviewer 必须独立复审，advance 仍要求完整
+门禁。代价是结构校验不能证明历史命令真的运行过，但 TDD 证据和复审保留了第二道验证；
+未来若宿主保证所有 AgentStop 事件可靠，可仅保留该路径用于异常恢复。
+
 ## D-20：为什么 Apply 按任务检查点续跑
 
 大型 Apply 如果让一个 Writer 一次完成全部任务，模型超时或连接截断会留下部分代码，

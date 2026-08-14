@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { initProject } from "../cli/commands/init.js";
 import { newChangeProject } from "../cli/commands/new.js";
 import { continueProject } from "../cli/commands/continue.js";
+import { changeDir, readStatus, writeStatus } from "../state/change.js";
 import {
   REVIEWER,
   decideAgentStart,
@@ -111,6 +112,58 @@ test("continue 在多个活跃变更时要求明确选择", async () => {
     assert.equal(result.ok, false);
     assert.equal(result.needsSelection, true);
     assert.deepEqual(result.active.map((item) => item.id).sort(), ["change-a", "change-b"]);
+  });
+});
+
+test("continue 从完整阶段产物恢复丢失的 apply writer 检查点", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "recovered-apply" });
+    const dir = changeDir(projectDir, "recovered-apply");
+    await writeStatus(projectDir, "recovered-apply", {
+      ...(await readStatus(projectDir, "recovered-apply")),
+      state: "apply",
+      completed: ["clarify", "design", "plan"],
+      approved: { clarify: true, design: true, plan: true },
+    });
+    await writeFile(path.join(dir, "proposal.md"), "# Why\n原因\n# What Changes\n改动\n# Acceptance Criteria\n- 验收\n");
+    await writeFile(path.join(dir, "design.md"), "# Architecture\n架构\n# Test Strategy\n测试策略\n");
+    await writeFile(path.join(dir, "tasks.md"), "- [x] 完成实现\n");
+    await writeFile(path.join(dir, "tdd-evidence.md"), [
+      "模式：TDD",
+      "## Cycle 1：恢复行为",
+      "### RED",
+      "测试命令：npm test",
+      "结果：失败",
+      "### GREEN",
+      "测试命令：npm test",
+      "结果：通过",
+      "### REFACTOR",
+      "测试命令：npm test",
+      "结果：通过",
+      "重构：无",
+      "",
+    ].join("\n"));
+
+    const first = await continueProject({ projectDir, changeId: "recovered-apply" });
+    assert.equal(first.resume.action, "load-skill");
+    let runtime = await readRuntimeState(projectDir);
+    assert.equal(runtime.agents["lg:letsgo-apply-writer"].status, "completed");
+    assert.equal(runtime.agents["lg:letsgo-apply-writer"].recoveredFromArtifacts, true);
+
+    for (const skillName of ["lg:letsgo-apply", "lg:letsgo-tdd"]) {
+      await recordSkillCompleted({
+        projectDir,
+        sessionId: null,
+        changeId: "recovered-apply",
+        stage: "apply",
+        skillName,
+      });
+    }
+    const second = await continueProject({ projectDir, changeId: "recovered-apply" });
+    assert.equal(second.resume.action, "run-reviewer");
+    runtime = await readRuntimeState(projectDir);
+    assert.equal(runtime.agents["lg:letsgo-apply-writer"].status, "completed");
   });
 });
 

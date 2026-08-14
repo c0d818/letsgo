@@ -54,6 +54,9 @@ active 标记被清除；正常中断后 `letsgo continue` 保留有效 runtime 
 损坏状态才由 `letsgo recover` 依据 `status.json` 重建。
 `recover` 只返回权威阶段及 `/lg:continue` 交接命令，不直接决定或派发阶段 Agent；这样
 即使模型对恢复结果作出错误的自然语言摘要，后续 Agent 门禁仍以 `status.json` 为准。
+如果 runtime 事件 tracking 丢失而持久化阶段产物已通过 `validate --after`，`continue`
+可以由 CLI 恢复 Writer 检查点；普通 Agent 永远不能直接编辑状态文件，且恢复后必须重新
+加载 Skill、运行 reviewer。
 reviewer 或验收发现早期实现遗漏时，`letsgo reopen` 把同一变更退回已完成的更早阶段，
 并在 `status.json.reopens` 与 `run-summary.json.reopens` 中保留旧审查和失效阶段快照。
 

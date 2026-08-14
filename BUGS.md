@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0042：runtime tracking 丢失后 Agent 手工补写状态文件形成恢复死锁
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：恢复 / Runtime tracking
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：保持普通 Agent 对 `runtime-state.json` 的写入禁令；`continue` 在阶段产物通过
+  `validate --after` 硬校验时，由受信任 CLI 恢复 Writer 检查点，并强制重新加载 Skill、
+  重新运行 reviewer，不能直接推进。
+
 ### BUG-0041：active 变更与 continue runtime 冲突被伪装成阶段白名单错误
 
 - 状态：已关闭

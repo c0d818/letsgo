@@ -26,6 +26,10 @@ argument-hint: [change-id]
      授权时才执行返回的 `/lg:reopen`。
 3. `continue` 只允许新 session 接管同一 change-id、同一阶段的现有 runtime；它不
    把无效、跨阶段或其他变更的证据恢复成 pass。
+   如果 runtime 的 Writer tracking 丢失，但当前阶段产物通过与 `validate --after` 相同的
+   硬校验，CLI 可以恢复一个 `recoveredFromArtifacts` Writer 检查点；当前 session 仍须
+   加载阶段 Skill，并重新运行 reviewer，绝不能据此直接 advance。Agent 不得手工 Write、
+   Edit 或用 Bash 修改 `runtime-state.json`。
 4. 如果没有活跃变更，报告没有可继续任务；状态损坏或幽灵 runtime 才使用
    `/lg:recover`，正常重启优先使用 `/lg:continue`。
 5. 若 Guard 报告 `continue runtime` 与 `active/status.json` 冲突，禁止点击批准或改派
