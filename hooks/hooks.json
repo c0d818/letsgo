@@ -13,7 +13,7 @@
         ]
       },
       {
-        "matcher": "Agent",
+        "matcher": "Agent|Task",
         "hooks": [
           {
             "type": "command",
@@ -45,7 +45,7 @@
         ]
       },
       {
-        "matcher": "Agent",
+        "matcher": "Agent|Task",
         "hooks": [
           {
             "type": "command",

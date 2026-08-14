@@ -55,7 +55,9 @@ LetsGo 的规划文档统一使用简体中文：
 和 Subagent 状态，并在单一 `openspec/.letsgo/run-summary.json` 中保留最近一次运行的
 阶段顺序、权限提示、Guard 拒绝和上下文压缩计数。必须先加载阶段 Skill，再启动
 writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一行必须输出其
-定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型必须使用完整 `lg:` 命名空间，
+定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型必须使用当前阶段表中列出的完整
+`lg:letsgo-*` 规范名，不得使用 `general-purpose`、短名、别名或其他阶段 Agent；
+无论宿主通过 `Agent` 还是旧式 `Task` 派发都适用同一规则。
 派发 prompt 只提供当前阶段、change-id、目标文件和任务重点；协议以 Agent 定义为
 唯一来源，禁止复制或使用 `LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
 不会推进。每个产物最多初审一次、writer 修订后复审一次；第二次仍阻塞时停止。

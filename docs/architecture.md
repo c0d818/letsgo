@@ -41,7 +41,8 @@ lib/
 `scripts/runtime-state.js` 监听 Skill 和 Subagent 生命周期，`lib/runtime-state.js`
 维护唯一的 `openspec/.letsgo/runtime-state.json`。它在 writer 启动前检查阶段
 Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。Agent
-启动还会校验完整 `lg:` 命名空间和 prompt 内的机器协议，每个 reviewer 最多两次。
+启动还会校验当前阶段的完整规范名和 prompt 内的机器协议，每个 reviewer 最多两次；
+新式 `Agent` 与旧式 `Task` 派发入口使用同一门禁，所有专用 Agent 均无二次派发工具。
 状态只覆盖当前 session、变更和阶段。`lib/run-summary.js` 另外维护一个覆盖更新的
 `run-summary.json`，按阶段保存精简结果，并由权限、压缩和守卫 Hook 累加轻量指标；
 澄清问题和真实权限提示分别统计，并记录 CodeGraph 的实际放行次数；

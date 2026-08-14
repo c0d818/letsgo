@@ -401,6 +401,11 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
       `${filename} 的章节顺序不符合统一模板`
     );
     assert.doesNotMatch(content, /\bsubagent\b|子 Agent/);
+    assert.doesNotMatch(
+      content.match(/^tools: .+$/m)?.[0] ?? "",
+      /\b(?:Agent|Task)\b/,
+      `${filename} 不得拥有二次派发 Subagent 的工具`
+    );
     assert.match(content, /简体中文/);
     assert.match(content, /filesChanged|blocking/);
     assert.match(content, /evidence/);
@@ -417,6 +422,38 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
   assert.doesNotMatch(reviewer, /tools: .*Write|tools: .*Edit/);
   assert.match(reviewer, /最终对话响应/);
   assert.match(reviewer, /不得.*Write|禁止.*Write/);
+});
+
+test("所有阶段 Skill 只派发当前阶段的完整规范 Agent 名", async () => {
+  const skillFiles = {
+    clarify: "letsgo-clarify",
+    design: "letsgo-design",
+    plan: "letsgo-plan",
+    apply: "letsgo-apply",
+    verify: "letsgo-verify",
+    archive: "letsgo-archive",
+  };
+  const allAllowed = new Set([...Object.values(STAGE_WRITERS), REVIEWER]);
+
+  for (const [stage, skillName] of Object.entries(skillFiles)) {
+    const content = await readFile(
+      path.join(packageRoot, "skills", skillName, "SKILL.md"),
+      "utf8"
+    );
+    const dispatched = [...content.matchAll(/@(lg:[a-z0-9-]+)/g)].map(
+      (match) => match[1]
+    );
+    const expected = [STAGE_WRITERS[stage], REVIEWER].filter(Boolean);
+
+    assert.deepEqual(
+      [...new Set(dispatched)].sort(),
+      expected.sort(),
+      `${stage} 只能派发当前阶段 Writer 和统一 Reviewer`
+    );
+    for (const name of dispatched) {
+      assert.equal(allAllowed.has(name), true, `${name} 必须对应 agents/*.md`);
+    }
+  }
 });
 
 test("apply 在全部任务完成前持续续派 writer 且不得进入 reviewer", async () => {
@@ -508,7 +545,7 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
     hooks.hooks.PreToolUse[0].hooks[0].command,
     /\$\{CLAUDE_PLUGIN_ROOT:-\$\{CODEAGENT3_PLUGIN_ROOT\}\}\/scripts\/guard\.js/
   );
-  assert.equal(hooks.hooks.PreToolUse[1].matcher, "Agent");
+  assert.equal(hooks.hooks.PreToolUse[1].matcher, "Agent|Task");
   assert.match(hooks.hooks.PreToolUse[1].hooks[0].command, /runtime-state\.js/);
   assert.equal(
     hooks.hooks.PreToolUse[2].matcher,
@@ -516,7 +553,7 @@ test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", a
   );
   assert.match(hooks.hooks.PreToolUse[2].hooks[0].command, /guard\.js/);
   assert.equal(hooks.hooks.PostToolUse[0].matcher, "Skill");
-  assert.equal(hooks.hooks.PostToolUse[1].matcher, "Agent");
+  assert.equal(hooks.hooks.PostToolUse[1].matcher, "Agent|Task");
   assert.match(hooks.hooks.PostToolUse[1].hooks[0].command, /runtime-state\.js/);
   assert.equal(hooks.hooks.PostToolUseFailure[0].matcher, "Skill");
   assert.match(hooks.hooks.SubagentStart[0].hooks[0].command, /runtime-state\.js/);

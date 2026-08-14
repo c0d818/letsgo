@@ -73,6 +73,10 @@ function textFromAgentResponse(value) {
   return "";
 }
 
+function isAgentDispatchTool(toolName) {
+  return ["agent", "task"].includes(String(toolName ?? "").toLowerCase());
+}
+
 const input = parseInput(await readStdin());
 const event = input?.hook_event_name ?? input?.hookEventName;
 
@@ -106,7 +110,7 @@ const toolName = input.tool_name ?? input.toolName;
 const toolInput = input.tool_input ?? input.toolInput ?? {};
 
 try {
-  if (event === "PreToolUse" && toolName === "Agent") {
+  if (event === "PreToolUse" && isAgentDispatchTool(toolName)) {
     const decision = await decideAgentStart({
       ...common,
       agentType: agentNameFromToolInput(toolInput),
@@ -126,7 +130,7 @@ try {
       skillName: skillNameFromToolInput(toolInput),
     });
     process.stdout.write("{}");
-  } else if (event === "PostToolUse" && toolName === "Agent") {
+  } else if (event === "PostToolUse" && isAgentDispatchTool(toolName)) {
     const toolResponse = input.tool_response ?? input.toolResponse ?? {};
     const lastAssistantMessage = textFromAgentResponse(toolResponse);
     if (parseAgentResult(lastAssistantMessage)) {

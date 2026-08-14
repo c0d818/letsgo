@@ -116,8 +116,9 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 
 1. `PostToolUse Skill` 记录阶段 Skill 已加载；apply 同时要求 `letsgo-apply` 和
    `letsgo-tdd`。
-2. `PreToolUse Agent` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
-   writer 已完成，同时拒绝非 `lg:` 名称、旧结果协议和第三次 reviewer。
+2. `PreToolUse Agent|Task` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
+   writer 已完成，同时只接受当前阶段白名单中的完整规范名，拒绝旧结果协议和第三次
+   reviewer；Agent 定义自身不包含 `Agent`/`Task` 工具，不能绕过主 Agent 嵌套派发。
 3. `SubagentStart` 和 `SubagentStop` 记录 Subagent 状态；writer 和 reviewer 最后
    一行使用 `LETGO_RESULT` 输出机器可读结论。
 4. `letsgo advance <state>` 在更新 `status.json` 前检查阶段 Skill、writer 和

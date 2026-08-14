@@ -72,7 +72,10 @@ Hook：是否加载 Skill、Agent 顺序、命名空间、协议字段、调用�
 派发身份必须与 `agents/*.md` 的规范名称完全对应，确保宿主真正加载该角色的工具、职责
 和结果协议；宿主短名只能在 SubagentStart/Stop 或结果回传时通过精确别名表归一化，
 不能作为 PreToolUse 派发名，也不能使用模糊匹配。严格门禁只作用于活跃 LetsGo 生命周期，
-普通任务仍可使用其他 Agent。
+普通任务仍可使用其他 Agent。Hook 同时覆盖宿主的新式 `Agent` 和旧式 `Task` 派发工具，
+避免通过更换工具名称绕过白名单；所有 `agents/*.md` 均不授予 `Agent`/`Task` 工具，禁止
+Subagent 自行嵌套派发。自动测试还会逐阶段比对 Skill 中的 `@lg:...` 引用、运行时白名单
+和实际 Agent 文件，新增或改名时任一层未同步都会失败。
 
 `LETGO_RESULT` 由 Agent 定义统一维护，派发 prompt 只携带阶段、change-id、目标文件和
 任务重点，避免每次复制 JSON 导致字段漂移和 token 浪费。Agent PreToolUse 允许不重复协议

@@ -405,23 +405,25 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
       "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
     );
 
-    for (const subagentType of ["general-purpose", "lg:review", "lg:review-anything", null]) {
-      const arbitrary = await runHookScript(
-        "scripts/runtime-state.js",
-        {
-          session_id: "session-1",
-          hook_event_name: "PreToolUse",
-          tool_name: "Agent",
-          tool_input: {
-            subagent_type: subagentType,
-            prompt: "Review the current change.",
+    for (const toolName of ["Agent", "Task"]) {
+      for (const subagentType of ["general-purpose", "lg:review", "lg:review-anything", null]) {
+        const arbitrary = await runHookScript(
+          "scripts/runtime-state.js",
+          {
+            session_id: "session-1",
+            hook_event_name: "PreToolUse",
+            tool_name: toolName,
+            tool_input: {
+              subagent_type: subagentType,
+              prompt: "Review the current change.",
+            },
           },
-        },
-        projectDir
-      );
-      const output = JSON.parse(arbitrary.stdout).hookSpecificOutput;
-      assert.equal(output.permissionDecision, "deny", String(subagentType));
-      assert.match(output.permissionDecisionReason, /lg:letsgo-reviewer/);
+          projectDir
+        );
+        const output = JSON.parse(arbitrary.stdout).hookSpecificOutput;
+        assert.equal(output.permissionDecision, "deny", `${toolName}:${subagentType}`);
+        assert.match(output.permissionDecisionReason, /lg:letsgo-reviewer/);
+      }
     }
 
     const obsolete = await runHookScript(
@@ -442,26 +444,29 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
       "deny"
     );
 
-    const allowed = await runHookScript(
-      "scripts/runtime-state.js",
-      {
-        session_id: "session-1",
-        hook_event_name: "PreToolUse",
-        tool_name: "Agent",
-        tool_input: {
-          subagent_type: "lg:letsgo-reviewer",
-          prompt: [
-            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["证据"],"risks":[]}',
-            'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["问题"],"evidence":["证据"],"risks":[]}',
-          ].join("\n"),
+    for (const toolName of ["Agent", "Task"]) {
+      const allowed = await runHookScript(
+        "scripts/runtime-state.js",
+        {
+          session_id: "session-1",
+          hook_event_name: "PreToolUse",
+          tool_name: toolName,
+          tool_input: {
+            subagent_type: "lg:letsgo-reviewer",
+            prompt: [
+              'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["证据"],"risks":[]}',
+              'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"blocked","blocking":["问题"],"evidence":["证据"],"risks":[]}',
+            ].join("\n"),
+          },
         },
-      },
-      projectDir
-    );
-    assert.equal(
-      JSON.parse(allowed.stdout).hookSpecificOutput.permissionDecision,
-      "allow"
-    );
+        projectDir
+      );
+      assert.equal(
+        JSON.parse(allowed.stdout).hookSpecificOutput.permissionDecision,
+        "allow",
+        toolName
+      );
+    }
 
     await runHookScript(
       "scripts/runtime-state.js",
