@@ -211,6 +211,12 @@ Apply Writer 的合法终态有两种：仍有任务时为 `partial`，全部完
 检查点；但同一角色处于 `started` 时禁止再次启动。这样允许按任务顺序续派，又不会让
 两个 Writer 同时修改代码和证据文件。
 
+宿主标准路径用 `SubagentStart/Stop` 记录开始和最终结果；实测 Claude Code 2.1.229 的
+后台 Agent 会返回异步启动元数据并注入完成通知，但某些调用没有触发插件注册的
+`SubagentStop`。因此下一次 Agent PreToolUse 会先读取上一 Agent 的独立 transcript，
+仅在最后一条 assistant 响应含合法 `LETGO_RESULT` 时补记停止。该补偿不启动 Agent、
+不信任中间输出，也不会绕过 `letsgo-tdd` Skill 门禁。
+
 代价是任务多时会增加 Writer 启动次数，但每次上下文更小、失败可恢复，也不会重做已完成
 Cycle。若未来平台提供可靠的长任务 checkpoint/resume，可以合并多个任务为一个有界批次；
 无论批次大小，未完成任务为 0 和 runtime 独立复验仍是硬门禁。

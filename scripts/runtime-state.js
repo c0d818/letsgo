@@ -4,6 +4,7 @@ import {
   agentNameFromToolInput,
   decideAgentStart,
   parseAgentResult,
+  reconcileStartedAgentsFromTranscripts,
   recordAgentStarted,
   recordAgentStopped,
   recordSkillCompleted,
@@ -111,6 +112,10 @@ const toolInput = input.tool_input ?? input.toolInput ?? {};
 
 try {
   if (event === "PreToolUse" && isAgentDispatchTool(toolName)) {
+    await reconcileStartedAgentsFromTranscripts({
+      ...common,
+      transcriptPath: input.transcript_path ?? input.transcriptPath ?? null,
+    });
     const decision = await decideAgentStart({
       ...common,
       agentType: agentNameFromToolInput(toolInput),
@@ -152,6 +157,8 @@ try {
       ...common,
       agentType: input.agent_type ?? input.agentType,
       agentId: input.agent_id ?? input.agentId ?? null,
+      agentTranscriptPath:
+        input.agent_transcript_path ?? input.agentTranscriptPath ?? null,
     });
     process.stdout.write("{}");
   } else if (event === "SubagentStop") {

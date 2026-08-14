@@ -11,6 +11,16 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.26] - 2026-08-14
+
+### 修复
+
+- Claude Code 后台 Agent 只产生完成通知、未触发已注册 `SubagentStop` 时，在下一次
+  派发前从该 Agent 的独立 transcript 补记最终结果，避免 `runtime-state.json` 永久
+  停留在 `started`。
+- transcript 补偿只接受可解析的最终 `LETGO_RESULT`；仍在运行或输出不完整时继续拒绝
+  重复派发，并兼容升级前没有保存 transcript 路径的运行状态。
+
 ## [0.4.25] - 2026-08-14
 
 ### 修复

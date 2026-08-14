@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -584,6 +584,91 @@ test("Apply Hook 接受 partial 协议并拒绝仍在运行的重复 Writer", as
     const output = JSON.parse(duplicate.stdout).hookSpecificOutput;
     assert.equal(output.permissionDecision, "deny");
     assert.match(output.permissionDecisionReason, /正在运行|重复启动/);
+  });
+});
+
+test("后台 Agent 缺少 SubagentStop 时从 transcript 补记完成结果", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "async-apply" });
+    await writeStatus(projectDir, "async-apply", {
+      ...(await readStatus(projectDir, "async-apply")),
+      state: "apply",
+      completed: ["clarify", "design", "plan"],
+      approved: { clarify: true, design: true, plan: true },
+    });
+
+    for (const skill of ["lg:letsgo-apply", "lg:letsgo-tdd"]) {
+      await runHookScript(
+        "scripts/runtime-state.js",
+        {
+          session_id: "session-async",
+          hook_event_name: "PostToolUse",
+          tool_name: "Skill",
+          tool_input: { skill },
+        },
+        projectDir
+      );
+    }
+
+    const transcriptPath = path.join(projectDir, ".claude-session", "session-async.jsonl");
+    const agentTranscriptPath = path.join(
+      path.dirname(transcriptPath),
+      path.basename(transcriptPath, path.extname(transcriptPath)),
+      "subagents",
+      "agent-writer-async.jsonl"
+    );
+    await mkdir(path.dirname(agentTranscriptPath), { recursive: true });
+    await writeFile(transcriptPath, "");
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-async",
+        transcript_path: transcriptPath,
+        hook_event_name: "SubagentStart",
+        agent_type: "lg:letsgo-apply-writer",
+        agent_id: "writer-async",
+      },
+      projectDir
+    );
+    await writeFile(
+      agentTranscriptPath,
+      `${JSON.stringify({
+        message: {
+          role: "assistant",
+          content: [{
+            type: "text",
+            text: '完成\nLETGO_RESULT {"stage":"apply","role":"writer","status":"partial","filesChanged":["src/config.js"],"evidence":["任务 2.1"],"remainingTasks":["3.1"],"risks":[]}',
+          }],
+        },
+      })}\n`
+    );
+
+    const next = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-async",
+        transcript_path: transcriptPath,
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: {
+          subagent_type: "lg:letsgo-apply-writer",
+          prompt: "处理下一个未完成任务。",
+        },
+      },
+      projectDir
+    );
+    assert.equal(JSON.parse(next.stdout).hookSpecificOutput.permissionDecision, "allow");
+
+    const runtime = await readRuntimeState(projectDir);
+    assert.equal(runtime.skills["lg:letsgo-apply"], "loaded");
+    assert.equal(runtime.skills["lg:letsgo-tdd"], "loaded");
+    assert.equal(runtime.agents["lg:letsgo-apply-writer"].status, "incomplete");
+    assert.deepEqual(
+      runtime.agents["lg:letsgo-apply-writer"].result.remainingTasks,
+      ["3.1"]
+    );
   });
 });
 

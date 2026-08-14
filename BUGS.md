@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0037：后台 Agent 完成后缺少 SubagentStop 导致 runtime 永久 started
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Runtime Hook / Claude Code 后台 Agent
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：保留标准 `SubagentStop` 路径，同时在下一次 Agent PreToolUse 前检查上一后台
+  Agent 的独立 transcript；发现合法最终 `LETGO_RESULT` 时补记停止结果，再执行顺序和
+  重复启动判断。兼容升级前未保存 transcript 路径的 `started` 状态。
+
 ### BUG-0036：Apply partial 协议被误判并造成重复派发假象
 
 - 状态：已关闭

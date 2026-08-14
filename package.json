@@ -1,6 +1,6 @@
 {
   "name": "letsgo",
-  "version": "0.4.25",
+  "version": "0.4.26",
   "description": "为 Claude Code 提供的 SDD 工作流插件：把 Superpowers 式工程纪律与 OpenSpec 式生命周期管理缝合在一起。",
   "type": "module",
   "bin": {

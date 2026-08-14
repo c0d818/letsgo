@@ -126,6 +126,8 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 5. writer 重新启动后，旧 reviewer 结论立即过期，必须重新审查。
 6. 同一 Writer/Reviewer 仍为 `started` 时不得重复启动；Apply 的 `partial` 结束后才可
    顺序续派下一任务，`partial` 与最终 `ready` 都是合法的完整结果协议。
+7. 后台 Agent 若未触发 `SubagentStop`，下一次派发前从其独立 transcript 补记最终
+   `LETGO_RESULT`；没有合法最终结果时继续视为运行中，不得猜测完成。
 
 该文件不保存提示词、代码内容、历史事件或 token 记录；阶段推进后自动重置为
 下一阶段，archive 完成后重置为空状态并清除 active 标记。另有一个覆盖更新的
