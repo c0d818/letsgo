@@ -30,6 +30,7 @@ import {
   isLetsGoProject,
   readActiveMarker,
   resolveActiveChange,
+  toolPaths,
 } from "../lib/guard.js";
 import { readRunSummary } from "../lib/run-summary.js";
 
@@ -831,6 +832,46 @@ test("运行时守卫在写入看不到文件路径时请求审查", async () =>
     assert.equal(decision.status, "ask");
     assert.match(decision.reason, /未看到文件路径/);
   });
+});
+
+test("运行时守卫识别 Bash 中带空格的引号路径", async () => {
+  await withTempProject(async (tempDir) => {
+    const projectDir = path.join(tempDir, "project with space");
+    await mkdir(projectDir, { recursive: true });
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+
+    const proposalPath = path.join(
+      projectDir,
+      "openspec",
+      "changes",
+      "add-login",
+      "proposal.md"
+    );
+    const decision = await decideToolUse({
+      projectDir,
+      toolName: "Bash",
+      toolInput: {
+        command: `touch "${proposalPath}"`,
+      },
+    });
+
+    assert.equal(decision.status, "allow", decision.reason);
+  });
+});
+
+test("toolPaths 识别 Windows 引号路径、反斜杠相对路径和带空格目录", () => {
+  const projectDir = "D:\\Work Space\\buck";
+  const expected = "d:/work space/buck/openspec/changes/add-login/proposal.md";
+
+  for (const command of [
+    'type nul > "D:\\Work Space\\buck\\openspec\\changes\\add-login\\proposal.md"',
+    'type nul > "openspec\\changes\\add-login\\proposal.md"',
+  ]) {
+    const paths = toolPaths(projectDir, { command });
+    assert.equal(paths.length, 1, command);
+    assert.equal(paths[0].replaceAll("\\", "/").toLowerCase(), expected, command);
+  }
 });
 
 test("运行时守卫放行常见开发命令和只读 Node 命令", async () => {
