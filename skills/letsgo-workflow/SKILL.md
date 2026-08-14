@@ -49,14 +49,17 @@ user-invocable: false
    和任务重点；完整 `LETGO_RESULT` 协议以 Agent 定义为唯一来源，不在 prompt 中复制。
 8. 同一 Guard/Write 错误出现后立即停止，不重复调用，不创建另一个 maintenance
    变更，也不使用 Bash/Node/临时脚本绕过。
-9. 生命周期 `done` 后默认执行本地 Git 交付，除非用户明确说“不提交”：先用
+9. 导致流程停止的校验、Guard、Agent、工具或环境问题必须追加到
+   `openspec/.letsgo/issues.md`；瞬时超时若由 Apply 检查点自动恢复则不重复记录，
+   同一问题再次出现或最终阻塞时再记录一次。
+10. 生命周期 `done` 后默认执行本地 Git 交付，除非用户明确说“不提交”：先用
    `git status --short` 区分本变更和既有用户改动，只对本变更的生产/测试文件与
    `openspec/changes/<change-id>/` 使用显式路径 `git add -- ...`，再 `git commit`。
    无法安全区分时停止并报告；不创建新变更。提交汇总必须来自最终
    `git show --stat`，`git push` 仍需用户明确批准。
-10. 检查文件优先使用 Read/Glob/Grep；Bash 一次只执行一个命令，不用 `;`、`&&`、
+11. 检查文件优先使用 Read/Glob/Grep；Bash 一次只执行一个命令，不用 `;`、`&&`、
     管道或重定向拼接只读检查，减少权限提示。
-11. 需要用户决定且存在有限选项时，主 Agent 必须调用 `AskUserQuestion`；只有路径、
+12. 需要用户决定且存在有限选项时，主 Agent 必须调用 `AskUserQuestion`；只有路径、
     密钥或需求描述等自由文本才普通提问。Subagent 不直接询问用户，只把阻塞问题
     和候选选项结构化交回主 Agent。
 

@@ -201,6 +201,19 @@ runtime 在接受 `ready` 前独立执行 apply 产物校验，任务或证据�
 Cycle。若未来平台提供可靠的长任务 checkpoint/resume，可以合并多个任务为一个有界批次；
 无论批次大小，未完成任务为 0 和 runtime 独立复验仍是硬门禁。
 
+## D-21：为什么保留类型命令但集中生命周期
+
+Feature、Bugfix、Refactor 和 Test 的输入契约不同：Bugfix 必须可复现，Refactor 必须声明
+行为不变量，Test 默认禁止改变生产行为，Feature 则需要新行为验收。如果全部交给一个
+通用入口自动猜类型，模糊请求容易选错约束；但在四个 Command 中复制六阶段全文，又会让
+Apply、Reviewer 或恢复规则更新后出现版本漂移。
+
+因此保留四个显式类型入口。每个入口具体负责 doctor/CodeGraph 预检、补齐本类型需求、
+确认工作流、通过 `letsgo new` 创建 OpenSpec 变更、核对 status，并输出变更位置、工作流、
+当前状态和下一步。六阶段内部编排只由 `letsgo-workflow` 和阶段 Skill 定义。代价是入口
+仍有少量共同检查文字；这些内容用自动测试约束，且不会复制生命周期实现。若未来 CLI
+提供结构化的统一 kickoff 命令，可让四个 Slash Command 变成更薄的参数路由层。
+
 ## 维护规则
 
 新增或修改关键设计时，至少记录：问题证据、选择、未选方案、代价、例外和重新评估条件。

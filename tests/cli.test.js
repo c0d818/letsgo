@@ -292,6 +292,28 @@ test("claude 插件清单和市场配置有效", async () => {
     assert.match(content, /默认.*git add|默认.*本地.*commit/s, `${filename} 必须默认本地提交`);
     assert.match(content, /不超过 12 行/, `${filename} 必须限制最终汇总`);
   }
+
+  const typedEntries = new Map([
+    ["start.md", "feature"],
+    ["bugfix.md", "bugfix"],
+    ["refactor.md", "refactor"],
+    ["test.md", "test"],
+  ]);
+  for (const [filename, type] of typedEntries) {
+    const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
+    assert.match(content, /letsgo doctor/, `${filename} 必须先做环境检查`);
+    assert.match(content, /codegraphReady/, `${filename} 必须检查 CodeGraph 状态`);
+    assert.match(content, /npm install -g @colbymchenry\/codegraph/);
+    assert.match(content, /codegraph init/);
+    assert.match(content, /\$ARGUMENTS.*为空/s, `${filename} 必须补问缺失需求`);
+    assert.match(content, /确认.*工作流/s, `${filename} 必须确认工作流`);
+    assert.match(content, new RegExp(`letsgo new <change-id> --type ${type}`));
+    assert.match(content, /letsgo select <change-id>/);
+    assert.match(content, /letsgo status --change <change-id>/);
+    for (const label of ["变更位置", "工作流", "当前状态", "下一步"]) {
+      assert.match(content, new RegExp(label), `${filename} 启动摘要缺少 ${label}`);
+    }
+  }
 });
 
 test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () => {

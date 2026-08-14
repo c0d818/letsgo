@@ -34,11 +34,12 @@ LetsGo 的规划文档统一使用简体中文：
 
 1. `/lg:start <需求描述>`
 2. `/lg:bugfix <修复需求描述>`
-3. `/lg:refactor <change-id>`
-4. `/lg:test <change-id>`
+3. `/lg:refactor <重构需求描述>`
+4. `/lg:test <测试需求描述>`
 
-`/lg:start` 和 `/lg:bugfix` 会从描述中自动生成 change-id。所有场景命令内部按顺序
-执行 `clarify -> design -> plan -> apply -> verify -> archive`，
+四个类型入口都会从描述中自动生成 change-id，先检查 CodeGraph、确认需求契约和
+工作流，再通过 `letsgo new` 创建 OpenSpec 变更。所有场景命令内部按顺序执行
+`clarify -> design -> plan -> apply -> verify -> archive`，
 用户不需要单独调用阶段命令。`/lg:letsgo <change-id> [类型]` 一键自动走完整个
 生命周期（工程维护类变更可用 `letsgo new --type maintenance` 配合
 `/lg:letsgo` 处理）。`/lg:structure` 查看项目结构，`/lg:check <change-id>` 查看变更

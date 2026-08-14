@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.20`
+- 版本：`0.4.21`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- 四个类型 Command 使用具体启动协议：doctor/CodeGraph 检查、需求契约补全与确认、
+  OpenSpec 创建、状态核对和四项交接摘要；共享生命周期继续由 Workflow Skill 维护。
 
 - Apply 按未完成任务逐项续派 Writer 并保存 TDD Cycle 检查点；超时、截断和 `partial`
   不进入 reviewer。runtime 独立复验伪 `ready`，`/lg:continue` 可继续剩余任务。

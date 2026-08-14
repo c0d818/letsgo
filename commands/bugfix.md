@@ -5,113 +5,74 @@ argument-hint: <修复需求描述>
 
 # LetsGo 缺陷修复
 
-使用方式：`/lg:bugfix <修复需求描述>`
+使用方式：`/lg:bugfix <修复需求描述>`。本命令固定创建 `bugfix` 变更，不能退化为普通
+feature；实现必须先复现缺陷，再做最小修复和回归验证。
+change-id 由代理自己生成，用户不需要预先命名。
 
-`$ARGUMENTS` 是针对当前项目的修复需求初步描述，例如“修复登录页刷新后被退出的
-问题”。change-id 由代理自己生成，用户不需要提供。
+Required skills: `lg:letsgo-bugfix`、`lg:letsgo-workflow`
 
-## 总览
+## 1. 环境与 CodeGraph 预检
 
-按顺序执行完整 SDD 生命周期，不得跳过或改变顺序：
+1. 在项目根目录运行 `letsgo doctor`，解析 `installed`、`openspec`、
+   `codegraphExecutable`、`codegraphIndexed` 和 `codegraphReady`。
+2. LetsGo/OpenSpec 未安装完整时，列出缺失项并停止；不得手工创建状态文件。
+3. CodeGraph 分支必须明确：
+   - `codegraphReady: true`：报告可用，clarify 优先用聚焦图谱查询定位调用链和影响面。
+   - `codegraphExecutable: false`：提醒
+     `npm install -g @colbymchenry/codegraph`，用 `AskUserQuestion` 让用户选择“安装后继续
+     （推荐）”或“本次使用 Grep/Read 降级”；不得自行全局安装。
+   - 已安装但 `codegraphIndexed: false`：提醒运行 `codegraph init` 并忽略
+     `.codegraph/`；让用户选择初始化或降级。
+4. 降级不阻塞 Bugfix，但必须记录原因，不得伪造 CodeGraph 证据。
 
-```text
-clarify -> design -> plan -> apply -> verify -> archive -> done
+## 2. 补齐缺陷信息并确认工作流
+
+1. `$ARGUMENTS` 为空时，先询问实际现象、期望行为和最小复现步骤；没有有效缺陷描述
+   前不得生成 change-id。
+2. 输入不完整时按顺序一次一题补齐：
+   - 实际行为与错误信息
+   - 期望行为
+   - 可重复步骤、输入数据和运行环境
+   - 影响范围、严重程度及是否存在临时绕过
+3. 从描述生成唯一的 `fix-...` kebab-case change-id，检查同名目录。
+4. 向用户展示：类型 `bugfix`、问题摘要、复现条件、预期结果、初始影响范围、验收标准、
+   change-id，以及工作流
+   `clarify -> design -> plan -> apply -> verify -> archive -> done`。
+5. 用 `AskUserQuestion` 提供“确认并创建（推荐）”和“继续补充缺陷”；用户确认后才创建。
+
+## 3. 用 LetsGo OpenSpec 命令创建变更
+
+严格依次执行：
+
+```bash
+letsgo new <change-id> --type bugfix
+letsgo select <change-id>
+letsgo status --change <change-id>
 ```
 
-每个阶段统一执行四步：
+`letsgo new` 是 LetsGo 支持的 OpenSpec 创建命令；禁止改用 `mkdir` 或 Write 手工拼装
+`openspec/changes/`。核对 `changeDir`、`type: bugfix` 和 `state: clarify`。
 
-1. 开始校验：`letsgo validate --before <state> --change <change-id>`
-2. 读取并执行该阶段 Skill（见“阶段明细”）
-3. 完成校验：`letsgo validate --after <state> --change <change-id>`
-4. 推进：`letsgo advance <state> --change <change-id>`
+## 4. 固定启动摘要与下一步
 
-第 4 步必须检查结构化输出的 `advanced: true`，随后运行 `letsgo status` 并确认状态已
-变为预期下一阶段；任一条件不成立都立即停止，不得加载下一阶段 Skill 或创建后续阶段
-产物。
+创建成功后先输出：
 
-校验或审查失败时先将问题记录到 `openspec/.letsgo/issues.md`，然后停止并
-报告；不进入下一阶段，不手动修改 `status.json`。若阻塞要求修改更早阶段，等待用户
-明确授权 `/lg:reopen`；不得自动回退或另建变更绕过。
+```text
+变更位置：openspec/changes/<change-id>/
+工作流：clarify -> design -> plan -> apply -> verify -> archive -> done
+当前状态：clarify（缺陷复现与根因澄清）
+下一步：加载 lg:letsgo-bugfix、lg:letsgo-workflow 和 lg:letsgo-clarify，形成可复现的 proposal.md
+```
 
-## 前置
+随后进入统一 Workflow。Clarify 必须确认复现，Design 必须记录根因和最小修复，Apply
+必须先写失败回归测试并执行 RED -> GREEN -> REFACTOR；不能把猜测当根因。
 
-1. 如果 `$ARGUMENTS` 为空，先请用户描述缺陷现象和期望行为。
-2. 从修复需求中提炼 change-id：
-   - 英文小写字母 + 连字符（kebab-case），简短表意，例如“修复登录页刷新后被
-     退出的问题” -> `fix-login-refresh-logout`
-   - 如果该 change-id 已存在，加后缀（如 `-2`）或换一个更精确的名字，并向
-     用户说明
-3. 把生成的 change-id 明确告诉用户，然后执行：
+## 5. 审查、阻塞与完成
 
-   ```bash
-   letsgo new <change-id> --type bugfix
-   letsgo select <change-id>
-   ```
-
-4. 之后所有命令都使用这个 change-id。
-
-然后读取 `lg:letsgo-bugfix` 场景 Skill，确认类型特定要求。缺陷修复必须明确：
-复现步骤、根因、最小修复和回归测试。
-
-## 阶段明细
-
-### 1. clarify（需求澄清）
-
-- Skill：`lg:letsgo-clarify`（主 Agent 完成，不派发 subagent）
-- 重点：确认复现步骤、影响范围、期望行为和回归验收标准
-- 本阶段不修改生产代码、测试代码或设计文档。
-
-### 2. design（技术设计）
-
-- Skill：`lg:letsgo-design`
-- 派发 subagent：`@lg:letsgo-design-writer` -> `@lg:letsgo-reviewer`
-- 重点：根因分析、最小修复方案、回归测试策略
-
-### 3. plan（任务规划）
-
-- Skill：`lg:letsgo-plan`
-- 派发 subagent：`@lg:letsgo-plan-writer` -> `@lg:letsgo-reviewer`
-- 产物：`tasks.md`（复选框任务）
-
-### 4. apply（实现变更）
-
-- Skill：`lg:letsgo-apply`
-- 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
-- 必须读取 `lg:letsgo-tdd`，按每个缺陷行为固定执行 RED -> GREEN -> REFACTOR，
-  并记录 `tdd-evidence.md`；先用失败测试复现，再实现最小修复
-
-### 5. verify（验证审查）
-
-- Skill：`lg:letsgo-verify`
-- 派发 subagent：`@lg:letsgo-verify-writer` -> `@lg:letsgo-reviewer`
-- 重点：真实复现/回归证据，确认修复未引入行为回归
-- `verification.md` 必须写明“未验证验收项：0”；存在待手动或浏览器验证项时停止
-
-### 6. archive（归档沉淀）
-
-- Skill：`lg:letsgo-archive`
-- 派发 subagent：`@lg:letsgo-archive-writer` -> `@lg:letsgo-reviewer`
-- 产物：长期规格更新、`archive.md`
-
-## Subagent 编排规则
-
-- 每个阶段 Skill 负责派发 subagent，顺序固定：
-  `<阶段>-writer -> letsgo-reviewer -> 主 Agent 校验并推进`
-- reviewer 不通过时，把问题交回当前 writer 修复，最多再派发一次 reviewer；仍阻塞则停止
-- reviewer 不能修改文件，也不能推进状态
-- 只启动 `lg:letsgo-*` 命名空间 Agent；派发 prompt 只提供阶段、change-id、目标文件
-  和任务重点，结果协议以 Agent 定义为唯一来源，禁止复制或使用旧的 `LETGO_RESULT:` 协议
-- Skill Hook 只表示已加载；writer/reviewer 前必须验证阶段产物与前置条件
-- 相同 Guard/Write 错误出现后立即停止，不重复操作或用其他工具绕过
-
-## 语言规则
-
-- 规划文档（proposal/design/tasks/verification/archive）使用简体中文
-- 代码注释、测试、用户文案沿用项目现有语言
-
-## 完成
-
-archive 推进后 `status.json` 变为 `done`。除非用户明确说不提交，默认只暂存本变更
-的显式路径并执行本地 `git commit`；无法安全区分既有改动时停止。不要创建新的维护
-变更，不自动 push。最后只输出一次不超过 12 行的简洁汇总；最终统计来自
-`git show --stat`。
+- 每阶段执行 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance。
+- reviewer 初审阻塞后把问题交回 writer，最多再派发一次；仍阻塞就报告，不得手动批准。
+- advance 只有返回 `advanced: true` 且 status 是下一阶段才算成功；失败时不得创建任何
+  后续阶段产物。
+- verify 必须重新执行原复现路径、回归测试并写明“未验证验收项：0”。
+- done 后除非用户明确说不提交，默认显式 `git add` 本变更路径并本地 commit；不自动 push。
+- 最终汇总不超过 12 行，包含根因、修复、回归证据、提交和风险。

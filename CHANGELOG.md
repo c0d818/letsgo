@@ -11,6 +11,18 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.21] - 2026-08-14
+
+### 改进
+
+- `start`、`bugfix`、`refactor`、`test` 四个类型入口新增明确启动协议：先运行 doctor
+  检查 LetsGo/OpenSpec 与 CodeGraph，再补齐输入、确认类型契约和工作流，最后用
+  `letsgo new/select/status` 创建并核对 OpenSpec 变更。
+- 四个入口统一输出变更位置、生命周期、当前状态和下一步；Refactor/Test 改为接收需求
+  描述并自动生成 change-id，与 Feature/Bugfix 一致。
+- 各入口只维护类型特有约束，六阶段实现继续集中在 Workflow 和阶段 Skill，减少重复
+  规则的同时保留 Feature、Bugfix、Refactor、Test 的语义边界。
+
 ## [0.4.20] - 2026-08-14
 
 ### 修复

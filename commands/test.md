@@ -1,108 +1,66 @@
 ---
-description: 补充测试
-argument-hint: <change-id>
+description: 补充或改进测试
+argument-hint: <测试需求描述>
 ---
 
 # LetsGo 测试补充
 
-使用方式：`/lg:test <change-id>`
+使用方式：`/lg:test <测试需求描述>`。本命令固定创建 `test` 变更，默认不修改生产行为；
+如果新增测试暴露真实缺陷，应另开 `/lg:bugfix`。
 
-`<change-id>` 是 `$ARGUMENTS` 的第一个参数。
+Required skills: `lg:letsgo-test`、`lg:letsgo-workflow`
 
-## 总览
+## 1. 环境与 CodeGraph 预检
 
-按顺序执行完整 SDD 生命周期，不得跳过或改变顺序：
+1. 运行 `letsgo doctor`，确认 LetsGo/OpenSpec 安装状态并读取 `codegraphReady`。
+2. CodeGraph 可用时，用聚焦查询定位被测模块、调用路径和现有测试。
+3. `codegraphExecutable: false` 时提醒
+   `npm install -g @colbymchenry/codegraph`，用 `AskUserQuestion` 让用户选择安装后继续或
+   本次使用 Grep/Read；不得自行全局安装。
+4. CLI 已安装但 `codegraphIndexed: false` 时提醒运行 `codegraph init` 并忽略
+   `.codegraph/`；让用户选择初始化或降级。降级原因要记录。
+5. LetsGo/OpenSpec 不完整时停止，禁止手工补造目录。
 
-```text
-clarify -> design -> plan -> apply -> verify -> archive -> done
-```
+## 2. 补齐测试目标并确认工作流
 
-每个阶段统一执行四步：
+1. `$ARGUMENTS` 为空时询问：要覆盖哪个行为、目前缺少什么证据、期望使用哪类测试。
+2. 补齐目标模块、目标行为/边界、现有测试、测试层级、运行命令、稳定性与覆盖判据。
+3. 明确生产代码默认不可修改；若必须修改生产行为才能让测试通过，停止并建议创建
+   feature 或 bugfix，由用户通过 `AskUserQuestion` 选择。
+4. 生成唯一 kebab-case change-id，展示类型 `test`、覆盖缺口、范围、非目标、验收标准和
+   工作流 `clarify -> design -> plan -> apply -> verify -> archive -> done`。
+5. 用 `AskUserQuestion` 让用户选择“确认并创建（推荐）”或“继续修改测试目标”。
 
-1. 开始校验：`letsgo validate --before <state> --change <change-id>`
-2. 读取并执行该阶段 Skill（见“阶段明细”）
-3. 完成校验：`letsgo validate --after <state> --change <change-id>`
-4. 推进：`letsgo advance <state> --change <change-id>`
+## 3. 用 LetsGo OpenSpec 命令创建变更
 
-第 4 步必须检查结构化输出的 `advanced: true`，随后运行 `letsgo status` 并确认状态已
-变为预期下一阶段；任一条件不成立都立即停止，不得加载下一阶段 Skill 或创建后续阶段
-产物。
-
-校验或审查失败时先将问题记录到 `openspec/.letsgo/issues.md`，然后停止并
-报告；不进入下一阶段，不手动修改 `status.json`。若阻塞要求修改更早阶段，等待用户
-明确授权 `/lg:reopen`；不得自动回退或另建变更绕过。
-
-## 前置
-
-如果变更不存在，先执行：
+确认后依次执行：
 
 ```bash
 letsgo new <change-id> --type test
 letsgo select <change-id>
+letsgo status --change <change-id>
 ```
 
-然后读取 `lg:letsgo-test` 场景 Skill，确认类型特定要求。测试补充聚焦覆盖率
-缺口和测试系统改进，不改变生产行为。
+必须核对 `changeDir`、`type: test` 和 `state: clarify`；禁止用 `mkdir`、Write 或脚本手工
+创建 `openspec/changes/<change-id>/`。
 
-## 阶段明细
+## 4. 固定启动摘要与下一步
 
-### 1. clarify（需求澄清）
+```text
+变更位置：openspec/changes/<change-id>/
+工作流：clarify -> design -> plan -> apply -> verify -> archive -> done
+当前状态：clarify（测试目标与覆盖缺口确认）
+下一步：加载 lg:letsgo-test、lg:letsgo-workflow 和 lg:letsgo-clarify，定义可执行的测试验收
+```
 
-- Skill：`lg:letsgo-clarify`（主 Agent 完成，不派发 subagent）
-- 重点：覆盖缺口、测试目标、不改变生产行为
-- 本阶段不修改生产代码、测试代码或设计文档。
+随后进入统一 Workflow。Apply 对纯测试变更记录 TDD 豁免理由和实际命令；不得用虚假
+RED/GREEN 包装已有行为。Verify 必须真实运行新增测试及相关回归。
 
-### 2. design（技术设计）
+## 5. 审查、阻塞与完成
 
-- Skill：`lg:letsgo-design`
-- 派发 subagent：`@lg:letsgo-design-writer` -> `@lg:letsgo-reviewer`
-- 重点：测试策略、需要新增/重构的测试、桩件与夹具
-
-### 3. plan（任务规划）
-
-- Skill：`lg:letsgo-plan`
-- 派发 subagent：`@lg:letsgo-plan-writer` -> `@lg:letsgo-reviewer`
-- 产物：`tasks.md`（复选框任务）
-
-### 4. apply（实现变更）
-
-- Skill：`lg:letsgo-apply`
-- 派发 subagent：`@lg:letsgo-apply-writer` -> `@lg:letsgo-reviewer`
-- 必须读取 `lg:letsgo-tdd`；仅测试变更记录豁免理由、测试命令和通过结果
-- 只改测试和测试系统；不修改生产代码
-
-### 5. verify（验证审查）
-
-- Skill：`lg:letsgo-verify`
-- 派发 subagent：`@lg:letsgo-verify-writer` -> `@lg:letsgo-reviewer`
-- 重点：新测试真实运行、覆盖目标达成、生产行为未变
-- `verification.md` 必须写明“未验证验收项：0”；存在待手动或浏览器验证项时停止
-
-### 6. archive（归档沉淀）
-
-- Skill：`lg:letsgo-archive`
-- 派发 subagent：`@lg:letsgo-archive-writer` -> `@lg:letsgo-reviewer`
-- 产物：长期规格更新、`archive.md`
-
-## Subagent 编排规则
-
-- 每个阶段 Skill 负责派发 subagent，顺序固定：
-  `<阶段>-writer -> letsgo-reviewer -> 主 Agent 校验并推进`
-- reviewer 不通过时，把问题交回当前 writer 修复，最多再派发一次 reviewer；仍阻塞则停止
-- reviewer 不能修改文件，也不能推进状态
-- Agent 类型只使用完整 `lg:` 命名空间；派发 prompt 只提供阶段、change-id、目标文件
-  和任务重点，结果协议以 Agent 定义为唯一来源，禁止复制或使用旧的 `LETGO_RESULT:` 协议
-- Skill Hook 只表示已加载；writer/reviewer 前必须验证阶段产物与前置条件
-- 相同 Guard/Write 错误出现后立即停止，不重复操作或用其他工具绕过
-
-## 语言规则
-
-- 规划文档（proposal/design/tasks/verification/archive）使用简体中文
-- 代码注释、测试、用户文案沿用项目现有语言
-
-## 完成
-
-archive 推进后 `status.json` 变为 `done`，默认运行验证并执行本地
-`git add`/`git commit`；用户明确说不提交时才跳过。不要创建新的维护变更，不自动
-`git push`。最终只输出一次不超过 12 行的简洁汇总，文件数和增删行来自
-`git show --stat`。
+- 每阶段执行 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance。
+- reviewer 初审阻塞后最多再派发一次；第二次仍阻塞就停止。
+- advance 必须确认 `advanced: true` 并重新读取 status；失败时不得创建任何后续阶段产物。
+- verify 必须证明测试真实命中目标行为，且“未验证验收项：0”。
+- done 后除非用户明确不提交，默认显式 `git add` 本变更路径并本地 commit；不自动 push。
+- 最终汇总不超过 12 行，包含新增测试、运行结果、生产代码是否变化、提交和风险。

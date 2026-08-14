@@ -72,13 +72,13 @@ npm publish
 | `/lg:letsgo` | 一键自动流程 |
 | `/lg:start` | 实现需求 |
 | `/lg:bugfix` | 根据修复需求描述修复缺陷 |
-| `/lg:refactor` | 代码重构 |
-| `/lg:test` | 补充测试 |
+| `/lg:refactor` | 根据重构需求描述创建行为保持的重构变更 |
+| `/lg:test` | 根据测试需求描述创建仅测试变更 |
 | `/lg:structure` | 查看项目结构 |
 | `/lg:check` | 查看变更状态 |
 | `/lg:log` | 记录运行问题 |
 | `/lg:tokens` | 查看 token 用量 |
-| `/lg:recover` | 从中断、压缩或残留状态恢复 |
+| `/lg:recover` | 修复损坏或残留的运行状态 |
 | `/lg:continue` | 从退出、重启或模型切换后的断点安全续跑 |
 | `/lg:reopen` | 经用户确认后把阻塞变更退回更早阶段 |
 
