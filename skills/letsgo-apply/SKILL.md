@@ -32,6 +32,8 @@ user-invocable: false
    - 当前任务完成但仍有其他未勾选任务时，继续派发下一个任务；不得把一次 Agent
      调用结束误当成 apply 阶段完成。
    - 只有扫描结果为“未完成任务：0”时，才允许结束 writer 循环。
+   下一次 writer 必须等上一调用完成并记录结果后才能启动；不得为加速而并发派发两个
+   `lg:letsgo-apply-writer`。上一调用的 `partial` 表示顺序续派检查点，不表示失败。
 5. 仅纯文档、注释、模板、仅测试或其他不改变生产行为的修改可以豁免；在
    `tdd-evidence.md` 中记录具体理由、验证命令和通过结果。
 6. 未完成任务为 0 后运行 `letsgo validate --after apply --change <change-id>`。若错误

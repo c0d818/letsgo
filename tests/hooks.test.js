@@ -520,6 +520,73 @@ test("运行状态 Hook 兼容 CodeAgent3 camelCase 事件字段", async () => {
   });
 });
 
+test("Apply Hook 接受 partial 协议并拒绝仍在运行的重复 Writer", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "many-tasks" });
+    await writeStatus(projectDir, "many-tasks", {
+      ...(await readStatus(projectDir, "many-tasks")),
+      state: "apply",
+      completed: ["clarify", "design", "plan"],
+      approved: { clarify: true, design: true, plan: true },
+    });
+
+    for (const skill of ["lg:letsgo-apply", "lg:letsgo-tdd"]) {
+      await runHookScript(
+        "scripts/runtime-state.js",
+        {
+          session_id: "session-apply",
+          hook_event_name: "PostToolUse",
+          tool_name: "Skill",
+          tool_input: { skill },
+        },
+        projectDir
+      );
+    }
+
+    const toolInput = {
+      subagent_type: "lg:letsgo-apply-writer",
+      prompt:
+        'LETGO_RESULT {"stage":"apply","role":"writer","status":"partial","filesChanged":["src/config.js"],"evidence":["豁免 TDD"],"remainingTasks":["3.1"],"risks":[]}',
+    };
+    const first = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-apply",
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: toolInput,
+      },
+      projectDir
+    );
+    assert.equal(JSON.parse(first.stdout).hookSpecificOutput.permissionDecision, "allow");
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-apply",
+        hook_event_name: "SubagentStart",
+        agent_type: "lg:letsgo-apply-writer",
+        agent_id: "writer-running",
+      },
+      projectDir
+    );
+    const duplicate = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        session_id: "session-apply",
+        hook_event_name: "PreToolUse",
+        tool_name: "Agent",
+        tool_input: toolInput,
+      },
+      projectDir
+    );
+    const output = JSON.parse(duplicate.stdout).hookSpecificOutput;
+    assert.equal(output.permissionDecision, "deny");
+    assert.match(output.permissionDecisionReason, /正在运行|重复启动/);
+  });
+});
+
 test("CodeAgent3 通过 Agent 工具响应记录只读 reviewer 结果", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });

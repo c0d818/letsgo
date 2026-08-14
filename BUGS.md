@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0036：Apply partial 协议被误判并造成重复派发假象
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Runtime Hook / Apply 编排
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：Apply Writer 的运行前协议校验同时接受完整的 `partial` 与 `ready`，不再把
+  合法检查点误报为缺少 `ready`；任何 Writer/Reviewer 仍为 `started` 时禁止再次启动，
+  防止同一角色真实并发。
+
 ### BUG-0035：旧式 Task 派发入口绕过 Agent 名称门禁
 
 - 状态：已关闭

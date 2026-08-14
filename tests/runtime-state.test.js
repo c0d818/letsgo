@@ -171,6 +171,33 @@ test("apply writer 同时要求 apply 和 TDD Skill", async () => {
       })).status,
       "allow"
     );
+
+    const partialPrompt =
+      'LETGO_RESULT {"stage":"apply","role":"writer","status":"partial","filesChanged":["src/config.js"],"evidence":["豁免 TDD"],"remainingTasks":["3.1"],"risks":[]}';
+    assert.equal(
+      (await decideAgentStart({
+        ...common,
+        agentType: "lg:letsgo-apply-writer",
+        prompt: partialPrompt,
+        enforceNamespace: true,
+      })).status,
+      "allow",
+      "Apply Writer 的完整 partial 协议应被接受"
+    );
+
+    await recordAgentStarted({
+      ...common,
+      agentType: "lg:letsgo-apply-writer",
+      agentId: "writer-running",
+    });
+    const duplicate = await decideAgentStart({
+      ...common,
+      agentType: "lg:letsgo-apply-writer",
+      prompt: partialPrompt,
+      enforceNamespace: true,
+    });
+    assert.equal(duplicate.status, "deny");
+    assert.match(duplicate.reason, /正在运行|重复启动/);
   });
 });
 

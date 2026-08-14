@@ -206,6 +206,11 @@ validate，会在发现未完成任务后停止，却没有恢复动作。
 runtime 在接受 `ready` 前独立执行 apply 产物校验，任务或证据不完整就记为 `incomplete`
 并阻止 reviewer 与 advance。
 
+Apply Writer 的合法终态有两种：仍有任务时为 `partial`，全部完成并校验通过后为
+`ready`。运行前协议兼容这两个完整分支，不能用只要求 `ready` 的通用 Writer 规则误杀
+检查点；但同一角色处于 `started` 时禁止再次启动。这样允许按任务顺序续派，又不会让
+两个 Writer 同时修改代码和证据文件。
+
 代价是任务多时会增加 Writer 启动次数，但每次上下文更小、失败可恢复，也不会重做已完成
 Cycle。若未来平台提供可靠的长任务 checkpoint/resume，可以合并多个任务为一个有界批次；
 无论批次大小，未完成任务为 0 和 runtime 独立复验仍是硬门禁。
