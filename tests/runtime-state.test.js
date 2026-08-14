@@ -146,6 +146,33 @@ test("运行状态拒绝跨 session 复用并拒绝无效结果标记", async ()
   });
 });
 
+test("Agent 白名单前报告 active 变更与 continue runtime 的身份冲突", async () => {
+  await withTempDir(async (projectDir) => {
+    await resetRuntimeState({
+      projectDir,
+      sessionId: null,
+      changeId: "design-change",
+      stage: "design",
+    });
+
+    const decision = await decideAgentStart({
+      projectDir,
+      sessionId: "new-session",
+      changeId: "apply-change",
+      stage: "apply",
+      agentType: "lg:letsgo-design-writer",
+      enforceNamespace: true,
+    });
+
+    assert.equal(decision.status, "deny");
+    assert.match(decision.reason, /状态冲突/);
+    assert.match(decision.reason, /design-change\/design/);
+    assert.match(decision.reason, /apply-change\/apply/);
+    assert.match(decision.reason, /\/lg:continue apply-change/);
+    assert.doesNotMatch(decision.reason, /apply 阶段只能启动/);
+  });
+});
+
 test("apply writer 同时要求 apply 和 TDD Skill", async () => {
   await withTempDir(async (projectDir) => {
     const common = {

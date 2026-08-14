@@ -5,6 +5,16 @@
 
 ## 已关闭
 
+### BUG-0041：active 变更与 continue runtime 冲突被伪装成阶段白名单错误
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：恢复 / Agent 编排
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：Agent 派发先比较 runtime 与 active/status 的 change-id 和 stage；冲突时
+  显示双方状态、项目根目录和精确 continue 命令，不进入普通 Agent 白名单判断。
+
 ### BUG-0040：模型把 recover 阶段摘要当成事实并派发错误阶段 Agent
 
 - 状态：已关闭

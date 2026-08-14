@@ -209,6 +209,12 @@ handoff 只对用户显式运行 `continue` 后生效，普通跨 session 仍拒
 旧对话或自己的 “recovered-stage” 摘要误当成状态事实。代价是恢复多一步 continue，
 但阶段判断集中在可测试的 CLI，错误派发时 Guard 也能指出权威文件和正确动作。
 
+Agent 派发时还必须先比较 continue runtime 与 active/status 的 change-id 和 stage，再做
+阶段 Agent 白名单检查。否则选错项目或 active marker 时只会看到“apply 不能启动 design
+writer”，掩盖真正的状态源冲突。冲突错误会显示双方身份和项目根目录，禁止人工批准；
+用户需重新选择目标变更并运行 continue。项目根目录仍以宿主提供的
+`CLAUDE_PROJECT_DIR` 为准，符合 Hook 对项目根目录与当前 `cwd` 的区分。
+
 ## D-20：为什么 Apply 按任务检查点续跑
 
 大型 Apply 如果让一个 Writer 一次完成全部任务，模型超时或连接截断会留下部分代码，
