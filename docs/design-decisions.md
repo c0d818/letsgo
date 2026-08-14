@@ -66,7 +66,11 @@ Hook：是否加载 Skill、Agent 顺序、命名空间、协议字段、调用�
 
 项目本地可能同时存在 `letsgo-reviewer` 和插件的 `lg:letsgo-reviewer`。不带命名空间会
 启动到错误版本，还会让 token 报告把同一角色拆成两类。统一 `lg:` 既确定实现来源，也
-便于观测；历史记录在报告时做别名归一。
+便于观测；历史记录在报告时做别名归一。活跃 LetsGo 阶段的 Agent PreToolUse 进一步
+使用精确阶段白名单：clarify 仅允许 reviewer，其他阶段仅允许对应 Writer 与 reviewer；
+`general-purpose`、随意命名、缺失名称及错误阶段 Agent 都拒绝，并返回当前允许名称。
+宿主短名只能通过精确别名表兼容，不能使用模糊匹配。严格门禁只作用于活跃 LetsGo
+生命周期，普通任务仍可使用其他 Agent。
 
 `LETGO_RESULT` 由 Agent 定义统一维护，派发 prompt 只携带阶段、change-id、目标文件和
 任务重点，避免每次复制 JSON 导致字段漂移和 token 浪费。Agent PreToolUse 允许不重复协议

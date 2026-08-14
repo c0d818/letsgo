@@ -11,6 +11,16 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.22] - 2026-08-14
+
+### 修复
+
+- 活跃 LetsGo 阶段的 Agent PreToolUse 改为阶段白名单：clarify 仅允许 reviewer，其他
+  阶段仅允许对应 Writer 与 reviewer；拒绝 `general-purpose`、缺失名称、随意命名和
+  其他阶段 Agent。
+- 保留 `lg:review -> lg:letsgo-reviewer` 精确兼容映射；非严格调用路径仍允许普通 Agent，
+  不影响未由 LetsGo 编排的常规任务。
+
 ## [0.4.21] - 2026-08-14
 
 ### 改进

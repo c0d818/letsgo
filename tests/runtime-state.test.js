@@ -337,6 +337,32 @@ test("Agent 启动前拒绝非命名空间和错误 LETGO_RESULT 协议", async 
     assert.equal(unnamespaced.status, "deny");
     assert.match(unnamespaced.reason, /lg:letsgo-design-writer/);
 
+    for (const agentType of [
+      "general-purpose",
+      "lg:review-anything",
+      "lg:letsgo-apply-writer",
+      null,
+    ]) {
+      const arbitrary = await decideAgentStart({
+        ...common,
+        agentType,
+        prompt: "Handle the current stage.",
+        enforceNamespace: true,
+      });
+      assert.equal(arbitrary.status, "deny", String(agentType));
+      assert.match(arbitrary.reason, /lg:letsgo-design-writer/);
+      assert.match(arbitrary.reason, /lg:letsgo-reviewer/);
+    }
+
+    assert.equal(
+      (await decideAgentStart({
+        ...common,
+        agentType: "general-purpose",
+        enforceNamespace: false,
+      })).status,
+      "allow"
+    );
+
     const legacyProtocol = await decideAgentStart({
       ...common,
       agentType: "lg:letsgo-design-writer",

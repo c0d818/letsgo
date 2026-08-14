@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.21`
+- 版本：`0.4.22`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- Agent PreToolUse 使用当前阶段精确白名单，禁止 MiniMax 等模型随意派发
+  `general-purpose`、错误阶段或无名 Agent；保留明确的 reviewer 兼容别名。
 
 - 四个类型 Command 使用具体启动协议：doctor/CodeGraph 检查、需求契约补全与确认、
   OpenSpec 创建、状态核对和四项交接摘要；共享生命周期继续由 Workflow Skill 维护。
