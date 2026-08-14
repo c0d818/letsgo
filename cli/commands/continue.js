@@ -67,7 +67,12 @@ export async function continueProject({ projectDir, changeId = null }) {
   } else if (missingSkills.length > 0) {
     resume = { action: "load-skill", stage: status.state, missingSkills };
   } else if (!writerCompleted) {
-    resume = { action: "run-writer", stage: status.state, writer };
+    resume = {
+      action: "run-writer",
+      stage: status.state,
+      writer,
+      validationErrors: runtime.agents?.[writer]?.validationErrors ?? [],
+    };
   } else {
     resume = {
       action: "run-reviewer",

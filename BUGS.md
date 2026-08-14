@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0032：Apply Writer 超时后未续派且过早进入校验
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Apply 编排 / Runtime 门禁
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：Apply 按单任务 Cycle 持久化检查点并循环续派；新增 `partial` 结果和
+  `remainingTasks`，runtime 在接受 `ready` 前独立运行 apply 产物校验，不完整时记录
+  `incomplete` 并禁止 reviewer/advance。
+
 ### BUG-0031：CodeAgent3 reviewer 短名导致审查结果丢失
 
 - 状态：已关闭

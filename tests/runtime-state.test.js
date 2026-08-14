@@ -174,6 +174,75 @@ test("apply writer 同时要求 apply 和 TDD Skill", async () => {
   });
 });
 
+test("apply writer 不能在任务未完成时以 ready 通过运行时门禁", async () => {
+  await withTempDir(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "finish-all-tasks" });
+    const changeDir = path.join(projectDir, "openspec/changes/finish-all-tasks");
+    const statusPath = path.join(changeDir, "status.json");
+    const status = JSON.parse(await readFile(statusPath, "utf8"));
+    await writeFile(
+      statusPath,
+      `${JSON.stringify({
+        ...status,
+        state: "apply",
+        completed: ["clarify", "design", "plan"],
+        approved: { clarify: true, design: true, plan: true },
+      }, null, 2)}\n`
+    );
+    await writeFile(path.join(changeDir, "proposal.md"), "# Proposal\n已批准\n");
+    await writeFile(path.join(changeDir, "design.md"), "# Design\n已批准\n");
+    await writeFile(path.join(changeDir, "tasks.md"), "# Tasks\n- [x] 完成一\n- [ ] 完成二\n");
+    await writeFile(
+      path.join(changeDir, "tdd-evidence.md"),
+      [
+        "# TDD 证据",
+        "模式：TDD",
+        "## Cycle 1：完成一",
+        "### RED",
+        "- 测试命令：npm test",
+        "- 结果：失败",
+        "### GREEN",
+        "- 测试命令：npm test",
+        "- 结果：通过",
+        "### REFACTOR",
+        "- 重构：无",
+        "- 测试命令：npm test",
+        "- 结果：通过",
+      ].join("\n")
+    );
+
+    const common = {
+      projectDir,
+      sessionId: "session-1",
+      changeId: "finish-all-tasks",
+      stage: "apply",
+    };
+    await recordSkillCompleted({ ...common, skillName: "lg:letsgo-apply" });
+    await recordSkillCompleted({ ...common, skillName: "lg:letsgo-tdd" });
+    await recordAgentStarted({
+      ...common,
+      agentType: "lg:letsgo-apply-writer",
+      agentId: "writer-1",
+    });
+    await recordAgentStopped({
+      ...common,
+      agentType: "lg:letsgo-apply-writer",
+      agentId: "writer-1",
+      lastAssistantMessage:
+        'LETGO_RESULT {"stage":"apply","role":"writer","status":"ready","filesChanged":["src/index.js"],"evidence":["Cycle 1"],"risks":[]}',
+    });
+
+    const runtime = await readRuntimeState(projectDir);
+    const writer = runtime.agents["lg:letsgo-apply-writer"];
+    assert.equal(writer.status, "incomplete");
+    assert.match(writer.validationErrors.join("\n"), /未完成的任务/);
+    const reviewer = await decideAgentStart({ ...common, agentType: REVIEWER });
+    assert.equal(reviewer.status, "deny");
+    assert.match(reviewer.reason, /未完成的任务/);
+  });
+});
+
 test("运行状态始终只覆盖一个 JSON 文件", async () => {
   await withTempDir(async (projectDir) => {
     await resetRuntimeState({

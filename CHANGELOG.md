@@ -11,6 +11,17 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.4.20] - 2026-08-14
+
+### 修复
+
+- Apply 改为按 `tasks.md` 未完成任务逐项派发和持久化 TDD 检查点；Writer 超时、截断、
+  返回 `partial` 或缺少合法结果时，从最后一个完整 Cycle 续派，不进入 reviewer。
+- Apply Writer 只有未完成任务为 0 且 `validate --after apply` 通过后才能返回 `ready`；
+  runtime 会独立复验任务与 TDD 证据，把虚假的 `ready` 降级为 `incomplete`。
+- `/lg:continue` 对不完整 Apply Writer 返回 `run-writer` 及具体校验错误，支持退出或模型
+  超时后继续剩余任务，而不是把 validate 失败当成生命周期终点。
+
 ## [0.4.19] - 2026-08-14
 
 ### 修复

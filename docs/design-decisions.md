@@ -185,6 +185,22 @@ handoff 只对用户显式运行 `continue` 后生效，普通跨 session 仍拒
 保持阻塞，必须经用户授权 reopen。这样既能续跑，又不会让任意新会话复用旧证据。
 状态文件确实损坏、阶段不匹配或存在幽灵 marker 时仍使用 `recover`。
 
+## D-20：为什么 Apply 按任务检查点续跑
+
+大型 Apply 如果让一个 Writer 一次完成全部任务，模型超时或连接截断会留下部分代码，
+而一句结构化 `ready` 也不足以证明 `tasks.md` 和 TDD 证据完整。仅依靠主 Agent 随后运行
+validate，会在发现未完成任务后停止，却没有恢复动作。
+
+因此每次 Writer 调用只处理一个未完成任务，完整的 RED/GREEN/REFACTOR Cycle 写入文件并
+勾选任务后才形成检查点；仍有任务时返回 `partial`，Apply Skill 继续派发。超时或无合法
+结果时也从文件里的最后一个完整 Cycle 恢复，不把一次 Agent 调用结束当成阶段完成。
+runtime 在接受 `ready` 前独立执行 apply 产物校验，任务或证据不完整就记为 `incomplete`
+并阻止 reviewer 与 advance。
+
+代价是任务多时会增加 Writer 启动次数，但每次上下文更小、失败可恢复，也不会重做已完成
+Cycle。若未来平台提供可靠的长任务 checkpoint/resume，可以合并多个任务为一个有界批次；
+无论批次大小，未完成任务为 0 和 runtime 独立复验仍是硬门禁。
+
 ## 维护规则
 
 新增或修改关键设计时，至少记录：问题证据、选择、未选方案、代价、例外和重新评估条件。

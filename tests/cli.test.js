@@ -327,6 +327,7 @@ test("设计决策文档记录关键门禁的理由与调整条件", async () =>
     "为什么 Verify 必须零未验收项",
     "为什么默认本地提交但不自动推送",
     "为什么阻塞后必须显式 Reopen",
+    "为什么 Apply 按任务检查点续跑",
   ]) {
     assert.match(decisions, new RegExp(topic));
   }
@@ -394,6 +395,25 @@ test("所有 Skill 和 Subagent 使用统一模板", async () => {
   assert.doesNotMatch(reviewer, /tools: .*Write|tools: .*Edit/);
   assert.match(reviewer, /最终对话响应/);
   assert.match(reviewer, /不得.*Write|禁止.*Write/);
+});
+
+test("apply 在全部任务完成前持续续派 writer 且不得进入 reviewer", async () => {
+  const applySkill = await readFile(
+    path.join(packageRoot, "skills/letsgo-apply/SKILL.md"),
+    "utf8"
+  );
+  const applyWriter = await readFile(
+    path.join(packageRoot, "agents/letsgo-apply-writer.md"),
+    "utf8"
+  );
+
+  assert.match(applySkill, /超时|截断/);
+  assert.match(applySkill, /重新派发|续派/);
+  assert.match(applySkill, /未完成任务[：:]\s*0/);
+  assert.match(applySkill, /不得.*reviewer|不.*进入.*reviewer/);
+  assert.match(applyWriter, /"status":"partial"/);
+  assert.match(applyWriter, /remainingTasks/);
+  assert.match(applyWriter, /validate --after apply[\s\S]{0,180}ready/);
 });
 
 test("有限选择使用 AskUserQuestion，自由文本才允许普通输入", async () => {
@@ -1204,6 +1224,7 @@ test("状态机按 clarify、design、plan、apply、verify、archive 顺序推�
       "- 结果：通过",
       "",
     ].join("\n"));
+    await markRuntimeStageReady(projectDir, "add-login", "apply");
     assert.equal((await advanceProject({ projectDir, changeId: "add-login", state: "apply" })).status.state, "verify");
 
     await writeFile(path.join(changeDir, "verification.md"), [

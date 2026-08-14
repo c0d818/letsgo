@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.19`
+- 版本：`0.4.20`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- Apply 按未完成任务逐项续派 Writer 并保存 TDD Cycle 检查点；超时、截断和 `partial`
+  不进入 reviewer。runtime 独立复验伪 `ready`，`/lg:continue` 可继续剩余任务。
 
 - 将 CodeAgent3 记录的 reviewer 短名 `lg:review` 归一化到规范名
   `lg:letsgo-reviewer`，避免有效审查结果丢失和 advance 假阻塞；不放宽 Node 权限。
