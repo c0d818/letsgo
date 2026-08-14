@@ -117,7 +117,8 @@ reviewer 或验收在后期发现真实遗漏时，`letsgo reopen` 经用户明�
 大型项目的 clarify 分析会优先调用单一的 `codegraph_explore`，一次返回相关源码、
 调用路径和影响范围，避免重复的全仓库搜索和多文件读取。
 
-细节见 [docs/workflow.md](docs/workflow.md)、
+完整介绍见 [docs/overview.md](docs/overview.md)。分主题细节见
+[docs/workflow.md](docs/workflow.md)、
 [docs/architecture.md](docs/architecture.md) 和
 [docs/design-decisions.md](docs/design-decisions.md)。设计决策文档集中记录每条关键规则的
 实测依据、代价、例外和重新评估条件。
