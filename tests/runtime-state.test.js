@@ -380,6 +380,8 @@ test("Agent 启动前拒绝非命名空间和错误 LETGO_RESULT 协议", async 
       assert.equal(arbitrary.status, "deny", String(agentType));
       assert.match(arbitrary.reason, /lg:letsgo-design-writer/);
       assert.match(arbitrary.reason, /lg:letsgo-reviewer/);
+      assert.match(arbitrary.reason, /openspec\/changes\/add-login\/status\.json/);
+      assert.match(arbitrary.reason, /\/lg:continue add-login/);
     }
 
     assert.equal(

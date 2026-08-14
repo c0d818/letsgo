@@ -6,6 +6,7 @@ import test from "node:test";
 import { initProject } from "../cli/commands/init.js";
 import { newChangeProject } from "../cli/commands/new.js";
 import { recoverProject } from "../cli/commands/recover.js";
+import { readStatus, writeStatus } from "../state/change.js";
 import {
   readRuntimeState,
   resetRuntimeState,
@@ -34,6 +35,12 @@ test("recover 清理幽灵 runtime 并恢复唯一活跃变更", async () => {
     const result = await recoverProject({ projectDir });
     assert.equal(result.ok, true);
     assert.equal(result.selected.changeId, "real-change");
+    assert.deepEqual(result.resume, {
+      stage: "clarify",
+      stageSource: "openspec/changes/real-change/status.json",
+      command: "/lg:continue real-change",
+      directDispatchAllowed: false,
+    });
     const runtime = await readRuntimeState(projectDir);
     assert.equal(runtime.changeId, "real-change");
     assert.equal(runtime.stage, "clarify");
@@ -42,6 +49,31 @@ test("recover 清理幽灵 runtime 并恢复唯一活跃变更", async () => {
       await readFile(path.join(projectDir, "openspec/.letsgo/active.json"), "utf8")
     );
     assert.equal(active.changeId, "real-change");
+  });
+});
+
+test("recover 始终从 status.json 返回权威阶段并要求交给 continue", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "apply-change" });
+    const status = await readStatus(projectDir, "apply-change");
+    await writeStatus(projectDir, "apply-change", {
+      ...status,
+      state: "apply",
+      completed: ["clarify", "design", "plan"],
+    });
+
+    const result = await recoverProject({ projectDir });
+
+    assert.equal(result.selected.state, "apply");
+    assert.deepEqual(result.resume, {
+      stage: "apply",
+      stageSource: "openspec/changes/apply-change/status.json",
+      command: "/lg:continue apply-change",
+      directDispatchAllowed: false,
+    });
+    const runtime = await readRuntimeState(projectDir);
+    assert.equal(runtime.stage, "apply");
   });
 });
 

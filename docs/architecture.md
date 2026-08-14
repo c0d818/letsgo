@@ -52,6 +52,8 @@ Skill 的 `PostToolUse` 只记录 `loaded`，不会把读取 Skill 当成完成�
 产物校验、writer/reviewer 最后一行的英文 `LETGO_RESULT` 和状态推进。变更完成后
 active 标记被清除；正常中断后 `letsgo continue` 保留有效 runtime 并交给新 session，
 损坏状态才由 `letsgo recover` 依据 `status.json` 重建。
+`recover` 只返回权威阶段及 `/lg:continue` 交接命令，不直接决定或派发阶段 Agent；这样
+即使模型对恢复结果作出错误的自然语言摘要，后续 Agent 门禁仍以 `status.json` 为准。
 reviewer 或验收发现早期实现遗漏时，`letsgo reopen` 把同一变更退回已完成的更早阶段，
 并在 `status.json.reopens` 与 `run-summary.json.reopens` 中保留旧审查和失效阶段快照。
 

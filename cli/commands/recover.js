@@ -50,5 +50,13 @@ export async function recoverProject({ projectDir }) {
       : null,
     active,
     repaired: true,
+    resume: selected
+      ? {
+          stage: selected.state,
+          stageSource: `openspec/changes/${selected.id}/status.json`,
+          command: `/lg:continue ${selected.id}`,
+          directDispatchAllowed: false,
+        }
+      : null,
   };
 }

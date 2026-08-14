@@ -204,6 +204,11 @@ handoff 只对用户显式运行 `continue` 后生效，普通跨 session 仍拒
 保持阻塞，必须经用户授权 reopen。这样既能续跑，又不会让任意新会话复用旧证据。
 状态文件确实损坏、阶段不匹配或存在幽灵 marker 时仍使用 `recover`。
 
+`recover` 的阶段只取自 `openspec/changes/<change-id>/status.json`，并返回唯一的
+`/lg:continue <change-id>` 交接命令。恢复后禁止直接派发 Agent，因为第三方模型可能把
+旧对话或自己的 “recovered-stage” 摘要误当成状态事实。代价是恢复多一步 continue，
+但阶段判断集中在可测试的 CLI，错误派发时 Guard 也能指出权威文件和正确动作。
+
 ## D-20：为什么 Apply 按任务检查点续跑
 
 大型 Apply 如果让一个 Writer 一次完成全部任务，模型超时或连接截断会留下部分代码，
