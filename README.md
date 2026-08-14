@@ -5,13 +5,10 @@
 
 ## 安装
 
-### 其他人（发布后）
+### 其他电脑
 
 ```bash
-# 1. 安装 CLI（斜杠命令依赖）
-npm install -g letsgo
-
-# 2. 添加市场并安装插件
+# 插件自带同版本 letsgo CLI，无需另装全局 npm 包
 /plugin marketplace add c0dgod/letsgo
 /plugin install lg@letsgo
 ```
@@ -40,6 +37,9 @@ cc --plugin-dir /Users/gc0d/harness/letsgo
 ```
 
 `letsgo init <project>` 会把命令、技能、代理安装到项目本地（`.claude/`）。
+插件根目录的 `bin/letsgo` 会由 Claude Code 自动加入 Bash PATH，确保 Slash Command、
+Hook 和 CLI 始终来自同一个插件版本。只有脱离插件单独使用 CLI 时，才需要从当前仓库
+执行 `npm install -g .`。
 
 ### CodeGraph（大项目推荐）
 

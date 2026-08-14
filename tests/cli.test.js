@@ -253,6 +253,19 @@ test("claude 插件清单和市场配置有效", async () => {
   assert.equal(marketplace.plugins[0].version, manifest.version);
   assert.equal(marketplace.plugins[0].source, "./");
 
+  const packageJson = JSON.parse(
+    await readFile(path.join(packageRoot, "package.json"), "utf8")
+  );
+  assert.equal(packageJson.bin.letsgo, "./bin/letsgo");
+  assert.equal(packageJson.files.includes("bin"), true);
+  const bundledCli = await stat(path.join(packageRoot, "bin/letsgo"));
+  assert.notEqual(bundledCli.mode & 0o111, 0, "插件内置 CLI 必须可执行");
+  const { stdout: bundledHelp } = await execFileAsync(
+    path.join(packageRoot, "bin/letsgo"),
+    ["--help"]
+  );
+  assert.match(bundledHelp, /letsgo continue/);
+
   const mcp = JSON.parse(
     await readFile(path.join(packageRoot, ".mcp.json"), "utf8")
   );

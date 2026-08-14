@@ -116,7 +116,8 @@ Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；des
 └── docs/
 ```
 
-仓库根目录还保留包元数据、`letsgo` CLI 启动器、文档和测试。
+仓库根目录还保留包元数据、兼容用 `letsgo` 启动器、文档和测试；插件标准入口位于
+`bin/letsgo`，启用插件时由 Claude Code 自动加入 Bash PATH，npm bin 也指向该入口。
 
 ## CodeGraph 使用边界
 
