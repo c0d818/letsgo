@@ -554,6 +554,74 @@ test("CodeAgent3 通过 Agent 工具响应记录只读 reviewer 结果", async (
   });
 });
 
+test("CodeAgent3 将 lg:review 事件归一化为 letsgo reviewer", async () => {
+  await withTempProject(async (projectDir) => {
+    await initProject({ projectDir });
+    await newChangeProject({ projectDir, changeId: "add-login" });
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "PostToolUse",
+        toolName: "Skill",
+        toolInput: { skillName: "lg:letsgo-clarify" },
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+    await writeFile(
+      path.join(projectDir, "openspec/changes/add-login/proposal.md"),
+      "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
+    );
+
+    const preTool = await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "PreToolUse",
+        toolName: "Agent",
+        toolInput: { subagentType: "lg:letsgo-reviewer" },
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(preTool.stdout).hookSpecificOutput.permissionDecision,
+      "allow"
+    );
+
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "SubagentStart",
+        agentType: "lg:review",
+        agentId: "reviewer-1",
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+    await runHookScript(
+      "scripts/runtime-state.js",
+      {
+        sessionId: "codeagent-session-1",
+        hookEventName: "SubagentStop",
+        agentType: "lg:review",
+        agentId: "reviewer-1",
+        lastAssistantMessage:
+          'LETGO_RESULT {"stage":"clarify","role":"reviewer","status":"pass","blocking":[],"evidence":["proposal 通过"],"risks":[]}',
+        workingDirectory: projectDir,
+      },
+      projectDir
+    );
+
+    const state = await readRuntimeState(projectDir);
+    assert.equal(state.agents["lg:letsgo-reviewer"].status, "passed");
+    assert.equal(state.agents["lg:letsgo-reviewer"].attempts, 1);
+    assert.equal(state.agents["lg:review"], undefined);
+  });
+});
+
 test("context 脚本注入生命周期规则和活跃变更状态", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });

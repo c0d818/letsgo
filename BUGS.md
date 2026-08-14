@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0031：CodeAgent3 reviewer 短名导致审查结果丢失
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Runtime Hook / Agent 身份归一化
+- 首次发现：2026-08-14
+- 关闭时间：2026-08-14
+- 解决方式：将 CodeAgent3 生命周期事件中的 `lg:review` 精确映射到
+  `lg:letsgo-reviewer`；覆盖完整名启动、短名结束的真实混合事件，确保 pass 和次数写入
+  同一个 runtime 槽位，同时不放宽 Node Guard。
+
 ### BUG-0030：Bash 引号路径和 Windows 反斜杠路径被误判为无路径
 
 - 状态：已关闭

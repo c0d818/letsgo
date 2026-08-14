@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.18`
+- 版本：`0.4.19`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- 将 CodeAgent3 记录的 reviewer 短名 `lg:review` 归一化到规范名
+  `lg:letsgo-reviewer`，避免有效审查结果丢失和 advance 假阻塞；不放宽 Node 权限。
 
 - Guard 的 Bash tokenizer 保留引号路径并兼容 Windows 反斜杠绝对/相对路径，避免
   合法阶段文件被误报“未看到文件路径”；真实无目标路径的写命令继续要求确认。
