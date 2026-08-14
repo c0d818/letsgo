@@ -339,6 +339,7 @@ test("Agent 启动前拒绝非命名空间和错误 LETGO_RESULT 协议", async 
 
     for (const agentType of [
       "general-purpose",
+      "lg:review",
       "lg:review-anything",
       "lg:letsgo-apply-writer",
       null,

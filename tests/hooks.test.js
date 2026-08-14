@@ -405,7 +405,7 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
       "# 提案\n\n## 为什么做\n增加登录。\n\n## 改变什么\n实现认证。\n\n## 验收标准\n测试通过。\n"
     );
 
-    for (const subagentType of ["general-purpose", "lg:review-anything", null]) {
+    for (const subagentType of ["general-purpose", "lg:review", "lg:review-anything", null]) {
       const arbitrary = await runHookScript(
         "scripts/runtime-state.js",
         {
