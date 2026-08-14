@@ -1077,6 +1077,25 @@ test("运行时守卫放行只读 bash 和 letsgo CLI 命令", async () => {
     assert.equal(cliCommand.status, "allow");
 
     for (const command of [
+      "letsgo status --change add-login 2>&1",
+      "letsgo status --change add-login 2>/dev/null",
+    ]) {
+      const diagnosticRedirect = await decideToolUse({
+        projectDir,
+        toolName: "Bash",
+        toolInput: { command },
+      });
+      assert.equal(diagnosticRedirect.status, "allow", command);
+    }
+
+    const fileRedirect = await decideToolUse({
+      projectDir,
+      toolName: "Bash",
+      toolInput: { command: "letsgo status --change add-login > status.txt" },
+    });
+    assert.notEqual(fileRedirect.status, "allow");
+
+    for (const command of [
       'node "C:/Program Files/letsgo/letsgo" advance clarify --change add-login',
       '"C:/Program Files/letsgo/letsgo.cmd" advance clarify --change add-login',
     ]) {

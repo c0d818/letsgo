@@ -118,6 +118,21 @@ test("PreToolUse 守卫脚本放行只读 bash，对无路径写入请求审查"
     );
     assert.equal(JSON.parse(readOnly.stdout).hookSpecificOutput.permissionDecision, "allow");
 
+    const letsgoWithStderrMerge = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "letsgo status --change add-login 2>&1" },
+      },
+      projectDir
+    );
+    assert.equal(
+      JSON.parse(letsgoWithStderrMerge.stdout).hookSpecificOutput.permissionDecision,
+      "allow"
+    );
+
     const pathless = await runHookScript(
       "scripts/guard.js",
       {
