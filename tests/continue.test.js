@@ -85,7 +85,7 @@ test("continue 允许新 session 接管未完成阶段且不复用阻塞两轮",
     }
 
     const result = await continueProject({ projectDir, changeId: "resume-design" });
-    assert.equal(result.resume.action, "blocked");
+    assert.equal(result.resume.action, "revise-clarify");
     assert.deepEqual(result.resume.blocking, ["范围不清"]);
 
     const third = await decideAgentStart({

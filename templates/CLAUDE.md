@@ -53,17 +53,17 @@ LetsGo 的规划文档统一使用简体中文：
 
 插件会在 `openspec/.letsgo/runtime-state.json` 中覆盖记录当前阶段已加载的 Skill
 和 Subagent 状态，并在单一 `openspec/.letsgo/run-summary.json` 中保留最近一次运行的
-阶段顺序、权限提示、Guard 拒绝和上下文压缩计数。必须先加载阶段 Skill，再启动
-writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一行必须输出其
-定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型必须使用当前阶段表中列出的完整
-`lg:letsgo-*` 规范名，不得使用 `general-purpose`、短名、别名或其他阶段 Agent；
-无论宿主通过 `Agent` 还是旧式 `Task` 派发都适用同一规则。
+阶段顺序、权限提示、Guard 警告和上下文压缩计数。建议先加载阶段 Skill，再启动
+writer；writer 完成后再启动 reviewer。writer 或 reviewer 的最后一行应输出其
+定义中要求的 `LETGO_RESULT` 英文机器协议。Agent 类型优先使用当前阶段表中列出的完整
+`lg:letsgo-*` 规范名。默认宽松模式下，命名、顺序、协议和项目内跨阶段写入问题只记录
+advisory warning，不阻断生命周期；设置 `LETSGO_ENFORCEMENT=strict` 可恢复硬门禁。
 派发 prompt 只提供当前阶段、change-id、目标文件和任务重点；协议以 Agent 定义为
-唯一来源，禁止复制或使用 `LETGO_RESULT:` 旧协议。说明文字使用简体中文；缺少运行证据时 `letsgo advance`
-不会推进。每个产物最多初审一次、writer 修订后复审一次；第二次仍阻塞时停止。
-此时必须展示第二轮 `blocking`，不得提供“手动批准当前产物”或伪造 reviewer pass 的
-选项。用户明确授权后，可用 `/lg:reopen` 重开当前阶段的完整审查周期；若需修改已完成
-的更早阶段，则退回对应阶段。clarify 没有更早阶段，只能重开 clarify。
+唯一来源，避免复制或使用 `LETGO_RESULT:` 旧协议。说明文字使用简体中文。缺少 runtime
+证据时，宽松模式的 `letsgo advance` 会返回 `runtimeWarnings` 但仍可在阶段产物校验通过后
+推进。reviewer 阻塞后按 `blocking` 修订并重新审查，不设固定次数，但不得无变化空转、
+手动批准当前产物或伪造 reviewer pass。若需修改已完成的更早阶段，等待用户授权后使用
+`/lg:reopen` 退回对应阶段。
 
 apply 阶段必须读取 `letsgo-tdd`，对每个行为任务固定执行
 `RED -> GREEN -> REFACTOR`，并把真实命令和结果记录到

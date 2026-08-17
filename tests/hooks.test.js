@@ -21,12 +21,13 @@ async function withTempProject(fn) {
   }
 }
 
-function runHookScript(script, input, projectDir) {
+function runHookScript(script, input, projectDir, extraEnv = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(packageRoot, script)], {
       env: {
         ...process.env,
         CLAUDE_PROJECT_DIR: projectDir,
+        ...extraEnv,
       },
     });
     let stdout = "";
@@ -73,7 +74,7 @@ test("PreToolUse 守卫脚本放行范围内的写入", async () => {
   });
 });
 
-test("PreToolUse 守卫脚本拒绝范围外的写入", async () => {
+test("PreToolUse 守卫脚本在宽松模式放行项目内跨阶段写入", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "add-login" });
@@ -96,8 +97,26 @@ test("PreToolUse 守卫脚本拒绝范围外的写入", async () => {
 
     assert.equal(code, 0);
     assert.equal(output.hookSpecificOutput.hookEventName, "PreToolUse");
-    assert.equal(output.hookSpecificOutput.permissionDecision, "deny");
+    assert.equal(output.hookSpecificOutput.permissionDecision, "allow");
+    assert.match(output.hookSpecificOutput.permissionDecisionReason, /宽松模式已放行/);
     assert.match(output.hookSpecificOutput.permissionDecisionReason, /design\.md/);
+
+    const strict = await runHookScript(
+      "scripts/guard.js",
+      {
+        session_id: "session-1",
+        hook_event_name: "PreToolUse",
+        tool_name: "Edit",
+        tool_input: {
+          file_path: path.join(projectDir, "openspec/changes/add-login/design.md"),
+          old_string: "x",
+          new_string: "y",
+        },
+      },
+      projectDir,
+      { LETSGO_ENFORCEMENT: "strict" }
+    );
+    assert.equal(JSON.parse(strict.stdout).hookSpecificOutput.permissionDecision, "deny");
   });
 });
 
@@ -335,7 +354,7 @@ test("完成生命周期后仍允许记录 LetsGo 运行问题，但拒绝普通
     );
     assert.equal(
       JSON.parse(sourceWrite.stdout).hookSpecificOutput.permissionDecision,
-      "deny"
+      "allow"
     );
 
     const issueDelete = await runHookScript(
@@ -401,7 +420,11 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
     );
     assert.equal(
       JSON.parse(blocked.stdout).hookSpecificOutput.permissionDecision,
-      "deny"
+      "allow"
+    );
+    assert.match(
+      JSON.parse(blocked.stdout).hookSpecificOutput.permissionDecisionReason,
+      /宽松模式已放行/
     );
 
     await runHookScript(
@@ -436,7 +459,8 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
           projectDir
         );
         const output = JSON.parse(arbitrary.stdout).hookSpecificOutput;
-        assert.equal(output.permissionDecision, "deny", `${toolName}:${subagentType}`);
+        assert.equal(output.permissionDecision, "allow", `${toolName}:${subagentType}`);
+        assert.match(output.permissionDecisionReason, /宽松模式已放行/);
         assert.match(output.permissionDecisionReason, /lg:letsgo-reviewer/);
       }
     }
@@ -456,7 +480,7 @@ test("运行状态 Hook 在启动 reviewer 前检查 Skill 并记录通过结果
     );
     assert.equal(
       JSON.parse(obsolete.stdout).hookSpecificOutput.permissionDecision,
-      "deny"
+      "allow"
     );
 
     for (const toolName of ["Agent", "Task"]) {
@@ -597,7 +621,8 @@ test("Apply Hook 接受 partial 协议并拒绝仍在运行的重复 Writer", as
       projectDir
     );
     const output = JSON.parse(duplicate.stdout).hookSpecificOutput;
-    assert.equal(output.permissionDecision, "deny");
+    assert.equal(output.permissionDecision, "allow");
+    assert.match(output.permissionDecisionReason, /宽松模式已放行/);
     assert.match(output.permissionDecisionReason, /正在运行|重复启动/);
   });
 });
@@ -936,22 +961,20 @@ test("Hook 用单一 run-summary 统计权限提示、压缩和重复 Guard 拒�
     };
     const first = await runHookScript("scripts/guard.js", blockedInput, projectDir);
     const second = await runHookScript("scripts/guard.js", blockedInput, projectDir);
-    assert.equal(JSON.parse(first.stdout).hookSpecificOutput.permissionDecision, "deny");
-    assert.match(
-      JSON.parse(second.stdout).hookSpecificOutput.permissionDecisionReason,
-      /已被阻止 2 次/
-    );
+    assert.equal(JSON.parse(first.stdout).hookSpecificOutput.permissionDecision, "allow");
+    assert.match(JSON.parse(second.stdout).hookSpecificOutput.permissionDecisionReason, /宽松模式已放行/);
 
     const summary = await readRunSummary(projectDir);
     assert.equal(summary.metrics.permissionPrompts, 1);
     assert.equal(summary.metrics.clarificationQuestions, 1);
     assert.equal(summary.metrics.compactions, 1);
-    assert.equal(summary.metrics.guardDenials, 2);
-    assert.equal(summary.metrics.repeatedGuardDenials, 1);
+    assert.equal(summary.metrics.guardDenials, 0);
+    assert.equal(summary.metrics.repeatedGuardDenials, 0);
+    assert.equal(summary.metrics.advisoryWarnings, 2);
   });
 });
 
-test("CodeGraph 最多放行两次聚焦查询并记录实际调用数", async () => {
+test("CodeGraph 超出建议次数后在宽松模式继续放行并记录警告", async () => {
   await withTempProject(async (projectDir) => {
     await initProject({ projectDir });
     await newChangeProject({ projectDir, changeId: "add-login" });
@@ -968,8 +991,9 @@ test("CodeGraph 最多放行两次聚焦查询并记录实际调用数", async (
 
     assert.equal(first.hookSpecificOutput.permissionDecision, "allow");
     assert.equal(second.hookSpecificOutput.permissionDecision, "allow");
-    assert.equal(third.hookSpecificOutput.permissionDecision, "deny");
-    assert.match(third.hookSpecificOutput.permissionDecisionReason, /CodeGraph.*2|第三次/);
-    assert.equal((await readRunSummary(projectDir)).metrics.codeGraphQueries, 2);
+    assert.equal(third.hookSpecificOutput.permissionDecision, "allow");
+    assert.match(third.hookSpecificOutput.permissionDecisionReason, /宽松模式已放行/);
+    assert.equal((await readRunSummary(projectDir)).metrics.codeGraphQueries, 3);
+    assert.equal((await readRunSummary(projectDir)).metrics.advisoryWarnings, 1);
   });
 });

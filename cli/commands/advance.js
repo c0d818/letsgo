@@ -8,6 +8,7 @@ import {
 import { recordStageCompleted } from "../../lib/run-summary.js";
 import { validateProject } from "./validate.js";
 import { clearActiveMarker } from "../../lib/guard.js";
+import { enforcementMode } from "../../lib/enforcement.js";
 
 export async function advanceProject({ projectDir, changeId, state }) {
   if (!changeId) {
@@ -41,7 +42,8 @@ export async function advanceProject({ projectDir, changeId, state }) {
     changeId,
     stage: state,
   });
-  if (!runtimeValidation.ok) {
+  const mode = enforcementMode();
+  if (!runtimeValidation.ok && mode === "strict") {
     return {
       ...validation,
       ok: false,
@@ -88,5 +90,7 @@ export async function advanceProject({ projectDir, changeId, state }) {
     state,
     advanced: true,
     status: nextStatus,
+    enforcementMode: mode,
+    runtimeWarnings: runtimeValidation.ok ? [] : runtimeValidation.errors,
   };
 }

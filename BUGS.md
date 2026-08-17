@@ -5,6 +5,17 @@
 
 ## 已关闭
 
+### BUG-0043：运行时硬门禁过多导致生命周期无法优先跑通
+
+- 状态：已关闭
+- 严重程度：高
+- 区域：Guard / Runtime / Reviewer
+- 首次发现：2026-08-17
+- 关闭时间：2026-08-17
+- 解决方式：默认采用 advisory 宽松模式，项目内阶段写入、Agent 顺序/协议、Reviewer
+  次数和 CodeGraph 预算只记录警告；advance 在产物校验通过时忽略 runtime 缺口并返回
+  warnings。保留 strict 开关、阶段状态机、产物校验和外部操作权限边界。
+
 ### BUG-0042：runtime tracking 丢失后 Agent 手工补写状态文件形成恢复死锁
 
 - 状态：已关闭

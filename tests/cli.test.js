@@ -15,6 +15,8 @@ import { validateProject } from "../cli/commands/validate.js";
 import { advanceProject } from "../cli/commands/advance.js";
 import { selectProject } from "../cli/commands/select.js";
 import { validateTddEvidence } from "../state/validate.js";
+import { STATES } from "../state/states.js";
+import { readStatus, writeStatus } from "../state/change.js";
 import {
   REVIEWER,
   STAGE_SKILLS,
@@ -301,7 +303,7 @@ test("claude 插件清单和市场配置有效", async () => {
   for (const filename of ["start.md", "bugfix.md", "refactor.md", "test.md", "letsgo.md"]) {
     const content = await readFile(path.join(packageRoot, "commands", filename), "utf8");
     assert.match(content, /未验证验收项：0/, `${filename} 必须阻止未完成验收`);
-    assert.match(content, /最多再派发一次|初审一次、修订后复审一次/, `${filename} 必须限制 reviewer`);
+    assert.match(content, /不设固定次数/, `${filename} 必须允许 reviewer 修订循环`);
     assert.match(content, /默认.*git add|默认.*本地.*commit/s, `${filename} 必须默认本地提交`);
     assert.match(content, /不超过 12 行/, `${filename} 必须限制最终汇总`);
   }
@@ -340,7 +342,7 @@ test("CodeGraph 以图谱优先且可降级的方式接入 clarify", async () =>
   );
 
   assert.match(clarify, /codegraph_explore/);
-  assert.match(clarify, /不得调用第三次/);
+  assert.match(clarify, /建议.*预算|硬上限/);
   assert.match(clarify, /Grep.*Read/);
   assert.match(projectRules, /codegraph init/);
   assert.match(projectRules, /\.codegraph\//);
@@ -363,6 +365,7 @@ test("设计决策文档记录关键门禁的理由与调整条件", async () =>
     "为什么默认本地提交但不自动推送",
     "为什么阻塞后必须显式 Reopen",
     "为什么 Apply 按任务检查点续跑",
+    "为什么默认改为 Advisory 宽松模式",
   ]) {
     assert.match(decisions, new RegExp(topic));
   }
@@ -529,7 +532,7 @@ test("阶段推进必须确认 advanced 与下一状态后才能创建后续产�
   }
 });
 
-test("两轮审查阻塞后禁止手动批准并允许审计式重开", async () => {
+test("reviewer 不限固定次数但禁止伪造通过，早期阶段修改使用 reopen", async () => {
   const clarify = await readFile(
     path.join(packageRoot, "skills/letsgo-clarify/SKILL.md"),
     "utf8"
@@ -540,12 +543,13 @@ test("两轮审查阻塞后禁止手动批准并允许审计式重开", async ()
   );
   const reopen = await readFile(path.join(packageRoot, "commands/reopen.md"), "utf8");
 
-  for (const content of [clarify, workflow, reopen]) {
-    assert.match(content, /不得.*手动批准|禁止手动批准/);
-    assert.match(content, /第二轮[\s\S]{0,100}blocking|blocking[\s\S]{0,100}第二轮/);
-    assert.match(content, /重开当前[\s\S]{0,50}审查周期|重开当前阶段/);
+  for (const content of [clarify, workflow]) {
+    assert.match(content, /不设置固定复审次数|不设固定次数/);
+    assert.match(content, /blocking/);
+    assert.match(content, /伪造.*pass|手动伪造/);
   }
-  assert.match(clarify, /clarify[\s\S]{0,30}没有更早阶段/);
+  assert.match(reopen, /更早阶段/);
+  assert.match(reopen, /当前阶段.*不需要 reopen|同一当前阶段.*不需要 reopen/s);
 });
 
 test("hooks.json 正确接线 PreToolUse、SessionStart 和 UserPromptSubmit", async () => {
@@ -810,8 +814,15 @@ test("运行时守卫把写入限制在当前阶段范围", async () => {
       changeId: "add-login",
       state: "clarify",
     });
-    assert.equal(missingRuntime.advanced, false);
-    assert.match(missingRuntime.errors.join("\n"), /runtime-state\.json/);
+    assert.equal(missingRuntime.advanced, true);
+    assert.equal(missingRuntime.enforcementMode, "advisory");
+    assert.match(missingRuntime.runtimeWarnings.join("\n"), /runtime-state\.json/);
+    await writeStatus(projectDir, "add-login", {
+      ...(await readStatus(projectDir, "add-login")),
+      state: "clarify",
+      completed: [],
+      approved: Object.fromEntries(STATES.map((state) => [state, false])),
+    });
     await markRuntimeStageReady(projectDir, "add-login", "clarify");
     await advanceProject({ projectDir, changeId: "add-login", state: "clarify" });
 

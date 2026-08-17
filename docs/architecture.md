@@ -41,9 +41,10 @@ lib/
 `scripts/runtime-state.js` 监听 Skill 和 Subagent 生命周期，`lib/runtime-state.js`
 维护唯一的 `openspec/.letsgo/runtime-state.json`。它在 writer 启动前检查阶段
 Skill，在 reviewer 启动前检查 writer，并在 `advance` 前检查 reviewer 通过。Agent
-启动还会校验当前阶段的完整规范名和 prompt 内的机器协议，每个 reviewer 最多两次；
-新式 `Agent` 与旧式 `Task` 派发入口使用同一门禁，所有专用 Agent 均无二次派发工具。
-状态只覆盖当前 session、变更和阶段。`lib/run-summary.js` 另外维护一个覆盖更新的
+启动还会检查当前阶段的完整规范名和 prompt 内的机器协议；默认 advisory 模式把问题记录
+为警告并继续，新式 `Agent` 与旧式 `Task` 使用同一规则，所有专用 Agent 均无二次派发
+工具。Reviewer 不设固定复审次数，但每轮必须先针对 blocking 产生实际修订。状态只覆盖
+当前 session、变更和阶段。`lib/run-summary.js` 另外维护一个覆盖更新的
 `run-summary.json`，按阶段保存精简结果，并由权限、压缩和守卫 Hook 累加轻量指标；
 澄清问题和真实权限提示分别统计，并记录 CodeGraph 的实际放行次数；
 不会为每个阶段或每次调用创建文件。
@@ -131,8 +132,8 @@ Skill frontmatter 固定使用 `name`、`description` 和 `user-invocable`；des
 - MCP 或索引不可用时显式降级到内置工具，CodeGraph 不成为生命周期硬依赖。
 - `letsgo doctor` 用 `codegraph version` 检查 CLI，并检查
   `.codegraph/codegraph.db` 是否存在；它不启动后台服务，也不写入检查日志。
-- clarify 默认一次聚焦图谱查询；只有关键调用边缺失时才允许补一次并记录原因，
-  禁止第三次查询，防止重复上下文消耗。
+- clarify 默认一次聚焦图谱查询；关键调用边缺失时建议补一次并记录原因。超出建议预算
+  会产生 advisory warning，但不阻断生命周期。
 
 这些限制的实测依据、权衡和调整条件见
 [design-decisions.md](design-decisions.md)。

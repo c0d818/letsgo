@@ -62,7 +62,7 @@ Verify 必须用重构前后对照证据证明行为等价。
 ## 5. 审查、阻塞与完成
 
 - 每阶段顺序为 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance。
-- reviewer 初审阻塞后最多再派发一次；第二次仍阻塞就停止，不能手动批准。
+- reviewer 阻塞后交回 writer 修订并重新审查；不设固定次数，但不能无变化空转或手动伪造通过。
 - advance 必须同时满足 `advanced: true` 和 status 已进入下一阶段；失败时不得创建任何
   后续阶段产物。
 - verify 必须全量回归且“未验证验收项：0”，不能只证明新结构能编译。

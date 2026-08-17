@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { activeChanges, resolveActiveChange } from "../lib/guard.js";
+import { softenDenial } from "../lib/enforcement.js";
 import {
   agentNameFromToolInput,
   decideAgentStart,
@@ -116,12 +117,12 @@ try {
       ...common,
       transcriptPath: input.transcript_path ?? input.transcriptPath ?? null,
     });
-    const decision = await decideAgentStart({
+    const decision = softenDenial(await decideAgentStart({
       ...common,
       agentType: agentNameFromToolInput(toolInput),
       prompt: toolInput?.prompt ?? null,
       enforceNamespace: true,
-    });
+    }));
     process.stdout.write(JSON.stringify(preToolOutput(decision.status, decision.reason)));
   } else if (event === "PostToolUse" && toolName === "Skill") {
     await recordSkillCompleted({

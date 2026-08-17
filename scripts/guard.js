@@ -1,10 +1,13 @@
 #!/usr/bin/env node
+import path from "node:path";
 import {
   activeChanges,
   decideToolUse,
   isCodeGraphExploreTool,
   resolveActiveChange,
+  toolPaths,
 } from "../lib/guard.js";
+import { softenDenial } from "../lib/enforcement.js";
 import { reconcileRuntimeState } from "../lib/runtime-state.js";
 import { recordGuardDenial, recordRunMetric } from "../lib/run-summary.js";
 
@@ -51,16 +54,42 @@ if (input === null) {
 } else {
   const projectDir = projectDirOf(input);
   await reconcileRuntimeState({ projectDir });
-  const decision = await decideToolUse({
+  let decision = await decideToolUse({
     projectDir,
     toolName: input.tool_name ?? input.toolName,
     toolInput: input.tool_input ?? input.toolInput ?? {},
   });
+  const inputToolName = input.tool_name ?? input.toolName;
+  const inputTool = input.tool_input ?? input.toolInput ?? {};
+  const inputToolKind = String(inputToolName ?? "").toLowerCase();
+  const paths = toolPaths(projectDir, inputTool);
+  const projectLocal =
+    paths.length > 0 &&
+    paths.every((target) => {
+      const relative = path.relative(projectDir, target);
+      return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
+    });
+  const directFileWrite = /^(write|edit|multiedit|notebookedit|externaldirectory)$/.test(
+    inputToolKind
+  );
+  if (isCodeGraphExploreTool(inputToolName) || (directFileWrite && projectLocal)) {
+    decision = softenDenial(decision);
+  }
   const context = await resolveActiveChange(projectDir, await activeChanges(projectDir));
+  if (decision.advisory && context) {
+    await recordRunMetric({
+      projectDir,
+      sessionId: input.session_id ?? input.sessionId ?? null,
+      changeId: context.changeId,
+      stage: context.state,
+      metric: "advisoryWarnings",
+      detail: { reason: decision.reason },
+    });
+  }
   if (
     decision.status === "allow" &&
     context &&
-    isCodeGraphExploreTool(input.tool_name ?? input.toolName)
+    isCodeGraphExploreTool(inputToolName)
   ) {
     await recordRunMetric({
       projectDir,
@@ -73,7 +102,7 @@ if (input === null) {
   }
   if (decision.status === "deny") {
     if (context) {
-      const toolInput = input.tool_input ?? input.toolInput ?? {};
+      const toolInput = inputTool;
       const fingerprint = JSON.stringify({
         tool: input.tool_name ?? input.toolName ?? "",
         command: toolInput.command ?? toolInput.cmd ?? "",

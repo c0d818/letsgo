@@ -29,8 +29,8 @@ user-invocable: false
 4. 对代码行为变更，若项目存在 `.codegraph/` 且 `codegraph_explore` 可用，默认只用
    一次聚焦查询获取相关源码、调用路径、影响范围和测试线索；把返回的源码视为
    已读，不再用文件遍历重复验证。只有第一次结果明确缺少关键调用边时才允许第二次
-   查询，并把原因写入 proposal；若首次结果为零匹配则直接降级 Read/Grep，不得以换关键词
-   重试；不得调用第三次（运行时也会硬拒绝）。索引或工具不可用时记录降级原因，
+   查询，并把原因写入 proposal；若首次结果为零匹配则优先降级 Read/Grep。两次是建议
+   预算而非硬上限；确有新的关键缺口时可继续聚焦查询并记录原因。索引或工具不可用时记录降级原因，
    再使用 `Grep`、`Read` 等内置工具检查相关模块、调用方、数据流和现有测试。
 5. 涉及框架、库、API、协议、配置格式或版本行为时，查询当前可用的官方文档；
    记录版本、约束和关键结论。纯内部逻辑可跳过并说明原因。
@@ -43,14 +43,13 @@ user-invocable: false
    派发 prompt 只传当前阶段、change-id、目标文件、验收标准和风险重点；完整
    `LETGO_RESULT` 协议由 reviewer Agent 定义统一维护。不得在 prompt 中覆盖协议；
    若确需提及机器结果，只写协议名称，不复制 JSON 或使用 `LETGO_RESULT:` 旧格式。
-9. 审查不通过时修订草稿并只复审一次；第二次仍阻塞时停止，逐项报告第二轮
-   `blocking`，不得第三次启动 reviewer，也不得建议手动批准 `proposal.md`。clarify
-   没有更早阶段；需要继续时，等待用户明确授权 `/lg:reopen <change-id> clarify <理由>`
-   重开当前 clarify 审查周期，并保留前两轮证据。
+9. 审查不通过时按 `blocking` 修订草稿并重新审查；默认不设置固定复审次数。每轮必须
+   有实际修订，禁止无变化空转或手动伪造 pass。相同问题重复且无法取得进展、环境故障
+   或必须用户决策时才停止并报告。
 10. 由主 Agent 运行 `letsgo validate --after clarify --change <change-id>` 和
     `letsgo advance clarify --change <change-id>`。
-11. Write/Edit/Guard 失败时立即读取一次状态并停止；不得重复同一写入，不得改用
-    Bash、Node 或临时脚本绕过。把问题写入 `openspec/.letsgo/issues.md` 后报告阻塞。
+11. Guard advisory 警告只记录不停止；宿主权限真正拒绝时读取一次状态并停止，不得改用
+    Bash、Node 或临时脚本绕过。把最终阻塞写入 `openspec/.letsgo/issues.md`。
 
 ## 输出
 

@@ -59,7 +59,7 @@ RED/GREEN 包装已有行为。Verify 必须真实运行新增测试及相关回
 ## 5. 审查、阻塞与完成
 
 - 每阶段执行 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance。
-- reviewer 初审阻塞后最多再派发一次；第二次仍阻塞就停止。
+- reviewer 阻塞后交回 writer 修订并重新审查；不设固定次数，但不得无变化空转。
 - advance 必须确认 `advanced: true` 并重新读取 status；失败时不得创建任何后续阶段产物。
 - verify 必须证明测试真实命中目标行为，且“未验证验收项：0”。
 - done 后除非用户明确不提交，默认显式 `git add` 本变更路径并本地 commit；不自动 push。

@@ -62,13 +62,14 @@ export async function continueProject({ projectDir, changeId = null }) {
       preservedReviewer: "passed",
       command: `letsgo advance ${status.state} --change ${selected.id}`,
     };
-  } else if (reviewer?.status === "blocked" && Number(reviewer.attempts ?? 0) >= 2) {
+  } else if (reviewer?.status === "blocked") {
     resume = {
-      action: "blocked",
+      action: writer ? "run-writer" : "revise-clarify",
       stage: status.state,
+      writer,
       blocking: reviewer.result?.blocking ?? [],
       attempts: Number(reviewer.attempts ?? 0),
-      next: `/lg:reopen ${selected.id} ${status.state} <针对阻塞项的修订理由>`,
+      advisory: "修复 blocking 后可再次启动 reviewer；宽松模式不限制固定复审次数",
     };
   } else if (missingSkills.length > 0) {
     resume = { action: "load-skill", stage: status.state, missingSkills };

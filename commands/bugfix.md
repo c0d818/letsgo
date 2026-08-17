@@ -70,7 +70,7 @@ letsgo status --change <change-id>
 ## 5. 审查、阻塞与完成
 
 - 每阶段执行 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance。
-- reviewer 初审阻塞后把问题交回 writer，最多再派发一次；仍阻塞就报告，不得手动批准。
+- reviewer 阻塞后把问题交回 writer 修订并重新审查；不设固定次数，但不得无变化空转或手动伪造通过。
 - advance 只有返回 `advanced: true` 且 status 是下一阶段才算成功；失败时不得创建任何
   后续阶段产物。
 - verify 必须重新执行原复现路径、回归测试并写明“未验证验收项：0”。

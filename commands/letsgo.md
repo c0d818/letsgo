@@ -72,9 +72,9 @@ Required skill: `lg:letsgo-workflow`
 - 运行中遇到的任何问题都记录到 `openspec/.letsgo/issues.md`。
 - 规划文档统一使用简体中文；代码、测试和用户文案沿用项目现有语言。
 - Skill Hook 只表示 Skill 已加载，不表示阶段产物已完成；reviewer 前必须有有效产物。
-- 同一 Guard/Write 失败后立即停止，不重复调用或换工具绕过。
+- Guard advisory 警告记录后继续；只有宿主权限真正拒绝时才停止，不换工具绕过。
 - 只使用 `lg:letsgo-*` Agent；派发 prompt 只传阶段、change-id、目标文件和任务重点，
-  `LETGO_RESULT` 以 Agent 定义为唯一来源。reviewer 最多初审一次、修订后复审一次。
+  `LETGO_RESULT` 以 Agent 定义为唯一来源。reviewer 阻塞后修订再审，不设固定次数。
 - verify 必须明确 `未验证验收项：0`；仍有待手动/浏览器验证项时不得推进。
 - 除非用户明确说不提交，`done` 后仅暂存本变更显式路径并本地 commit；无法与用户
   既有改动安全区分时停止。汇总使用 `git show --stat`，不自动 push。

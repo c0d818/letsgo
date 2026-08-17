@@ -5,13 +5,16 @@
 
 ## 当前版本
 
-- 版本：`0.4.31`
+- 版本：`0.5.0`
 - 分支：`main`
 - 状态：本地验证完成
 
 ## 未发布
 
 ### 已完成
+
+- 默认切换为 advisory 宽松模式：项目内写入、运行时顺序、Agent 协议、Reviewer 次数和
+  CodeGraph 预算只警告不阻断；阶段顺序与产物校验保留，可用环境变量恢复 strict。
 
 - `/lg:continue` 可从通过硬校验的阶段产物恢复丢失的 Writer tracking；状态恢复只由 CLI
   写 `runtime-state.json`，普通 Agent 继续禁止手补，并强制新 session 重载 Skill、复审。

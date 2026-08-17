@@ -11,6 +11,22 @@ LetsGo 的所有重要变更都记录在这里。
 - 新增统一的设计决策记录，集中说明生命周期门禁、CodeGraph 两次预算、reviewer
   两轮限制、TDD、零未验收项、权限策略和 Git 交付规则的依据、代价与调整条件。
 
+## [0.5.0] - 2026-08-17
+
+### 变更
+
+- 默认执行模式改为 `advisory`：项目内跨阶段文件写入、Agent 命名/顺序/协议、重复派发
+  和 CodeGraph 建议预算不再被 LetsGo Hook 硬阻断，而是放行并记录警告。
+- Reviewer 不再限制初审加一次复审；每轮针对 blocking 实际修订后可以继续审查。
+- 阶段产物通过硬校验时，即使 runtime tracking 不完整，`advance` 也会推进并返回
+  `runtimeWarnings`，避免 Hook 事件丢失造成生命周期死锁。
+- `LETSGO_ENFORCEMENT=strict` 可恢复原有运行时硬门禁，便于后续逐项重新收紧。
+
+### 保留
+
+- `status.json` 阶段顺序和阶段产物校验继续生效；Git push、项目外写入和高风险命令仍
+  由现有 Guard 或 Claude Code 权限系统审查。
+
 ## [0.4.31] - 2026-08-14
 
 ### 修复

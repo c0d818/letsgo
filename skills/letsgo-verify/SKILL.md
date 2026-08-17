@@ -27,7 +27,7 @@ user-invocable: false
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，核对命令、结果、验收标准覆盖、未测试区域和剩余
    风险；任何验收项仍写“待手动/浏览器验证”时必须阻塞。不要在 prompt 中复制或覆盖
    reviewer Agent 定义的结果协议。
-4. reviewer 有阻塞问题时，将问题交回 writer 补充验证并只重新审查一次；仍阻塞时停止。
+4. reviewer 有阻塞问题时，将问题交回 writer 补充验证后重新审查；不设固定次数，但不得无变化空转。
    若阻塞证明生产代码或测试需要修改，报告应退回的阶段并等待用户明确授权
    `/lg:reopen`；不得另建变更、在 verify 越界写代码或直接推进。
 5. reviewer 通过后，交回主 Agent 运行

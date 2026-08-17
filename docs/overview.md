@@ -4,7 +4,8 @@
 恢复机制和维护方式。它既面向第一次使用 LetsGo 的开发者，也面向需要修改 Hook、Skill、
 Subagent 或 CLI 的维护者。
 
-当前文档对应 LetsGo `0.4.31`。
+当前文档对应 LetsGo `0.5.0`。0.5.0 默认使用 advisory 宽松模式，优先保证生命周期能够
+完整运行；严格规则保留为诊断，并可通过 `LETSGO_ENFORCEMENT=strict` 重新启用。
 
 ## 1. LetsGo 是什么
 
@@ -38,10 +39,10 @@ LetsGo 追求以下结果：
 
 1. **阶段明确**：任何时刻都能回答当前变更处于哪个阶段、下一步是什么。
 2. **证据可追溯**：需求、设计、任务、TDD、验收和归档都有持久化产物。
-3. **角色受约束**：每个阶段只能启动指定 Skill 和指定 Subagent。
+3. **角色有建议**：每个阶段给出推荐 Skill 和 Subagent；偏离时默认警告而非阻断。
 4. **实现可验证**：行为修改必须执行真实的 `RED -> GREEN -> REFACTOR`。
 5. **中断可恢复**：不依赖模型记忆，而从项目文件和运行状态继续。
-6. **权限可解释**：Guard 的放行或拒绝必须能指出当前阶段、目标路径和修复动作。
+6. **权限可解释**：Guard 的警告或拒绝必须能指出当前阶段、目标路径和修复动作。
 7. **运行足够轻量**：使用少量覆盖更新的状态文件，不为每次调用生成大量 JSON。
 8. **适合大项目**：可使用 CodeGraph 聚焦调用链和影响范围，同时允许安全降级。
 
@@ -72,8 +73,8 @@ LetsGo 同时维护三种不同性质的状态。
 - `runtime-state.json` 是临时控制面，阶段推进后重置；
 - `run-summary.json` 用于恢复上下文和观察流程摩擦，不直接授权阶段推进。
 
-普通 Agent 不得手工修改这些控制状态。状态更新由 LetsGo CLI 和 Hook 完成，从而避免
-伪造 Skill、Writer 或 Reviewer 已通过。
+状态通常由 LetsGo CLI 和 Hook 更新。默认 advisory 模式即使 tracking 不完整也允许在
+阶段产物校验通过后推进；控制状态仍不应由 Agent 手工伪造。
 
 ## 4. 总体架构
 
@@ -383,20 +384,19 @@ LETGO_RESULT {"stage":"verify","role":"reviewer","status":"blocked","blocking":[
 协议由 `agents/*.md` 统一定义。派发 prompt 只传阶段、change-id、目标文件和审查重点，
 不重复粘贴协议，避免不同 Skill 维护出不同字段。
 
-### 9.2 Reviewer 两轮限制
+### 9.2 Reviewer 修订循环
 
-一次初审加一次修订后复审构成一个完整审查周期。第二轮仍阻塞时必须停止，不能启动
-第三次 reviewer，也不能把产物手工标记为通过。
-
-若需要继续修订，用户明确授权 `reopen`，开启新的、有审计记录的审查周期。旧结论不会
-被删除，而是进入 reopen 历史。
+Reviewer 不再设置固定调用次数。每次 blocked 后必须先按 `blocking` 实际修订，再重新
+审查；禁止没有文件或证据变化的空转，也不能手工伪造通过。只有需要修改已批准的更早
+阶段时才使用 `reopen`。
 
 ## 10. Guard 权限模型
 
-Guard 只在存在 `openspec/` 的项目中启用。只读工具通常直接放行；写入根据当前阶段、
-目标路径和命令风险判断。
+Guard 只在存在 `openspec/` 的项目中启用。默认 advisory 模式下，只读工具和项目内文件
+写入直接放行；跨阶段、顺序和协议问题会记录 warning。项目外路径、高风险命令和 push
+仍由现有权限边界处理。
 
-| 阶段 | 主要允许写入 |
+| 阶段 | 推荐写入范围 |
 | --- | --- |
 | clarify | 当前变更的 `proposal.md`、`status.json` |
 | design | `design.md`、当前变更 `specs/**`、`status.json` |
@@ -421,10 +421,10 @@ Guard 自动放行可明确识别的只读命令、测试、语法检查和阶�
 `2>&1`、`1>&2`、`/dev/null` 和 Windows `NUL` 等安全诊断重定向会被识别，不应误报为
 普通文件写入。
 
-### 10.2 相同错误不重试
+### 10.2 Advisory 与真实拒绝
 
-同一个 Guard 或 Write 错误出现后，应检查一次原因并停止。禁止通过换成 Bash、Node、
-临时脚本或另建 maintenance 变更绕过。阻塞问题写入 `openspec/.letsgo/issues.md`。
+Advisory warning 记录后继续正常流程，不必停下或请求人工批准。只有 Claude Code 权限
+系统真正拒绝项目外或高风险操作时才停止；不得通过换成 Bash、Node 或临时脚本绕过。
 
 ## 11. CodeGraph 设计
 
@@ -436,9 +436,9 @@ CodeGraph 用于大项目的 Clarify 影响分析。目标不是替代所有读�
 - 可能受影响的测试；
 - 设计需要关注的边界。
 
-每个变更默认一次查询，只有缺少会改变设计结论的关键调用边时才允许第二次。第三次由
-Hook 阻止。若 CLI、MCP 或 `.codegraph/codegraph.db` 不可用，明确降级到 Read/Grep，
-不阻塞生命周期。
+每个变更默认建议一次查询，缺少关键调用边时补一次。超出建议预算会记录 advisory
+warning，但不阻断。若 CLI、MCP 或 `.codegraph/codegraph.db` 不可用，明确降级到
+Read/Grep，不阻塞生命周期。
 
 安装与初始化：
 
@@ -473,7 +473,7 @@ Continue 会核对项目根目录、change-id、`status.json` 阶段和 runtime�
 - `load-skill`：当前 session 需要重新加载阶段 Skill；
 - `run-writer`：Writer 尚未完成；
 - `run-reviewer`：Writer 已完成但尚未审查；
-- `blocked`：两轮审查仍阻塞，等待用户决定。
+- `revise-clarify`：按最新 blocking 修订 Clarify 产物后继续审查。
 
 若 tracking 丢失但阶段产物通过 `validate --after` 硬校验，CLI 可以恢复带
 `recoveredFromArtifacts` 的 Writer 检查点；它不会恢复 Skill 或 Reviewer，因此仍需
@@ -677,9 +677,9 @@ claude plugin validate .
 LetsGo 有意选择了一些工程权衡：
 
 - 六阶段提高可追溯性，但小改动会增加流程成本；
-- Reviewer 两轮上限控制 token，但需要 reopen 才能继续新的审查周期；
+- Reviewer 不限次数能减少流程死锁，但必须依靠“每轮有实际修订”避免 token 空转；
 - 每个 Apply 任务单独派发提高恢复能力，但会增加 Subagent 启动次数；
-- CodeGraph 两次预算减少重复上下文，但极复杂调用图可能需要降级工具补充；
+- CodeGraph 建议两次预算减少重复上下文，超出预算只警告，可能增加 token；
 - 从产物恢复 Writer tracking 能避免重做，但结构证据不能独立证明历史命令真实性，因此
   必须重新 Reviewer；
 - Guard 不能理解所有 shell 语义，无法确定安全时宁可请求批准；

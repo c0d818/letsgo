@@ -56,7 +56,8 @@ codegraph init
 `letsgo doctor <project>` 会报告 `codegraphExecutable`、`codegraphIndexed` 和
 `codegraphReady`。未安装或未建索引时，LetsGo 会明确降级到内置的 `Grep`、
 `Read`，不会中断工作流。
-每次 clarify 最多放行两次聚焦查询，第三次由 Hook 直接拒绝并记录到单一运行摘要。
+clarify 默认建议一次、必要时补一次聚焦查询；宽松模式不设硬上限，超出建议预算时记录
+advisory warning，不阻断流程。
 
 ## 发布
 
@@ -105,6 +106,14 @@ clarify -> design -> plan -> apply -> verify -> archive -> done
 
 apply 阶段固定执行 RED -> GREEN -> REFACTOR，并把真实命令和结果记录到
 `tdd-evidence.md`；不改变生产行为的修改必须记录明确的 TDD 豁免和验证证据。
+
+从 0.5.0 起默认使用 `advisory` 宽松模式：项目内跨阶段写入、Agent 命名/顺序/协议、
+Reviewer 次数和 CodeGraph 建议预算只记录警告，不阻断生命周期；`status.json` 阶段顺序
+和阶段产物校验仍生效。需要对照旧行为时，可在启动 Claude Code 前设置：
+
+```bash
+export LETSGO_ENFORCEMENT=strict
+```
 
 LetsGo 使用 `openspec/.letsgo/runtime-state.json` 做当前阶段运行前检查，并用一个
 覆盖更新的 `run-summary.json` 保存阶段摘要与权限、压缩、守卫拒绝指标。两者都不

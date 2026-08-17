@@ -24,7 +24,7 @@ user-invocable: false
 3. 向 `@lg:letsgo-reviewer` 传递最小审查包，只审查 tasks 和必要的前置设计，
    检查设计覆盖、任务顺序、目标文件、测试策略和完成条件。不要在 prompt 中复制或
    覆盖 reviewer Agent 定义的结果协议。
-4. reviewer 有阻塞问题时，将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
+4. reviewer 有阻塞问题时，将问题交回 writer 修复后重新审查；不设固定次数，但每轮必须有实际修订。
 5. reviewer 通过后，交回主 Agent 运行
    `letsgo validate --after plan --change <change-id>` 和
    `letsgo advance plan --change <change-id>`。

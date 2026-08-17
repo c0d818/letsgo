@@ -64,7 +64,7 @@ letsgo reopen <state> --change <change-id> --reason "<人工解除理由>"
 `letsgo advance <state>` 只在 `<state>` 与 `status.json` 当前状态一致时推进。
 `letsgo reopen <state>` 只允许经用户确认后回到已经完成的更早阶段。它撤销目标阶段
 及其后续 completed/approved，保留旧 reviewer/runtime 证据并重置目标阶段运行门禁；
-不能用于自动增加第三次 reviewer，也不能省略人工解除理由。
+不能用于普通的同阶段复审，也不能省略人工解除理由。
 
 `letsgo new` 从 OpenSpec 变更类型模板创建工作区：
 
@@ -98,9 +98,9 @@ openspec/change-types/
 
 1. `SessionStart` 和 `UserPromptSubmit` 把当前变更状态和生命周期规则注入模型
    上下文。
-2. `PreToolUse` 按当前变更的阶段写权限范围拦截写类工具（`Bash`、`Write`、
-   `Edit`、`MultiEdit`、`NotebookEdit`）。范围外的写入被拒绝；看不到文件路径
-   的写入交给用户审查。
+2. `PreToolUse` 检查写类工具（`Bash`、`Write`、`Edit`、`MultiEdit`、
+   `NotebookEdit`）。默认 advisory 模式下，项目内跨阶段文件写入会放行并记录警告；
+   项目外写入、高风险命令和无法确认目标的操作仍交给权限系统审查。
 
 Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --check` 和
 `node --test` 自动放行；`apply`、`verify` 阶段还会放行 `node scripts/task.js`
@@ -116,16 +116,17 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 
 1. `PostToolUse Skill` 记录阶段 Skill 已加载；apply 同时要求 `letsgo-apply` 和
    `letsgo-tdd`。
-2. `PreToolUse Agent|Task` 在启动 writer 前检查阶段 Skill，在启动 reviewer 前检查
-   writer 已完成，同时只接受当前阶段白名单中的完整规范名，拒绝旧结果协议和第三次
-   reviewer；Agent 定义自身不包含 `Agent`/`Task` 工具，不能绕过主 Agent 嵌套派发。
+2. `PreToolUse Agent|Task` 检查阶段 Skill、writer/reviewer 顺序、规范名和结果协议；
+   默认 advisory 模式只警告不阻断，Reviewer 也不设固定次数。Agent 定义自身不包含
+   `Agent`/`Task` 工具，仍由主 Agent 统一派发。
 3. `SubagentStart` 和 `SubagentStop` 记录 Subagent 状态；writer 和 reviewer 最后
    一行使用 `LETGO_RESULT` 输出机器可读结论。
-4. `letsgo advance <state>` 在更新 `status.json` 前检查阶段 Skill、writer 和
-   reviewer；verify 还要求 `未验证验收项：0`，缺少证据时不推进。
-5. writer 重新启动后，旧 reviewer 结论立即过期，必须重新审查。
-6. 同一 Writer/Reviewer 仍为 `started` 时不得重复启动；Apply 的 `partial` 结束后才可
-   顺序续派下一任务，`partial` 与最终 `ready` 都是合法的完整结果协议。
+4. `letsgo advance <state>` 在更新 `status.json` 前检查阶段产物；runtime 中 Skill、
+   writer、reviewer 缺口在 advisory 模式作为 `runtimeWarnings` 返回，不阻断推进。
+   verify 仍要求 `未验证验收项：0`，阶段产物校验失败时不推进。
+5. writer 重新启动后，旧 reviewer 结论立即过期，建议重新审查。
+6. 同一 Writer/Reviewer 仍为 `started` 时重复启动会产生 advisory warning；Apply 仍
+   建议等待 `partial` 结束后顺序续派，避免并发修改同一文件。
 7. 后台 Agent 若未触发 `SubagentStop`，下一次派发前从其独立 transcript 补记最终
    `LETGO_RESULT`；没有合法最终结果时继续视为运行中，不得猜测完成。
 
@@ -141,14 +142,14 @@ Node 命令默认采用 balanced 规则：`node -v`、`node --help`、`node --ch
 
 生命周期完成后默认创建作用域明确的本地提交（用户明确拒绝时除外）；守卫允许
 非 amend/fixup/squash 的本地 `git add` 和 `git commit`，`git push` 仍保留权限确认。
-任何相同守卫拒绝都必须停止重试，不能
-用 Bash、临时脚本或递归维护变更绕过。
+advisory warning 会记录但不阻断；真正的宿主权限拒绝仍不能用 Bash、临时脚本或递归
+维护变更绕过。
 
 守卫直接读取 `openspec/changes/*/status.json`。只有一个活跃变更时自动使用；
 有多个变更时，`letsgo select <change-id>` 写入
 `openspec/.letsgo/active.json`，守卫优先使用标记的变更。
 
-各阶段写权限范围：
+各阶段推荐写入范围（advisory 模式不硬阻断项目内跨阶段写入）：
 
 | 阶段 | 允许写入范围 |
 | --- | --- |

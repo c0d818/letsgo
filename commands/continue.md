@@ -22,8 +22,7 @@ argument-hint: [change-id]
    - `load-skill`：加载列出的当前阶段 Skill，再继续 `/lg:letsgo <change-id>`。
    - `run-writer`：只启动返回的 writer，不重复已完成 Skill。
    - `run-reviewer`：只启动 reviewer，不重复已完成 writer。
-   - `blocked`：展示 `blocking`，保持阻塞；不得重置次数或手动批准。只有用户明确
-     授权时才执行返回的 `/lg:reopen`。
+   - `revise-clarify`：主 Agent 按 `blocking` 修订 proposal 后重新审查。
 3. `continue` 只允许新 session 接管同一 change-id、同一阶段的现有 runtime；它不
    把无效、跨阶段或其他变更的证据恢复成 pass。
    如果 runtime 的 Writer tracking 丢失，但当前阶段产物通过与 `validate --after` 相同的
@@ -36,4 +35,4 @@ argument-hint: [change-id]
    其他阶段 Agent；展示冲突中的项目根目录与两组 change/stage，再按提示显式执行
    `/lg:continue <active-change-id>`。若这不是用户要继续的变更，先让用户选择。
 
-不得删除 `runtime-state.json`、重复 reviewer、跳过 writer 或修改 `status.json`。
+不得删除 `runtime-state.json` 或手工修改 `status.json`；reviewer 可以在每轮实际修订后再次运行。

@@ -43,7 +43,7 @@ user-invocable: false
    符合性、行为回归、测试质量、边界条件与安全风险。不要在 prompt 中复制或覆盖
    reviewer Agent 定义的结果协议。
 8. 缺少证据、任务与 Cycle 不对应、RED 未真实失败或豁免不成立时必须阻塞，
-   将问题交回 writer 修复并只重新审查一次；仍阻塞则停止。
+   将问题交回 writer 修复后重新审查；不设固定次数，但每轮必须有新的修订证据。
 9. reviewer 通过后，交回主 Agent 再次运行
    `letsgo validate --after apply --change <change-id>`，确认仍为“未完成任务：0”，再运行
    `letsgo advance apply --change <change-id>`。

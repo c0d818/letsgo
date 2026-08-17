@@ -67,8 +67,8 @@ letsgo status --change <change-id>
 
 ## 5. 审查、阻塞与完成
 
-- 每阶段顺序固定为 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance；
-  reviewer 初审阻塞后最多再派发一次，第二次仍阻塞就停止。
+- 每阶段建议按 Skill -> writer（clarify 除外）-> reviewer -> validate -> advance；reviewer
+  阻塞后交回修订并重新审查，不设固定次数，但不得无变化空转。
 - 每次 advance 必须确认 `advanced: true` 并重新读取 status；失败时不得创建任何后续阶段产物。
 - done 后除非用户明确说不提交，默认对本变更显式路径执行 `git add` 和本地 commit，
   不自动 push。

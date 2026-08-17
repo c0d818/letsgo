@@ -34,23 +34,21 @@ user-invocable: false
 
 4. 派发 reviewer 时只传最小审查包：阶段、change-id、目标文件、验收标准、相关
    diff 和风险重点；不让 reviewer 重新遍历整个项目。
-5. reviewer 不通过时，将问题交回当前 writer 修复并重新审查；同一产物只允许
-   一次初审和一次修订后复审；第二次仍阻塞时停止，不得第三次启动。
-   不得提供“手动批准当前产物”或伪造 pass 的选项；必须展示第二轮 `blocking`。
-   若阻塞只需继续修订当前阶段，等待用户明确授权 `/lg:reopen` 重开当前审查周期；
-   阻塞证明需要修改更早阶段时，等待用户明确授权 `/lg:reopen`；不得自动回退、
-   另建变更或手动修改状态。reopen 后从目标阶段重新执行完整门禁。
+5. reviewer 不通过时，将 `blocking` 交回当前 writer 修复后重新审查；当前默认宽松模式
+   不设置固定复审次数。每轮必须针对最新 blocking 产生实际修订，不得空转重复审查，
+   也不得伪造 pass。只有相同问题重复且没有进展、环境不可用或必须由用户决策时才停止。
+   若阻塞证明需要修改更早阶段，等待用户明确授权 `/lg:reopen`；不得自动回退、另建
+   变更或手动修改状态。reopen 后从目标阶段重新执行完整流程。
 6. reviewer 通过后，由主 Agent 执行阶段完成校验和状态推进。
    必须检查 `letsgo advance` 返回 `advanced: true`，再运行 `letsgo status` 确认状态
    已进入预期下一阶段。命令执行过不等于推进成功；返回失败、无法解析或状态未变化时
    立即停止，不得加载下一阶段 Skill、启动其 Subagent 或创建任何后续阶段产物。
-7. 遵守运行前检查：只使用上表当前阶段列出的完整 Agent 名；不得使用
-   `general-purpose`、短名、别名或其他阶段 Agent。无论宿主调用 `Agent` 还是旧式 `Task`
-   都必须执行同一白名单；先加载阶段 Skill，再启动 writer；writer 完成后再启动
-   reviewer。派发 prompt 只提供阶段、change-id、目标文件
+7. 优先使用上表当前阶段列出的完整 Agent 名，并保持先加载 Skill、再启动 writer、最后
+   reviewer 的顺序。默认宽松模式下命名、顺序或协议问题只产生警告，不阻断当前流程；
+   仍应在后续调用修正。派发 prompt 只提供阶段、change-id、目标文件
    和任务重点；完整 `LETGO_RESULT` 协议以 Agent 定义为唯一来源，不在 prompt 中复制。
-8. 同一 Guard/Write 错误出现后立即停止，不重复调用，不创建另一个 maintenance
-   变更，也不使用 Bash/Node/临时脚本绕过。
+8. Guard 的 advisory 警告不阻断流程；记录警告后继续使用正常文件工具。真正由宿主权限
+   系统拒绝的高风险或项目外操作才停止，不使用 Bash/Node/临时脚本绕过。
 9. 导致流程停止的校验、Guard、Agent、工具或环境问题必须追加到
    `openspec/.letsgo/issues.md`；瞬时超时若由 Apply 检查点自动恢复则不重复记录，
    同一问题再次出现或最终阻塞时再记录一次。
@@ -75,4 +73,5 @@ user-invocable: false
 - 不跳过校验或手动推进 `status.json`。
 - 不在记录真实验证证据前宣称完成。
 - 已批准的 proposal 在实现阶段不是可选参考。
-- 不绕过 `runtime-state.json` 的 Skill、writer 和 reviewer 顺序检查。
+- runtime tracking 缺失时使用 `/lg:continue` 或依靠 advance 的 advisory warning，
+  不把运行时记录缺失当作生命周期永久阻塞。
